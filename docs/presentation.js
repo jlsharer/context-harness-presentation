@@ -40,14 +40,20 @@ for (const control of controls) {
 }
 slides.forEach((slide, i) => el('jump').add(new Option((i+1)+' / '+slides.length+'  ·  '+slide.title, i+1)));
 function showSlide() {
+  if(location.hash === '#slide-15') history.replaceState(null, '', '#slide-4');
   const match = /^#slide-(\d+)$/.exec(location.hash);
   current = match && +match[1] >= 1 && +match[1] <= slides.length ? +match[1] : 1;
   if (dialog.open) dialog.close();
-  const slide = slides[current-1], hub = current === 15, figure = el('figure');
-  figure.hidden = hub;
+  const slide = slides[current-1], hub = slide.view === 'lifecycle', figure = el('figure');
+  const native = Boolean(diagrams[slide.view]);
+  figure.hidden = hub || native;
+  el('diagram').hidden = !native;
+  if(native) el('diagram').innerHTML = diagrams[slide.view];
+  el('pageNumber').textContent = String(current).padStart(2,'0');
+  el('pageNumber').hidden = hub || native;
   el('lifecycle').hidden = !hub;
-  if (!hub) {
-    figure.src = 'slides/slide-'+String(current).padStart(2,'0')+'.png';
+  if (!hub && !native) {
+    figure.src = slide.image;
     figure.alt = slide.title + '. ' + slide.description;
   }
   el('jump').value = String(current);
@@ -67,7 +73,7 @@ el('previous').onclick = () => go(current-1);
 el('next').onclick = () => go(current+1);
 el('jump').onchange = e => go(+e.target.value);
 el('close').onclick = () => dialog.close();
-dialog.onclose = () => { if (current===15 && opener) opener.focus(); };
+dialog.onclose = () => { if (slides[current-1].view==='lifecycle' && opener) opener.focus(); };
 window.addEventListener('hashchange', showSlide);
 document.addEventListener('keydown', e => {
   if(dialog.open || e.altKey || e.ctrlKey || e.metaKey || e.target.matches('select')) return;
