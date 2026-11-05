@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "runId": "pilot-2-component-feature-A",
+  "task": "component-feature",
+  "prompt": "Owner-approved single-session benchmark condition: perform this task directly in this session; do not delegate. Task: Implement API/client pagination together. API listOrders sorts by id without mutation and returns {items,nextCursor}; cursor is an offset, final cursor is null, size must be positive. Client readOrders follows cursors and propagates errors. Use only files in this task workspace for task work. Do not access other benchmark workspaces or evaluators, install packages, use network tools, commit or push. Use openai/gpt-6.1-sol for every model request. Normal protocol trace artifacts are authorized at the exact traceRoot returned by admission. Test your work with bounded local checks. Finish after delivering the requested artifact.",
+  "promptSha256": "805d4287dfa278a544117e0163a7276c1868ae06929203c53eefdb15b10e8558",
+  "taskPrompt": "Implement API/client pagination together. API listOrders sorts by id without mutation and returns {items,nextCursor}; cursor is an offset, final cursor is null, size must be positive. Client readOrders follows cursors and propagates errors.",
+  "wrapper": "Owner-approved single-session benchmark condition: perform this task directly in this session; do not delegate. Task: ",
+  "commonInstructions": " Use only files in this task workspace for task work. Do not access other benchmark workspaces or evaluators, install packages, use network tools, commit or push. Use openai/gpt-6.1-sol for every model request. Normal protocol trace artifacts are authorized at the exact traceRoot returned by admission. Test your work with bounded local checks. Finish after delivering the requested artifact.",
+  "provenance": "Exact launch prompt verified against the measured manifest; protocol files read from the immutable installed release used by this pilot. This is a retrospective publication, not a new run.",
+  "captureLimits": [
+    "The complete native/provider system prompt and every assembled request were not retained. Their exact text cannot be reconstructed from this pilot.",
+    "Installed protocol references were available to the parent; this does not prove that every reference was loaded on every call.",
+    "Model-generated plans, admission specifications and child prompts are not the initial user prompt and are not reproduced in this input record."
+  ],
+  "settings": [
+    "Model: openai/gpt-6.1-sol, native default variant, subscription authentication.",
+    "Fresh task workspace and sessions; natural provider cache, no forced flush.",
+    "10-minute workflow bound and 100 observed-request guard; no dollar ceiling.",
+    "Installed global profile 0.1.20: per-workflow worker capacity one. No retrospective concurrency change."
+  ],
+  "treatment": "Single-session: the observer removes harness delegation-awareness injection and the subagent/harness_orchestration tools. Ordinary native instructions and tools remain.",
+  "protocols": [],
+  "acceptance": {
+    "criteria": [
+      "API returns sorted pages and a correct final null cursor; the client follows cursors to collect all three fixture orders.",
+      "Input order is unchanged; empty pages terminate; client errors propagate; zero page size is rejected."
+    ],
+    "rule": "External evaluator runs the same fixed tests against each frozen artifact. Both tests must complete with no failures; self-reported success is insufficient. Checks are small screening tests, not exhaustive specification coverage.",
+    "evaluatorSha256": "87dbd0d2109ed71802c37b68b496bd8437d394a1e3f321e138897324081a80c8",
+    "evaluatorSource": "import test from \"node:test\";import assert from \"node:assert/strict\";import {listOrders} from \"./api.mjs\";import {readOrders} from \"./client.mjs\";\ntest(\"API and client agree on pagination contract\",async()=>{const input=[{id:3},{id:1},{id:2}];const first=listOrders(input,0,2);assert.deepEqual(first,{items:[{id:1},{id:2}],nextCursor:2});const all=await readOrders(async cursor=>listOrders(input,cursor,2));assert.deepEqual(all,[{id:1},{id:2},{id:3}]);assert.deepEqual(input,[{id:3},{id:1},{id:2}]);});\ntest(\"empty pages terminate and errors propagate\",async()=>{assert.deepEqual(await readOrders(async()=>({items:[],nextCursor:null})),[]);await assert.rejects(readOrders(async()=>{throw new Error(\"network\")}),/network/);assert.throws(()=>listOrders([],0,0));});",
+    "status": "accepted",
+    "managedRule": "Managed orchestration acceptance is not applicable."
+  },
+  "starterFiles": [
+    {
+      "name": "api.mjs",
+      "text": "export function listOrders(rows,cursor,size){return {items:rows,nextCursor:null}}\n"
+    },
+    {
+      "name": "client.mjs",
+      "text": "export async function readOrders(fetchPage){return (await fetchPage(0)).items}\n"
+    }
+  ]
+}

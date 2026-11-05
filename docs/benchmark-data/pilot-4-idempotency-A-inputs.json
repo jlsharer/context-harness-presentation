@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "runId": "pilot-4-idempotency-A",
+  "task": "idempotency",
+  "prompt": "Owner-approved single-session benchmark condition: perform this task directly in this session; do not delegate. Task: Fix createStore so duplicate and concurrent requests with a key return the same order. Persist before success, count only successful orders, allow retry after storage failure, and preserve independent keys. Use only files in this task workspace for task work. Do not access other benchmark workspaces or evaluators, install packages, use network tools, commit or push. Use openai/gpt-6.1-sol for every model request. Normal protocol trace artifacts are authorized at the exact traceRoot returned by admission. Test your work with bounded local checks. Finish after delivering the requested artifact.",
+  "promptSha256": "ad8190937616c1741924c6671d242f0cb7f1c9aec688d31862982a23ab090b80",
+  "taskPrompt": "Fix createStore so duplicate and concurrent requests with a key return the same order. Persist before success, count only successful orders, allow retry after storage failure, and preserve independent keys.",
+  "wrapper": "Owner-approved single-session benchmark condition: perform this task directly in this session; do not delegate. Task: ",
+  "commonInstructions": " Use only files in this task workspace for task work. Do not access other benchmark workspaces or evaluators, install packages, use network tools, commit or push. Use openai/gpt-6.1-sol for every model request. Normal protocol trace artifacts are authorized at the exact traceRoot returned by admission. Test your work with bounded local checks. Finish after delivering the requested artifact.",
+  "provenance": "Exact launch prompt verified against the measured manifest; protocol files read from the immutable installed release used by this pilot. This is a retrospective publication, not a new run.",
+  "captureLimits": [
+    "The complete native/provider system prompt and every assembled request were not retained. Their exact text cannot be reconstructed from this pilot.",
+    "Installed protocol references were available to the parent; this does not prove that every reference was loaded on every call.",
+    "Model-generated plans, admission specifications and child prompts are not the initial user prompt and are not reproduced in this input record."
+  ],
+  "settings": [
+    "Model: openai/gpt-6.1-sol, native default variant, subscription authentication.",
+    "Fresh task workspace and sessions; natural provider cache, no forced flush.",
+    "10-minute workflow bound and 100 observed-request guard; no dollar ceiling.",
+    "Installed global profile 0.1.20: per-workflow worker capacity one. No retrospective concurrency change."
+  ],
+  "treatment": "Single-session: the observer removes harness delegation-awareness injection and the subagent/harness_orchestration tools. Ordinary native instructions and tools remain.",
+  "protocols": [],
+  "acceptance": {
+    "criteria": [
+      "Twelve concurrent requests for one key share one order ID; later duplicate requests reuse it; the successful count is one.",
+      "A failed persistence call rejects and is retryable; distinct keys receive distinct IDs; only two successful orders are counted."
+    ],
+    "rule": "External evaluator runs the same fixed tests against each frozen artifact. Both tests must complete with no failures; self-reported success is insufficient. Checks are small screening tests, not exhaustive specification coverage.",
+    "evaluatorSha256": "43fdc4a7ab1f2f1482371855e3cef113c3285a8e5b614f613dab21b9e809cfb0",
+    "evaluatorSource": "import test from \"node:test\";import assert from \"node:assert/strict\";import {createStore} from \"./orders.mjs\";\ntest(\"duplicate and concurrent order requests share one durable result\",async()=>{const store=createStore();const results=await Promise.all(Array.from({length:12},()=>store.create(\"key\",{item:\"book\"})));assert.equal(new Set(results.map(r=>r.id)).size,1);assert.equal(store.count(),1);assert.equal((await store.create(\"key\",{item:\"book\"})).id,results[0].id);});\ntest(\"different keys create different orders; failed creation is retryable\",async()=>{let attempt=0;const store=createStore(async()=>{if(attempt++===0)throw new Error(\"storage\");});await assert.rejects(store.create(\"a\",{}));const a=await store.create(\"a\",{}),b=await store.create(\"b\",{});assert.notEqual(a.id,b.id);assert.equal(store.count(),2);});",
+    "status": "accepted",
+    "managedRule": "Managed orchestration acceptance is not applicable."
+  },
+  "starterFiles": [
+    {
+      "name": "orders.mjs",
+      "text": "export function createStore(persist=async()=>{}){let n=0;return {async create(key,body){const order={id:++n,key,body};await persist(order);return order},count(){return n}}}\n"
+    }
+  ]
+}

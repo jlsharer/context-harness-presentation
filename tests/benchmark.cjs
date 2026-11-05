@@ -57,6 +57,28 @@ try{
  await page.locator('#rightArm').selectOption('B');
  assert.match(await page.locator('#comparison').innerText(),/48 \/ 48/);
  assert.match(await page.locator('#comparison').innerText(),/API-equivalent model cost/);
+ await page.locator('.comparison-card').nth(0).getByRole('button',{name:'Prompt, protocol and acceptance'}).click();
+ await page.getByRole('heading',{name:'Shared task',exact:true}).waitFor();
+ assert.match(await page.locator('#detailBody').innerText(),/Owner-approved single-session benchmark condition/);
+ assert.match(await page.locator('#detailBody').innerText(),/Both tests must complete with no failures/);
+ assert.match(await page.locator('#detailBody').innerText(),/complete native\/provider system prompt/);
+ assert.equal(await page.locator('#detailBody [data-protocol]').count(),0);
+ await page.getByRole('button',{name:'Close',exact:true}).click();
+ assert.match(await page.evaluate(()=>document.activeElement.textContent),/Prompt, protocol and acceptance/);
+ await page.locator('.comparison-card').nth(1).getByRole('button',{name:'Prompt, protocol and acceptance'}).click();
+ await page.getByRole('heading',{name:'Shared task',exact:true}).waitFor();
+ assert.match(await page.locator('#detailBody').innerText(),/Managed sequential benchmark condition/);
+ assert.equal(await page.locator('#detailBody [data-protocol]').count(),4);
+ await page.locator('#detailBody [data-protocol]').nth(1).locator('summary').click();
+ assert.match(await page.locator('#detailBody').innerText(),/Global native profile: assets live at \[RUNTIME_ROOT\]/);
+ await page.screenshot({path:path.join(output,'parent-inputs.png'),fullPage:true});
+ await page.keyboard.press('Escape');
+ const inputPattern='**/pilot-2-component-feature-A-inputs.json';
+ await page.route(inputPattern,route=>route.fulfill({status:200,contentType:'application/json',body:'{"version":1,"prompt":"tampered"}'}));
+ await page.locator('.comparison-card').nth(0).getByRole('button',{name:'Prompt, protocol and acceptance'}).click();
+ await page.getByText('Inputs unavailable: Evidence checksum mismatch',{exact:true}).waitFor();
+ await page.keyboard.press('Escape');await page.unroute(inputPattern);
+
  await page.locator('#rightArm').selectOption('C');
  assert.match(await page.locator('#comparison').innerText(),/Parallel requested; concurrent workers were not verified/);
  assert.match(await page.locator('#comparability').innerText(),/coverage.parallel/);
@@ -71,6 +93,22 @@ try{
  await page.setViewportSize({width:390,height:844});
  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
  await page.screenshot({path:path.join(output,'measured-mobile.png'),fullPage:true});
+
+ const measured=JSON.parse(await fs.readFile(path.join(__dirname,'../docs/benchmark-data/measured-pilot.json'),'utf8'));
+ for(const width of [1440,390]){
+  await page.setViewportSize({width,height:900});
+  for(const run of measured.runs){
+   await page.locator('#task').selectOption(run.task);await page.locator('#rightArm').selectOption(run.arm);
+   await page.locator('.comparison-card').nth(1).getByRole('button',{name:'Prompt, protocol and acceptance'}).click();
+   await page.getByRole('heading',{name:'Shared task',exact:true}).waitFor();
+   assert.match(await page.locator('#detailBody').innerText(),new RegExp(run.id));
+   assert.equal(await page.locator('#detailBody [data-protocol]').count(),run.arm==='A'?0:4);
+   assert.ok(await page.locator('#detail').evaluate(d=>d.scrollWidth<=d.clientWidth));
+   if(run.id==='pilot-5-idempotency-C')assert.match(await page.locator('#detailBody').innerText(),/TWO fresh researcher children concurrently/);
+   await page.getByRole('button',{name:'Close',exact:true}).click();
+   assert.match(await page.evaluate(()=>document.activeElement.textContent),/Prompt, protocol and acceptance/);
+  }
+ }
  await page.goto(new URL('benchmark-pilot.html',base).href);
  assert.equal(await page.locator('tbody tr').count(),6);
  assert.match(await page.locator('main').innerText(),/capacity exhausted/);

@@ -4063,5 +4063,36 @@
       "latencyDeltaMs": null
     }
   ],
-  "evidence": []
+  "evidence": [
+    {
+      "runId": "pilot-1-component-feature-B",
+      "href": "benchmark-data/pilot-1-component-feature-B-inputs.json",
+      "sha256": "ad8f9793812ed248abf9fd31b7091e22e270f63d8d90a288d8902d22aa74568e"
+    },
+    {
+      "runId": "pilot-2-component-feature-A",
+      "href": "benchmark-data/pilot-2-component-feature-A-inputs.json",
+      "sha256": "6fe2d7a3b6867ded999400b033af62381154ad91aa77e93bff1edfadc0fead1f"
+    },
+    {
+      "runId": "pilot-3-component-feature-C",
+      "href": "benchmark-data/pilot-3-component-feature-C-inputs.json",
+      "sha256": "4d502cca7c9cf779f5a4a0c35819064ac206a6a05202a45a8ada601886b672de"
+    },
+    {
+      "runId": "pilot-4-idempotency-A",
+      "href": "benchmark-data/pilot-4-idempotency-A-inputs.json",
+      "sha256": "e31401b501971f626190110625dbc085e5165d1d75d32f14e0af94382ce8b424"
+    },
+    {
+      "runId": "pilot-5-idempotency-C",
+      "href": "benchmark-data/pilot-5-idempotency-C-inputs.json",
+      "sha256": "783e4a5c363cada331efbe43f18b407a4f847872362b6098a0892f1fc20241d3"
+    },
+    {
+      "runId": "pilot-6-idempotency-B",
+      "href": "benchmark-data/pilot-6-idempotency-B-inputs.json",
+      "sha256": "b33a350364092d16c68a7b28d9345e0af9fd9db6ebd16e9ffe53ea9145d1ca25"
+    }
+  ]
 }
