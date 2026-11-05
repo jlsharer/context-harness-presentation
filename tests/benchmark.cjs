@@ -1,0 +1,54 @@
+const {chromium}=require('playwright');
+const assert=require('node:assert/strict');
+const fs=require('node:fs/promises');
+const path=require('node:path');
+const http=require('node:http');
+const os=require('node:os');
+(async()=>{
+const output=await fs.mkdtemp(path.join(os.tmpdir(),'benchmark-browser-'));
+const server=http.createServer(async(req,res)=>{try{
+ const name=new URL(req.url,'http://localhost').pathname.slice(1)||'benchmark.html';
+ if(!/^(benchmark(?:-schema)?\.(html|js|css)|benchmark-data\/[\w-]+\.json)$/.test(name)){res.writeHead(404).end();return;}
+ const data=await fs.readFile(path.join(__dirname,'../docs',name));res.writeHead(200,{'Content-Type':{'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json'}[path.extname(name)]});res.end(data);
+}catch{res.writeHead(404).end()}});
+await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(0,'127.0.0.1',resolve)});let browser;
+try{
+ browser=await chromium.launch({executablePath:process.env.TEST_BROWSER||undefined});
+ const page=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[];
+ page.on('pageerror',e=>errors.push(e.message));
+ const base=process.env.BENCHMARK_URL||'http://127.0.0.1:'+server.address().port+'/benchmark.html';
+ await page.goto(base);await page.getByText('No measured results loaded.',{exact:true}).waitFor();
+ await page.getByRole('button',{name:'Load synthetic demonstration'}).click();
+ await page.getByText('Synthetic demonstration — not measured results.',{exact:true}).waitFor();
+ assert.equal(await page.locator('.comparison-card').count(),2);
+ assert.equal(await page.locator('.arm-status').count(),5);
+ assert.match(await page.locator('#comparability').innerText(),/Matched conditions/);
+ assert.match(await page.locator('#unavailable').innerText(),/C.*D.*E/s);
+ await page.locator('#rightArm').selectOption('B');
+ await page.locator('.comparison-card').nth(1).getByRole('button',{name:/Inspect calls/}).click();
+ await page.getByRole('dialog').waitFor();
+ assert.match(await page.locator('#detailBody').innerText(),/10 model attempts/);
+ const worker=page.locator('#detailBody details').filter({hasText:'session-'}).first();await worker.locator('summary').click();
+ await page.getByRole('button',{name:'Close'}).click();
+ assert.equal(await page.locator('#detail').evaluate(el=>el.open),false);
+ assert.match(await page.evaluate(()=>document.activeElement.textContent),/Inspect calls/);
+ await page.screenshot({path:path.join(output,'demo-desktop.png'),fullPage:true});
+ const report=JSON.parse(await fs.readFile(path.join(__dirname,'../docs/benchmark-data/demo.json'),'utf8'));
+ report.runs[0].harness.name='<img src=x onerror=alert(1)>';
+ report.runs[0].estimatedModelUsd=null;
+ const malicious=path.join(output,'import.json');await fs.writeFile(malicious,JSON.stringify(report));
+ await page.locator('#importFile').setInputFiles(malicious);
+ await page.waitForFunction(()=>document.querySelector('#harness').textContent.includes('<img'));
+ assert.equal(await page.locator('img').count(),0);
+ await page.locator('#harness').selectOption('<img src=x onerror=alert(1)>');
+ assert.match(await page.locator('#comparison').innerText(),/Unavailable/);
+ await page.screenshot({path:path.join(output,'desktop.png'),fullPage:true});
+ await page.setViewportSize({width:390,height:844});
+ assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+ await page.screenshot({path:path.join(output,'mobile.png'),fullPage:true});
+ await page.getByRole('button',{name:'Load synthetic demonstration'}).click();
+ await page.locator('#harness').selectOption('Example harness');
+ await page.screenshot({path:path.join(output,'demo-mobile.png'),fullPage:true});
+ assert.deepEqual(errors,[]);console.log('Benchmark browser checks passed; screenshots:',output);
+}finally{await browser?.close();server.close();}
+})().catch(e=>{console.error(e);process.exitCode=1});

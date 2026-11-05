@@ -1,0 +1,525 @@
+{
+  "version": 1,
+  "evidenceScope": "synthetic",
+  "empiricalHarnessCount": 0,
+  "replication": "unmeasured",
+  "arms": [
+    {
+      "id": "A",
+      "label": "Single session"
+    },
+    {
+      "id": "B",
+      "label": "Sequential workers · same model"
+    },
+    {
+      "id": "C",
+      "label": "Parallel workers · same model"
+    },
+    {
+      "id": "D",
+      "label": "Sequential workers · routed"
+    },
+    {
+      "id": "E",
+      "label": "Parallel workers · routed"
+    }
+  ],
+  "costScope": "Model-token estimate only; tool/infrastructure charges and subscription quota are separate.",
+  "runs": [
+    {
+      "id": "demo-A",
+      "task": "duplicate-orders",
+      "arm": "A",
+      "repeat": 1,
+      "harness": {
+        "name": "Example harness",
+        "version": "synthetic-v1",
+        "adapter": "illustration",
+        "adapterVersion": "1"
+      },
+      "evidence": "synthetic",
+      "accounting": "api",
+      "models": [
+        {
+          "role": "primary",
+          "provider": "illustrative",
+          "model": "Same illustrative model",
+          "variant": "fixed"
+        }
+      ],
+      "conditionHash": "692c964659330e3d1a55f55dee140cb2d79c77d27d8289449cd592f94c67a883",
+      "artifactHash": "9999999999999999999999999999999999999999999999999999999999999999",
+      "accepted": true,
+      "evaluationStatus": "accepted",
+      "issues": 0,
+      "coverage": {
+        "requests": "supported",
+        "lineage": "supported",
+        "usage": "supported",
+        "timing": "supported",
+        "cancellation": "unknown",
+        "parallel": "unsupported"
+      },
+      "attempts": 6,
+      "generations": 6,
+      "tools": 8,
+      "delegations": 0,
+      "cumulativeInput": 2550000,
+      "peakInput": 850000,
+      "cacheRead": 200000,
+      "cacheWrite": 40000,
+      "output": 12000,
+      "estimatedModelUsd": 4.86,
+      "reportedModelUsd": null,
+      "quotaDelta": null,
+      "otherChargesUsd": null,
+      "timeToEvaluationMs": 54000,
+      "peakConcurrentWorkers": null,
+      "lanes": [
+        {
+          "id": "span-b9f4e65818644d8e",
+          "session": "session-956e6e33fe8b21fb",
+          "parent": null,
+          "kind": "workflow",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 51000
+        },
+        {
+          "id": "span-997c7ddaa003e25b",
+          "session": "session-956e6e33fe8b21fb",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 5000
+        },
+        {
+          "id": "span-a5d3c4c61ad4e013",
+          "session": "session-956e6e33fe8b21fb",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 5000
+        },
+        {
+          "id": "span-82018a106f577495",
+          "session": "session-956e6e33fe8b21fb",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 5000
+        },
+        {
+          "id": "span-e2c3580e785c6353",
+          "session": "session-956e6e33fe8b21fb",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 5000
+        },
+        {
+          "id": "span-b1f6c0a9a89d18be",
+          "session": "session-956e6e33fe8b21fb",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 5000
+        },
+        {
+          "id": "span-6e06eff316155b4a",
+          "session": "session-956e6e33fe8b21fb",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 5000
+        },
+        {
+          "id": "span-e29d4537b976f36a",
+          "session": "session-956e6e33fe8b21fb",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 2000
+        },
+        {
+          "id": "span-24e5688d3b0eb3e5",
+          "session": "session-956e6e33fe8b21fb",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 2000
+        },
+        {
+          "id": "span-a00135dba21133a4",
+          "session": "session-956e6e33fe8b21fb",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 2000
+        },
+        {
+          "id": "span-de846d47b3ce313c",
+          "session": "session-956e6e33fe8b21fb",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 2000
+        },
+        {
+          "id": "span-5467801e5583ce34",
+          "session": "session-956e6e33fe8b21fb",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 2000
+        },
+        {
+          "id": "span-86774a7cd20f64f5",
+          "session": "session-956e6e33fe8b21fb",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 2000
+        },
+        {
+          "id": "span-4b1046b9273804f0",
+          "session": "session-956e6e33fe8b21fb",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 2000
+        },
+        {
+          "id": "span-6bd02a37d7dd1994",
+          "session": "session-956e6e33fe8b21fb",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 2000
+        }
+      ]
+    },
+    {
+      "id": "demo-B",
+      "task": "duplicate-orders",
+      "arm": "B",
+      "repeat": 1,
+      "harness": {
+        "name": "Example harness",
+        "version": "synthetic-v1",
+        "adapter": "illustration",
+        "adapterVersion": "1"
+      },
+      "evidence": "synthetic",
+      "accounting": "api",
+      "models": [
+        {
+          "role": "primary",
+          "provider": "illustrative",
+          "model": "Same illustrative model",
+          "variant": "fixed"
+        }
+      ],
+      "conditionHash": "692c964659330e3d1a55f55dee140cb2d79c77d27d8289449cd592f94c67a883",
+      "artifactHash": "9999999999999999999999999999999999999999999999999999999999999999",
+      "accepted": true,
+      "evaluationStatus": "accepted",
+      "issues": 0,
+      "coverage": {
+        "requests": "supported",
+        "lineage": "supported",
+        "usage": "supported",
+        "timing": "supported",
+        "cancellation": "unknown",
+        "parallel": "unsupported"
+      },
+      "attempts": 10,
+      "generations": 10,
+      "tools": 10,
+      "delegations": 3,
+      "cumulativeInput": 1660000,
+      "peakInput": 400000,
+      "cacheRead": 240000,
+      "cacheWrite": 160000,
+      "output": 20000,
+      "estimatedModelUsd": 3.144,
+      "reportedModelUsd": null,
+      "quotaDelta": null,
+      "otherChargesUsd": null,
+      "timeToEvaluationMs": 72000,
+      "peakConcurrentWorkers": 1,
+      "lanes": [
+        {
+          "id": "span-b9f4e65818644d8e",
+          "session": "session-956e6e33fe8b21fb",
+          "parent": null,
+          "kind": "workflow",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 69000
+        },
+        {
+          "id": "span-9b234bb3bc2972e2",
+          "session": "session-5f8368d643022c01",
+          "parent": "session-956e6e33fe8b21fb",
+          "kind": "delegation",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 16000
+        },
+        {
+          "id": "span-121696514e500921",
+          "session": "session-89cd871c86eace99",
+          "parent": "session-956e6e33fe8b21fb",
+          "kind": "delegation",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 19000
+        },
+        {
+          "id": "span-46f8392469f6bf90",
+          "session": "session-2c9877104bf173f3",
+          "parent": "session-956e6e33fe8b21fb",
+          "kind": "delegation",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 19000
+        },
+        {
+          "id": "span-997c7ddaa003e25b",
+          "session": "session-956e6e33fe8b21fb",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 5000
+        },
+        {
+          "id": "span-e7333c35e463d687",
+          "session": "session-5f8368d643022c01",
+          "parent": "session-956e6e33fe8b21fb",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 5000
+        },
+        {
+          "id": "span-a445f0ca05d03062",
+          "session": "session-5f8368d643022c01",
+          "parent": "session-956e6e33fe8b21fb",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 5000
+        },
+        {
+          "id": "span-4a19c683635b4358",
+          "session": "session-89cd871c86eace99",
+          "parent": "session-956e6e33fe8b21fb",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 5000
+        },
+        {
+          "id": "span-988169fd72447110",
+          "session": "session-89cd871c86eace99",
+          "parent": "session-956e6e33fe8b21fb",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 5000
+        },
+        {
+          "id": "span-38ed848c01d9ba95",
+          "session": "session-89cd871c86eace99",
+          "parent": "session-956e6e33fe8b21fb",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 5000
+        },
+        {
+          "id": "span-fbd997ad355ddb85",
+          "session": "session-2c9877104bf173f3",
+          "parent": "session-956e6e33fe8b21fb",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 5000
+        },
+        {
+          "id": "span-1d3adba4ba79ab79",
+          "session": "session-2c9877104bf173f3",
+          "parent": "session-956e6e33fe8b21fb",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 5000
+        },
+        {
+          "id": "span-78bc1d279676f4e8",
+          "session": "session-2c9877104bf173f3",
+          "parent": "session-956e6e33fe8b21fb",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 5000
+        },
+        {
+          "id": "span-a5d3c4c61ad4e013",
+          "session": "session-956e6e33fe8b21fb",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 5000
+        },
+        {
+          "id": "span-610f50a32be7e642",
+          "session": "session-956e6e33fe8b21fb",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 16000
+        },
+        {
+          "id": "span-246267e7dbdc1f2f",
+          "session": "session-5f8368d643022c01",
+          "parent": "session-956e6e33fe8b21fb",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 2000
+        },
+        {
+          "id": "span-bad542813612a531",
+          "session": "session-5f8368d643022c01",
+          "parent": "session-956e6e33fe8b21fb",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 2000
+        },
+        {
+          "id": "span-2850cdedf9c9342e",
+          "session": "session-5f8368d643022c01",
+          "parent": "session-956e6e33fe8b21fb",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 2000
+        },
+        {
+          "id": "span-fa0220819f877a45",
+          "session": "session-956e6e33fe8b21fb",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 19000
+        },
+        {
+          "id": "span-3a6a4123cce1b42d",
+          "session": "session-89cd871c86eace99",
+          "parent": "session-956e6e33fe8b21fb",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 2000
+        },
+        {
+          "id": "span-e876615d0d9142dd",
+          "session": "session-89cd871c86eace99",
+          "parent": "session-956e6e33fe8b21fb",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 2000
+        },
+        {
+          "id": "span-5948009ae2724752",
+          "session": "session-956e6e33fe8b21fb",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 19000
+        },
+        {
+          "id": "span-f12970e3391665a2",
+          "session": "session-2c9877104bf173f3",
+          "parent": "session-956e6e33fe8b21fb",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 2000
+        },
+        {
+          "id": "span-152a31e50eb08eb0",
+          "session": "session-2c9877104bf173f3",
+          "parent": "session-956e6e33fe8b21fb",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 2000
+        }
+      ]
+    }
+  ],
+  "groups": [
+    {
+      "id": "8f36a1d1e0ef71a11c2109af13f21bd81e81f7edebad54d96968dba771fd58e9",
+      "harness": "Example harness",
+      "task": "duplicate-orders",
+      "arm": "A",
+      "evidence": "synthetic",
+      "runIds": [
+        "demo-A"
+      ],
+      "attempted": 1,
+      "accepted": 1,
+      "costPerAcceptedModelUsd": 4.86
+    },
+    {
+      "id": "5e13551700551f2a16319c3cb9e20402da30c60792b324ae1544175e260c15dd",
+      "harness": "Example harness",
+      "task": "duplicate-orders",
+      "arm": "B",
+      "evidence": "synthetic",
+      "runIds": [
+        "demo-B"
+      ],
+      "attempted": 1,
+      "accepted": 1,
+      "costPerAcceptedModelUsd": 3.144
+    }
+  ],
+  "pairs": [
+    {
+      "left": "demo-A",
+      "right": "demo-B",
+      "comparable": true,
+      "warnings": [],
+      "costDelta": -1.7160000000000002,
+      "latencyDeltaMs": 18000
+    }
+  ],
+  "evidence": []
+}
