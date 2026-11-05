@@ -2,11 +2,11 @@
 
 Date: 5 November 2026
 
-Status: design for approval; no implementation, installation or provider trials performed under this design.
+Status: approved on 5 November 2026 with the condition that the benchmark supports useful comparisons across harnesses. That condition is incorporated below. No implementation, installation or provider trials performed under this design.
 
 ## Intent and chosen approach
 
-Build a reusable measurement and evaluation facility in the global OpenCode harness, then import its evidence into the interactive presentation. Answer when one session, sequential workers, parallel workers, and model routing improve or worsen validated outcomes. Preserve negative results and uncertainty; success is a trustworthy comparison, not a demonstration that orchestration always wins.
+Build a harness-independent measurement and evaluation core, integrated first with the global OpenCode harness, then import its evidence into the interactive presentation. Answer when one session, sequential workers, parallel workers, and model routing improve or worsen validated outcomes. Preserve negative results and uncertainty; success is a trustworthy comparison, not a demonstration that orchestration always wins.
 
 The owner selected **reusable harness benchmark** after considering an export-based pilot. The reusable approach requires native instrumentation and execution-policy work but supports repeatable future comparisons. Export-only analysis would be quicker but could omit attempts, child calls, and concurrent timing. Static hypothetical examples remain useful teaching material but cannot establish empirical performance.
 
@@ -30,6 +30,16 @@ Primary local references: `AGENTS.md`, `docs/global-profile.md`, `docs/refinemen
 
 ## Experimental matrix
 
+### Portability and the scope of conclusions
+
+Task bundles, prompts, external evaluators, event definitions, accounting rules and report generation must work without OpenCode session APIs or its four-role protocol. Keep those dependencies inside the OpenCode adapter. A documented adapter contract plus an offline canonical-event import path must allow another harness to supply the same measurements. Verify portability with a second, deliberately different synthetic adapter and golden-trace conformance suite; label that proof as schema/semantic interoperability, never live evidence for a second harness.
+
+Every run records harness name/version, adapter/version, actual configuration, tool affordances, observed models, instructions/policies, transport and coverage. Distinguish native harness steps from normalized model requests, tools, delegations and elapsed time. Unknown data remains unknown even when another adapter exposes it. The core accepts arbitrary worker roles; only the OpenCode adapter enforces its four existing role names.
+
+Reports support both within-harness A–E comparisons and matched comparisons across harnesses. Stratify by harness first. A comparability check flags differences in task/evaluator hashes, models/reasoning settings, permissions/tools, budgets, cache policy and measurement coverage. Unsupported arms are explicit. Do not pool unequal configurations into a single winner or present a capability gap as zero cost. Extrapolation is a qualified hypothesis until replicated: portable tasks and metrics let others reproduce the experiment, while measured speedups and savings apply to the tested configurations. Show the evidence scope and limitations alongside every result.
+
+Initial delivery includes the OpenCode live adapter, portable core, canonical importer, conformance suite and harness-aware reporting. Real Claude Code, Codex or custom-harness collectors are follow-on adapters unless explicitly added; no live integration with those products is implied. A cross-harness empirical conclusion requires matched real runs from at least a second harness and enough tasks/repeats to support the claimed scope. The presentation must not imply that one additional run establishes generality.
+
 | Arm | Main session | Worker models | Worker scheduling |
 | --- | --- | --- | --- |
 | A | GPT-6.1 Sol | None | Single session; no delegation |
@@ -48,7 +58,7 @@ Model routing, scheduling and delegation policy are manifest fields, not edits t
 
 ## Tasks, fairness and trial execution
 
-Proposed pilot: three task families × five arms × three repeats = 45 runs, preceded by a small separately labeled instrumentation smoke set. Three repeats are exploratory, not adequate evidence for precise tail percentiles or universal rankings.
+Proposed pilot: three task families × five arms × three repeats = 45 runs per fully supported harness, preceded by a small separately labeled instrumentation smoke set. Additional harnesses multiply that budget and require their own launch configuration. Three repeats are exploratory, not adequate evidence for precise tail percentiles or universal rankings.
 
 1. Coupled bug fix: fix order idempotency across request handling and persistence, including duplicate/concurrent requests, while preserving the API contract. A useful counterexample to unnecessary delegation.
 2. Separable feature: implement independently owned API and client components against a frozen interface, then integrate and test. Parallel writes use separate worktrees/artifacts; merge time and conflicts belong to the workflow.
@@ -72,7 +82,7 @@ No steering after launch except a uniform predefined clarification policy. Recor
 flowchart LR
   M[Versioned experiment manifest] --> R[Benchmark runner]
   R --> W[Fresh workspace and session]
-  W --> H[Global harness: selected arm]
+  W --> H[Harness adapter: selected arm]
   H --> P[Parent model requests]
   H --> S[Worker sessions and requests]
   P --> L[Normalized event ledger]
@@ -87,7 +97,7 @@ flowchart LR
   X --> D[Presentation scorecards and timelines]
 ```
 
-The reusable facility comprises: a task/experiment manifest validator, native capability preflight, a metadata-only collector, deterministic event normalization and reconciliation, an isolated runner, evaluator adapters and a public export/report generator. Ship collection opt-in and benchmark-scoped initially. Public command spelling is left to the builder; support prepare, preflight, run, evaluate, report and export responsibilities, with prepare/report usable offline.
+The reusable facility comprises: a portable task/experiment manifest validator, adapter capability preflight, a metadata-only collector, deterministic event normalization and reconciliation, an isolated runner, evaluator adapters and a public export/report generator. Keep portable modules free of native OpenCode imports and test their published package closure in an empty directory. Ship collection opt-in and benchmark-scoped initially. Public command spelling is left to the builder; support prepare, preflight, run, evaluate, report and export responsibilities, with prepare/report usable offline.
 
 Pin the actual OpenCode binary and inspect its native hook/type implementation. Current documentation identifies `context`, `compaction`, `title`, `generate`, `model.request`, HTTP, experimental WebSocket and retry hooks. Hook availability and callback timing must be proven for the chosen build. A prompt admission hook is not an inference counter. A context hook alone cannot prove network attempts or completed billing. HTTP-only observation misses WebSocket inference. Avoid draining or altering streamed response bodies. Prefer native completed usage events/export where reliable; if protocol parsing is necessary, isolate tested adapters by transport/provider and preserve payload behavior.
 
@@ -164,4 +174,4 @@ External reference consulted during initial discovery: https://opencode.ai/v2/do
 
 ## Design review
 
-A fresh GPT-6.1 Sol builder check on 5 November 2026 reported “nothing important left” for implementation-plan readiness. This is a design review, not validation of an implementation or live capability. Owner design approval is pending.
+A fresh GPT-6.1 Sol builder check on 5 November 2026 reported “nothing important left” for implementation-plan readiness of the initial design. The owner subsequently approved with the portability condition above. The implementation plan must cover that added condition; the original review did not certify a cross-harness implementation or live capability.
