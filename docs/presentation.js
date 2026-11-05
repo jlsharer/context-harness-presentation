@@ -8,9 +8,49 @@ function node(tag, text, className) {
   if (className) item.className = className;
   return item;
 }
+const eventTabs = [...el('eventTabs').querySelectorAll('[role="tab"]')];
+function selectEventTab(selected, focus = false) {
+  for (const tab of eventTabs) {
+    const active = tab === selected;
+    tab.setAttribute('aria-selected', String(active));
+    tab.tabIndex = active ? 0 : -1;
+    el(tab.getAttribute('aria-controls')).hidden = !active;
+  }
+  dialog.scrollTop = 0;
+  if (focus) selected.focus();
+}
+for (const [index, tab] of eventTabs.entries()) {
+  tab.onclick = () => selectEventTab(tab);
+  tab.onkeydown = event => {
+    let target;
+    if (event.key === 'ArrowRight') target = (index + 1) % eventTabs.length;
+    if (event.key === 'ArrowLeft') target = (index + eventTabs.length - 1) % eventTabs.length;
+    if (event.key === 'Home') target = 0;
+    if (event.key === 'End') target = eventTabs.length - 1;
+    if (target !== undefined) {
+      event.preventDefault();
+      selectEventTab(eventTabs[target], true);
+    }
+  };
+}
 function openControl(control, button) {
   opener = button;
-  dialog.classList.toggle('event-detail', control.kind === 'events');
+  const isEvent = control.kind === 'events';
+  dialog.classList.toggle('event-detail', isEvent);
+  el('eventTabs').hidden = !isEvent;
+  el('eventNote').hidden = !isEvent;
+  el('eventNote').textContent = isEvent ? control.note || '' : '';
+  if (isEvent) {
+    el('eventPanel').setAttribute('role', 'tabpanel');
+    el('eventPanel').setAttribute('aria-labelledby', 'eventsTab');
+    selectEventTab(eventTabs[0]);
+  } else {
+    el('requestPanel').hidden = true;
+    el('delegationPanel').hidden = true;
+    el('eventPanel').hidden = false;
+    el('eventPanel').removeAttribute('role');
+    el('eventPanel').removeAttribute('aria-labelledby');
+  }
   el('controlName').textContent = control.category || 'LIFECYCLE CONTROL  /  ' + control.name.toUpperCase();
   el('question').textContent = control.title;
   el('steps').replaceChildren(...control.steps.map(([key, body, status]) => {
@@ -25,14 +65,22 @@ function openControl(control, button) {
   source.replaceChildren();
   const sources = control.sources || (control.source ? [control.source] : []);
   for (const url of sources) {
-    const link = node('a', 'Source · ' + new URL(url).hostname + new URL(url).pathname);
+    const sourceTitles = {
+      '/api/docs/guides/function-calling': 'Function calling · OpenAI',
+      '/api/docs/guides/agents/running-agents': 'Agent loop · OpenAI',
+      '/api/docs/guides/compaction': 'Compaction · OpenAI',
+      '/api/docs/guides/conversation-state': 'Conversation state · OpenAI',
+      '/docs/en/sub-agents': 'Subagents · Claude Code'
+    };
+    const parsed = new URL(url);
+    const link = node('a', 'Source · ' + (sourceTitles[parsed.pathname] || parsed.hostname));
     link.href = url;
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
     source.append(link);
   }
   if (!sources.length) source.textContent = 'Illustrative checkpoint design';
-  if (control.note) source.prepend(node('p', control.note));
+  if (control.note && !isEvent) source.prepend(node('p', control.note));
   dialog.showModal();
   dialog.scrollTop = 0;
 }

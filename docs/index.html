@@ -24,6 +24,64 @@
 </main>
 <dialog id="example" aria-labelledby="question">
   <div class="dialog-head"><span class="eyebrow" id="controlName"></span><button id="close" autofocus>Close ×</button></div>
-  <h2 id="question"></h2><dl id="steps"></dl><div id="source"></div>
+  <h2 id="question"></h2>
+  <div id="eventTabs" class="event-tabs" role="tablist" aria-label="Event-loop explanation" hidden>
+    <button id="requestTab" role="tab" aria-selected="true" aria-controls="requestPanel" type="button">Request contents</button>
+    <button id="delegationTab" role="tab" aria-selected="false" aria-controls="delegationPanel" tabindex="-1" type="button">Worker delegation</button>
+    <button id="eventsTab" role="tab" aria-selected="false" aria-controls="eventPanel" tabindex="-1" type="button">16 events</button>
+  </div>
+  <section id="requestPanel" class="event-visual" role="tabpanel" aria-labelledby="requestTab" hidden>
+    <p class="request-definition">An inference request is a software message from the harness to the model service, asking it to generate a response. The harness sends it automatically when the loop reaches Invoke.</p>
+    <div class="request-flow" role="group" aria-label="The harness packages five categories into an inference request; the model generates a response">
+      <div class="request-packet">
+        <h3>Harness assembles and sends</h3>
+        <ul class="packet-fields">
+          <li><b>Model</b><span>Selected model / route</span></li>
+          <li><b>Instructions</b><span>System/developer guidance + loaded procedures</span></li>
+          <li><b>Context</b><span>User prompt + selected history, memory, files and results</span></li>
+          <li><b>Tools</b><span>Available tools, descriptions and argument formats</span></li>
+          <li><b>Settings</b><span>Output limit + supported generation controls</span></li>
+        </ul>
+        <small>Conceptual groups; actual API fields and ordering vary.</small>
+      </div>
+      <div class="request-transit" aria-hidden="true">→</div>
+      <div class="request-response">
+        <span class="event-visual-label">ONE MODEL CALL</span>
+        <h3>Model generates</h3>
+        <p>Text / structured answer</p>
+        <span class="response-or">and/or</span>
+        <p>Tool names + arguments</p>
+        <small>These are requested actions. The harness executes the tools.</small>
+      </div>
+    </div>
+    <div class="request-continuation">
+      <h3>What causes the next request?</h3>
+      <div class="continuation-path"><span>Tool results arrive</span><b aria-hidden="true">→</b><span>Harness updates selected context</span><b aria-hidden="true">→</b><strong>Harness sends request 2</strong></div>
+      <p>Next input = selected instructions and context + retained model output + new tool results.</p>
+      <p class="request-caveat">No additional user prompt is needed. A state reference can carry prior context instead of resending its full text. One hosted-agent API call may contain multiple internal model requests.</p>
+    </div>
+  </section>
+  <section id="delegationPanel" class="event-visual" role="tabpanel" aria-labelledby="delegationTab" hidden>
+    <p class="request-definition">One assignment can start a complete worker loop. The worker’s harness sends subsequent model requests without further direction from the orchestrator.</p>
+    <div class="delegation-parent"><b>Orchestrator</b><span>Sends: “Check the API rule, source and tests.”</span></div>
+    <p class="delegation-link">↓ one assignment</p>
+    <div class="delegated-worker" role="group" aria-label="Research worker: model request one, three tool reads, model request two, then one completion report">
+      <div class="worker-caption"><h3>Research worker · its own context and loop</h3><span>Hypothetical · matches slide 7</span></div>
+      <div class="worker-request-flow">
+        <div class="worker-request"><b>Model request 1</b><strong>50K input</strong><span>40K setup + 10K assigned context</span><p>Generates three read requests · 2K output</p></div>
+        <div class="request-transit" aria-hidden="true">→</div>
+        <div class="worker-execution"><b>3 tool executions</b><strong>98K results</strong><span>Read API spec, source and tests via MCP / CLI.</span><p>The worker harness collects results and sends the next request.</p></div>
+        <div class="request-transit" aria-hidden="true">→</div>
+        <div class="worker-request"><b>Model request 2</b><strong>150K input</strong><span>50K prior + 2K output + 98K results</span><p>Generates the completion report · 2K output</p></div>
+      </div>
+      <p class="worker-autonomy">No new orchestrator prompt between requests 1 and 2.</p>
+    </div>
+    <p class="delegation-link">↓ one completion response</p>
+    <div class="delegation-parent"><b>Orchestrator</b><span>Receives the worker’s report and decides how to continue.</span></div>
+    <p class="delegation-count"><b>1 delegation = 2 worker model calls + 3 tool executions</b></p>
+    <p class="request-caveat">This worker uses 200K cumulative input and 4K output. Orchestrator calls are counted separately. A delegation is one model call only when the worker makes exactly one generation request; inspect the child trace to establish the count.</p>
+  </section>
+  <section id="eventPanel"><dl id="steps"></dl><p id="eventNote" class="request-caveat" hidden></p></section>
+  <div id="source"></div>
 </dialog>
 </body></html>
