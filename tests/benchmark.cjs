@@ -8,7 +8,7 @@ const os=require('node:os');
 const output=await fs.mkdtemp(path.join(os.tmpdir(),'benchmark-browser-'));
 const server=http.createServer(async(req,res)=>{try{
  const name=new URL(req.url,'http://localhost').pathname.slice(1)||'benchmark.html';
- if(!/^(benchmark(?:-schema)?\.(html|js|css)|benchmark-data\/[\w-]+\.json)$/.test(name)){res.writeHead(404).end();return;}
+ if(!/^(benchmark(?:-schema|-pilot)?\.(html|js|css)|benchmark-data\/[\w-]+\.json)$/.test(name)){res.writeHead(404).end();return;}
  const data=await fs.readFile(path.join(__dirname,'../docs',name));res.writeHead(200,{'Content-Type':{'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json'}[path.extname(name)]});res.end(data);
 }catch{res.writeHead(404).end()}});
 await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(0,'127.0.0.1',resolve)});let browser;
@@ -49,6 +49,34 @@ try{
  await page.getByRole('button',{name:'Load synthetic demonstration'}).click();
  await page.locator('#harness').selectOption('Example harness');
  await page.screenshot({path:path.join(output,'demo-mobile.png'),fullPage:true});
+ await page.setViewportSize({width:1440,height:1000});
+ await page.getByRole('button',{name:'Load measured pilot'}).click();
+ await page.waitForFunction(()=>document.querySelector('#harness').textContent.includes('OpenCode global-native'));
+ assert.match(await page.locator('#costScope').innerText(),/API-equivalent.*not subscription charges/);
+ await page.locator('#task').selectOption('component-feature');
+ await page.locator('#rightArm').selectOption('B');
+ assert.match(await page.locator('#comparison').innerText(),/48 \/ 48/);
+ assert.match(await page.locator('#comparison').innerText(),/API-equivalent model cost/);
+ await page.locator('#rightArm').selectOption('C');
+ assert.match(await page.locator('#comparison').innerText(),/Parallel requested; concurrent workers were not verified/);
+ assert.match(await page.locator('#comparability').innerText(),/coverage.parallel/);
+ await page.locator('#task').selectOption('idempotency');
+ assert.match(await page.locator('.comparison-card').nth(1).innerText(),/failed/);
+ await page.locator('.comparison-card').nth(1).getByRole('button',{name:/Inspect calls/}).click();
+ assert.match(await page.locator('#detailBody').innerText(),/14 model attempts; 1 delegations/);
+ await page.keyboard.press('Escape');
+ assert.equal(await page.locator('#detail').evaluate(el=>el.open),false);
+ await page.locator('#rightArm').selectOption('B');
+ await page.screenshot({path:path.join(output,'measured-desktop.png'),fullPage:true});
+ await page.setViewportSize({width:390,height:844});
+ assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+ await page.screenshot({path:path.join(output,'measured-mobile.png'),fullPage:true});
+ await page.goto(new URL('benchmark-pilot.html',base).href);
+ assert.equal(await page.locator('tbody tr').count(),6);
+ assert.match(await page.locator('main').innerText(),/capacity exhausted/);
+ assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+ await page.setViewportSize({width:1440,height:1000});
+ await page.screenshot({path:path.join(output,'pilot-report.png'),fullPage:true});
  assert.deepEqual(errors,[]);console.log('Benchmark browser checks passed; screenshots:',output);
 }finally{await browser?.close();server.close();}
 })().catch(e=>{console.error(e);process.exitCode=1});

@@ -1,0 +1,4067 @@
+{
+  "version": 1,
+  "evidenceScope": "measured",
+  "empiricalHarnessCount": 1,
+  "replication": "unmeasured",
+  "arms": [
+    {
+      "id": "A",
+      "label": "Single session"
+    },
+    {
+      "id": "B",
+      "label": "Sequential workers · same model"
+    },
+    {
+      "id": "C",
+      "label": "Parallel workers · same model"
+    },
+    {
+      "id": "D",
+      "label": "Sequential workers · routed"
+    },
+    {
+      "id": "E",
+      "label": "Parallel workers · routed"
+    }
+  ],
+  "costScope": "API-equivalent model-token estimates at the supplied API rates, not subscription charges or quota. Actual cache behavior, routing and service tier may differ on the API; tools/infrastructure are excluded.",
+  "runs": [
+    {
+      "id": "pilot-1-component-feature-B",
+      "task": "component-feature",
+      "arm": "B",
+      "repeat": 1,
+      "harness": {
+        "name": "OpenCode global-native",
+        "version": "2.1.4 / harness 0.1.20",
+        "adapter": "scoped-responses-screen",
+        "adapterVersion": "experimental-1"
+      },
+      "evidence": "measured",
+      "accounting": "subscription",
+      "models": [
+        {
+          "role": "primary",
+          "provider": "openai",
+          "model": "gpt-6.1-sol",
+          "variant": "default"
+        },
+        {
+          "role": "researcher",
+          "provider": "openai",
+          "model": "gpt-6.1-sol",
+          "variant": "default"
+        },
+        {
+          "role": "planner",
+          "provider": "openai",
+          "model": "gpt-6.1-sol",
+          "variant": "default"
+        },
+        {
+          "role": "implementer",
+          "provider": "openai",
+          "model": "gpt-6.1-sol",
+          "variant": "default"
+        },
+        {
+          "role": "validator",
+          "provider": "openai",
+          "model": "gpt-6.1-sol",
+          "variant": "default"
+        }
+      ],
+      "conditionHash": "e6a0fd846338b9544e215d7a1c7090bf9150c6c198278e27b582a4e35a9487f5",
+      "artifactHash": "55f3feba62fa3d0222ea59383e3d15fb9cfefcee53fe79f999cd3cd287f32a11",
+      "accepted": true,
+      "evaluationStatus": "accepted",
+      "issues": 0,
+      "coverage": {
+        "requests": "supported",
+        "usage": "supported",
+        "lineage": "supported",
+        "timing": "supported",
+        "cancellation": "unknown",
+        "parallel": "unsupported"
+      },
+      "attempts": 48,
+      "generations": 48,
+      "tools": 70,
+      "delegations": 4,
+      "cumulativeInput": 689153,
+      "peakInput": 36981,
+      "cacheRead": 589696,
+      "cacheWrite": 0,
+      "output": 15632,
+      "estimatedModelUsd": 0.4142036,
+      "reportedModelUsd": null,
+      "quotaDelta": null,
+      "otherChargesUsd": null,
+      "timeToEvaluationMs": 400201.1280719759,
+      "peakConcurrentWorkers": 1,
+      "lanes": [
+        {
+          "id": "span-eca5a141f867bc29",
+          "session": "session-0b3139935ff7d9d4",
+          "parent": null,
+          "kind": "workflow",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 400132.5714709759
+        },
+        {
+          "id": "span-1fc12b2b76a67eca",
+          "session": "session-b29fdb51a9b6e44f",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "delegation",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 67228.84507000001
+        },
+        {
+          "id": "span-257efd6bd50054b8",
+          "session": "session-01cd2729ddf78d3b",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "delegation",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 71387.904085
+        },
+        {
+          "id": "span-796df6e4a64f6c57",
+          "session": "session-5034dc10e9363bb7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "delegation",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 92587.69026000003
+        },
+        {
+          "id": "span-28ca3ab77851e7b7",
+          "session": "session-bac1fd5e031bbaf7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "delegation",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 73462.79751500004
+        },
+        {
+          "id": "span-6c5325380d1c5711",
+          "session": "session-0b3139935ff7d9d4",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 1700.8012130000002
+        },
+        {
+          "id": "span-1733f6078b10c1d9",
+          "session": "session-0b3139935ff7d9d4",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 6262.405008000001
+        },
+        {
+          "id": "span-503045d7c33a5193",
+          "session": "session-0b3139935ff7d9d4",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 3761.452268000001
+        },
+        {
+          "id": "span-2cd8ec229950db7d",
+          "session": "session-0b3139935ff7d9d4",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 14223.716118
+        },
+        {
+          "id": "span-c305466e05aa13e7",
+          "session": "session-0b3139935ff7d9d4",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 10245.128990000005
+        },
+        {
+          "id": "span-b7e3d707e21e86c3",
+          "session": "session-b29fdb51a9b6e44f",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2410.7821229999972
+        },
+        {
+          "id": "span-e697e8e636f35e0a",
+          "session": "session-b29fdb51a9b6e44f",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2399.580019000001
+        },
+        {
+          "id": "span-282eecb380a8b618",
+          "session": "session-b29fdb51a9b6e44f",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 6086.239077999999
+        },
+        {
+          "id": "span-8c6f27f83daba64c",
+          "session": "session-b29fdb51a9b6e44f",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 3803.6511880000035
+        },
+        {
+          "id": "span-aa5f56619f0122ad",
+          "session": "session-b29fdb51a9b6e44f",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 4761.921491000001
+        },
+        {
+          "id": "span-fd8b6f2081d92022",
+          "session": "session-b29fdb51a9b6e44f",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 27902.785343999996
+        },
+        {
+          "id": "span-1f46555a118fa4d0",
+          "session": "session-b29fdb51a9b6e44f",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 17013.916476
+        },
+        {
+          "id": "span-d69060fc2232ef98",
+          "session": "session-0b3139935ff7d9d4",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 12883.825668999998
+        },
+        {
+          "id": "span-212d1855d00942c1",
+          "session": "session-01cd2729ddf78d3b",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2184.672476000007
+        },
+        {
+          "id": "span-7075826361de7d9b",
+          "session": "session-01cd2729ddf78d3b",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 7125.988571000009
+        },
+        {
+          "id": "span-ceea0104eaf74dff",
+          "session": "session-01cd2729ddf78d3b",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 7613.420179000008
+        },
+        {
+          "id": "span-bd90e96841d74638",
+          "session": "session-01cd2729ddf78d3b",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2662.093136999989
+        },
+        {
+          "id": "span-e1b882497144f3a9",
+          "session": "session-01cd2729ddf78d3b",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2838.78933900001
+        },
+        {
+          "id": "span-98a02ba32eaab3c5",
+          "session": "session-01cd2729ddf78d3b",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 30139.241336000006
+        },
+        {
+          "id": "span-83c0b0851bd8dd7d",
+          "session": "session-01cd2729ddf78d3b",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 16191.808044999983
+        },
+        {
+          "id": "span-07d73dcea1473316",
+          "session": "session-0b3139935ff7d9d4",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 13981.486728999997
+        },
+        {
+          "id": "span-f16d200a617e765d",
+          "session": "session-5034dc10e9363bb7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2553.544890000019
+        },
+        {
+          "id": "span-637f2f1a88db4bf9",
+          "session": "session-5034dc10e9363bb7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 5716.223645999999
+        },
+        {
+          "id": "span-fea154af721749c8",
+          "session": "session-5034dc10e9363bb7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 7235.589383999992
+        },
+        {
+          "id": "span-10ab706e876dded4",
+          "session": "session-5034dc10e9363bb7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 27926.33845400001
+        },
+        {
+          "id": "span-12c6da114c516265",
+          "session": "session-5034dc10e9363bb7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2657.856958999997
+        },
+        {
+          "id": "span-5766a22570b46e54",
+          "session": "session-5034dc10e9363bb7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 7864.912912
+        },
+        {
+          "id": "span-bb78cde303efaf7f",
+          "session": "session-5034dc10e9363bb7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2212.437298999983
+        },
+        {
+          "id": "span-6c795b6e5cc9b1b7",
+          "session": "session-5034dc10e9363bb7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 20373.951168
+        },
+        {
+          "id": "span-3e8d6aa76f27c993",
+          "session": "session-5034dc10e9363bb7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 12224.742783000052
+        },
+        {
+          "id": "span-69406521ab3e50c0",
+          "session": "session-0b3139935ff7d9d4",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 18423.860054999997
+        },
+        {
+          "id": "span-e76ce66ffb047963",
+          "session": "session-bac1fd5e031bbaf7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2273.038306000002
+        },
+        {
+          "id": "span-df9c1c2364ac8cf7",
+          "session": "session-bac1fd5e031bbaf7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2350.627395999967
+        },
+        {
+          "id": "span-fc3961f40e63e0f1",
+          "session": "session-bac1fd5e031bbaf7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2373.473131000006
+        },
+        {
+          "id": "span-f6097948eae3b517",
+          "session": "session-bac1fd5e031bbaf7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2629.98790300003
+        },
+        {
+          "id": "span-16f4ee4de1d4d204",
+          "session": "session-bac1fd5e031bbaf7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2655.55199300003
+        },
+        {
+          "id": "span-d4a2b31b4921fa1b",
+          "session": "session-bac1fd5e031bbaf7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2380.4192840000032
+        },
+        {
+          "id": "span-c80f5a485e994823",
+          "session": "session-bac1fd5e031bbaf7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2940.490686999983
+        },
+        {
+          "id": "span-f47304f7e009fe93",
+          "session": "session-bac1fd5e031bbaf7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2386.6358159999945
+        },
+        {
+          "id": "span-0120e4f0823866d9",
+          "session": "session-bac1fd5e031bbaf7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2572.840911999985
+        },
+        {
+          "id": "span-b9a68376e077d765",
+          "session": "session-bac1fd5e031bbaf7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2684.1317820000113
+        },
+        {
+          "id": "span-7c40cb35da5597fc",
+          "session": "session-bac1fd5e031bbaf7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2023.6878639999777
+        },
+        {
+          "id": "span-b8f262a7305c3f1a",
+          "session": "session-bac1fd5e031bbaf7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 4790.669335999992
+        },
+        {
+          "id": "span-d9a071c9060d8012",
+          "session": "session-bac1fd5e031bbaf7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 22195.854272999975
+        },
+        {
+          "id": "span-108aa5ff62f6eaed",
+          "session": "session-bac1fd5e031bbaf7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 13167.215186000045
+        },
+        {
+          "id": "span-e88458b2193c8bc1",
+          "session": "session-0b3139935ff7d9d4",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2353.5842489999486
+        },
+        {
+          "id": "span-ce8c1bd2f5d1f056",
+          "session": "session-0b3139935ff7d9d4",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 3169.2752830000245
+        },
+        {
+          "id": "span-ac10b35d4961476d",
+          "session": "session-0b3139935ff7d9d4",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 3004.3070060000173
+        },
+        {
+          "id": "span-a4fa478ebb82cc76",
+          "session": "session-0b3139935ff7d9d4",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 6.765756000000238
+        },
+        {
+          "id": "span-d09306845052d85a",
+          "session": "session-0b3139935ff7d9d4",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 53.009674000000814
+        },
+        {
+          "id": "span-319fad5321e776a7",
+          "session": "session-0b3139935ff7d9d4",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 56.78439700000126
+        },
+        {
+          "id": "span-d657a4417e6de879",
+          "session": "session-0b3139935ff7d9d4",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 19.13774000000012
+        },
+        {
+          "id": "span-30e9d621510ae0ea",
+          "session": "session-0b3139935ff7d9d4",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 26.93213999999898
+        },
+        {
+          "id": "span-6a9fd71e2c9e87a2",
+          "session": "session-0b3139935ff7d9d4",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 11.676220999999714
+        },
+        {
+          "id": "span-67c15ecdb011a82d",
+          "session": "session-0b3139935ff7d9d4",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 2.761372000000847
+        },
+        {
+          "id": "span-5c370ad2b9e71370",
+          "session": "session-0b3139935ff7d9d4",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 5.2817660000000615
+        },
+        {
+          "id": "span-ee68f7f2653ec135",
+          "session": "session-0b3139935ff7d9d4",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 41.588643999999476
+        },
+        {
+          "id": "span-4e94574dbc40759e",
+          "session": "session-0b3139935ff7d9d4",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 8.63073599999916
+        },
+        {
+          "id": "span-82e5e4f6fddd5a4c",
+          "session": "session-0b3139935ff7d9d4",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 67228.84507000001
+        },
+        {
+          "id": "span-1bb4d790543d72df",
+          "session": "session-b29fdb51a9b6e44f",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 5.881682999999612
+        },
+        {
+          "id": "span-5e7d9f275a6e6617",
+          "session": "session-b29fdb51a9b6e44f",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 6.2996490000005
+        },
+        {
+          "id": "span-8a1afefc89f839df",
+          "session": "session-b29fdb51a9b6e44f",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 25.14748800000234
+        },
+        {
+          "id": "span-1345cc921181762d",
+          "session": "session-b29fdb51a9b6e44f",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 17.682205000004615
+        },
+        {
+          "id": "span-1eaedb346e74f2eb",
+          "session": "session-b29fdb51a9b6e44f",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 10.316627000000153
+        },
+        {
+          "id": "span-2f2ffb8371549033",
+          "session": "session-b29fdb51a9b6e44f",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 22.661796000000322
+        },
+        {
+          "id": "span-a53e3dc76467952f",
+          "session": "session-b29fdb51a9b6e44f",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "failed",
+          "durationMs": 9.622979000007035
+        },
+        {
+          "id": "span-4c7208c1ca955169",
+          "session": "session-b29fdb51a9b6e44f",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 42.449666000000434
+        },
+        {
+          "id": "span-69de4db1d76dbe0e",
+          "session": "session-b29fdb51a9b6e44f",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 30.614382000007026
+        },
+        {
+          "id": "span-f7034bd3af14befb",
+          "session": "session-b29fdb51a9b6e44f",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 36.62157799999841
+        },
+        {
+          "id": "span-a65d3abddbb94ee8",
+          "session": "session-b29fdb51a9b6e44f",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 35.34933199999796
+        },
+        {
+          "id": "span-dc8f13d8eb23e3fb",
+          "session": "session-b29fdb51a9b6e44f",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 8.810081000003265
+        },
+        {
+          "id": "span-cb9ab123c0b1d8b4",
+          "session": "session-0b3139935ff7d9d4",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 71387.904085
+        },
+        {
+          "id": "span-381df4d3bf729113",
+          "session": "session-01cd2729ddf78d3b",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 6.0598230000032345
+        },
+        {
+          "id": "span-567e7126176c43c2",
+          "session": "session-01cd2729ddf78d3b",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 16.168680000002496
+        },
+        {
+          "id": "span-46eb13601b763372",
+          "session": "session-01cd2729ddf78d3b",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "failed",
+          "durationMs": 18.224002000002656
+        },
+        {
+          "id": "span-31a1543fe61331fb",
+          "session": "session-01cd2729ddf78d3b",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 21.33736799999315
+        },
+        {
+          "id": "span-a5f1f2a875c0fa7a",
+          "session": "session-01cd2729ddf78d3b",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 9.456726999997045
+        },
+        {
+          "id": "span-d6efe73cb5a24fe3",
+          "session": "session-01cd2729ddf78d3b",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 4.4390390000044135
+        },
+        {
+          "id": "span-51a8f173ab1c660e",
+          "session": "session-01cd2729ddf78d3b",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 11.104030999995302
+        },
+        {
+          "id": "span-d361678448a79a39",
+          "session": "session-01cd2729ddf78d3b",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 5.279309000005014
+        },
+        {
+          "id": "span-7d81e831daaada39",
+          "session": "session-01cd2729ddf78d3b",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "failed",
+          "durationMs": 21.779790000000503
+        },
+        {
+          "id": "span-bf610a6b6b317742",
+          "session": "session-01cd2729ddf78d3b",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 8.592346000019461
+        },
+        {
+          "id": "span-7ad93ce7aef00446",
+          "session": "session-01cd2729ddf78d3b",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 37.07682399998885
+        },
+        {
+          "id": "span-492ad3b47015d2e1",
+          "session": "session-01cd2729ddf78d3b",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 8.707288000005065
+        },
+        {
+          "id": "span-7416428a2a57835f",
+          "session": "session-01cd2729ddf78d3b",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 6.358765000011772
+        },
+        {
+          "id": "span-9bd8a9c0e84512da",
+          "session": "session-0b3139935ff7d9d4",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 92587.69026000003
+        },
+        {
+          "id": "span-8c63e4a7b9107171",
+          "session": "session-5034dc10e9363bb7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 5.111449999996694
+        },
+        {
+          "id": "span-009d70007574e0ab",
+          "session": "session-5034dc10e9363bb7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 18.601190999994287
+        },
+        {
+          "id": "span-60262759b89de151",
+          "session": "session-5034dc10e9363bb7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 2.239304999995511
+        },
+        {
+          "id": "span-7e4ae09942295125",
+          "session": "session-5034dc10e9363bb7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 7.248005000001285
+        },
+        {
+          "id": "span-887fff071936a080",
+          "session": "session-5034dc10e9363bb7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "failed",
+          "durationMs": 4.082745000021532
+        },
+        {
+          "id": "span-8b694846501ebe14",
+          "session": "session-5034dc10e9363bb7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 9.917826999997487
+        },
+        {
+          "id": "span-8ca470ba3fe897a1",
+          "session": "session-5034dc10e9363bb7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 9.291396999993594
+        },
+        {
+          "id": "span-1c02a55871af7d20",
+          "session": "session-5034dc10e9363bb7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 2.975895000010496
+        },
+        {
+          "id": "span-d5684bc9d8e55b93",
+          "session": "session-5034dc10e9363bb7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 16.653598000004422
+        },
+        {
+          "id": "span-3787da91f2e24633",
+          "session": "session-5034dc10e9363bb7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 29.90285600000061
+        },
+        {
+          "id": "span-3382e836f75f055e",
+          "session": "session-5034dc10e9363bb7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 22.766456000012113
+        },
+        {
+          "id": "span-597aa674610549da",
+          "session": "session-5034dc10e9363bb7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 7.433790000010049
+        },
+        {
+          "id": "span-95a3d069b11a332f",
+          "session": "session-5034dc10e9363bb7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 78.69726599997375
+        },
+        {
+          "id": "span-a45fc15b26a7f911",
+          "session": "session-5034dc10e9363bb7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 3.333567000023322
+        },
+        {
+          "id": "span-aabde2735ad9f8a1",
+          "session": "session-5034dc10e9363bb7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 82.27896500000497
+        },
+        {
+          "id": "span-45abf91bbaa5ae17",
+          "session": "session-5034dc10e9363bb7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 6.883954000019003
+        },
+        {
+          "id": "span-103f03a91a74475b",
+          "session": "session-0b3139935ff7d9d4",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 73462.79751500004
+        },
+        {
+          "id": "span-411bef15116eb7d0",
+          "session": "session-bac1fd5e031bbaf7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 5.452344999997877
+        },
+        {
+          "id": "span-48150df45d759492",
+          "session": "session-bac1fd5e031bbaf7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 5.642109000007622
+        },
+        {
+          "id": "span-d141bf5e6c680eb2",
+          "session": "session-bac1fd5e031bbaf7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 10.357116999977734
+        },
+        {
+          "id": "span-bfe4f89a2599f2c8",
+          "session": "session-bac1fd5e031bbaf7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 40.46671500004595
+        },
+        {
+          "id": "span-e807506f6733fb39",
+          "session": "session-bac1fd5e031bbaf7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 6.8860379999969155
+        },
+        {
+          "id": "span-d424a786f3be8430",
+          "session": "session-bac1fd5e031bbaf7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 4.1650490000029095
+        },
+        {
+          "id": "span-c9f35e4b7654cc88",
+          "session": "session-bac1fd5e031bbaf7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 34.10581199999433
+        },
+        {
+          "id": "span-250b8e791701785a",
+          "session": "session-bac1fd5e031bbaf7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 3.8216689999680966
+        },
+        {
+          "id": "span-06f2ea33fa75b228",
+          "session": "session-bac1fd5e031bbaf7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 33.597500000032596
+        },
+        {
+          "id": "span-83ec08fbb2c4f913",
+          "session": "session-bac1fd5e031bbaf7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 8.280293000047095
+        },
+        {
+          "id": "span-c3da52ab46261566",
+          "session": "session-bac1fd5e031bbaf7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 104.88882699998794
+        },
+        {
+          "id": "span-f287a8316949d510",
+          "session": "session-bac1fd5e031bbaf7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 44.93008100002771
+        },
+        {
+          "id": "span-132ad2b5159debc2",
+          "session": "session-bac1fd5e031bbaf7",
+          "parent": "session-0b3139935ff7d9d4",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 7.032318999990821
+        },
+        {
+          "id": "span-2a310e85f315330a",
+          "session": "session-0b3139935ff7d9d4",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 25.301616000011563
+        },
+        {
+          "id": "span-ab34e83a83a00b35",
+          "session": "session-0b3139935ff7d9d4",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 2.4897490000003017
+        }
+      ]
+    },
+    {
+      "id": "pilot-2-component-feature-A",
+      "task": "component-feature",
+      "arm": "A",
+      "repeat": 1,
+      "harness": {
+        "name": "OpenCode global-native",
+        "version": "2.1.4 / harness 0.1.20",
+        "adapter": "scoped-responses-screen",
+        "adapterVersion": "experimental-1"
+      },
+      "evidence": "measured",
+      "accounting": "subscription",
+      "models": [
+        {
+          "role": "primary",
+          "provider": "openai",
+          "model": "gpt-6.1-sol",
+          "variant": "default"
+        }
+      ],
+      "conditionHash": "82a21bdd64809a39998d715e2dc271ce6e8121ae34d8bfe1e07b4aa644c208d0",
+      "artifactHash": "bf54d45198857388b828c53466d51b8e1c9f8e3cee16d5e50e71bdf2451fc2aa",
+      "accepted": true,
+      "evaluationStatus": "accepted",
+      "issues": 0,
+      "coverage": {
+        "requests": "supported",
+        "usage": "supported",
+        "lineage": "supported",
+        "timing": "supported",
+        "cancellation": "unknown",
+        "parallel": "unsupported"
+      },
+      "attempts": 7,
+      "generations": 7,
+      "tools": 8,
+      "delegations": 0,
+      "cumulativeInput": 51286,
+      "peakInput": 11704,
+      "cacheRead": 40448,
+      "cacheWrite": 0,
+      "output": 1719,
+      "estimatedModelUsd": 0.0429108,
+      "reportedModelUsd": null,
+      "quotaDelta": null,
+      "otherChargesUsd": null,
+      "timeToEvaluationMs": 48421.508250958424,
+      "peakConcurrentWorkers": null,
+      "lanes": [
+        {
+          "id": "span-2e592414e5f7c8e8",
+          "session": "session-8568e147ce1237ca",
+          "parent": null,
+          "kind": "workflow",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 48354.34547495842
+        },
+        {
+          "id": "span-b228005c85f44ab9",
+          "session": "session-8568e147ce1237ca",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 1418.327141
+        },
+        {
+          "id": "span-e414ce09b4939e5e",
+          "session": "session-8568e147ce1237ca",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 1846.216747
+        },
+        {
+          "id": "span-8fd1a07b1af157c0",
+          "session": "session-8568e147ce1237ca",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2705.1505669999997
+        },
+        {
+          "id": "span-73f380cf7f4980c6",
+          "session": "session-8568e147ce1237ca",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 3747.630937
+        },
+        {
+          "id": "span-193ee88e2aad8812",
+          "session": "session-8568e147ce1237ca",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 29361.442668000003
+        },
+        {
+          "id": "span-7d794f30a3f9eebc",
+          "session": "session-8568e147ce1237ca",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 1892.6396289999975
+        },
+        {
+          "id": "span-1e19e7669b074ef4",
+          "session": "session-8568e147ce1237ca",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 3062.5665230000013
+        },
+        {
+          "id": "span-90b283971f8ecb2c",
+          "session": "session-8568e147ce1237ca",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 5.051652000000104
+        },
+        {
+          "id": "span-6b7a345b3fcc0f54",
+          "session": "session-8568e147ce1237ca",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 3.0952870000000985
+        },
+        {
+          "id": "span-e7ec85e6ab1b7429",
+          "session": "session-8568e147ce1237ca",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 11.399422000000413
+        },
+        {
+          "id": "span-115e11bfd98b2e7e",
+          "session": "session-8568e147ce1237ca",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 5.477421999999933
+        },
+        {
+          "id": "span-3e63cffa71c768fa",
+          "session": "session-8568e147ce1237ca",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 40.40896100000009
+        },
+        {
+          "id": "span-77571ec9ab70f04d",
+          "session": "session-8568e147ce1237ca",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 4.7589849999985745
+        },
+        {
+          "id": "span-476d118747b9627f",
+          "session": "session-8568e147ce1237ca",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 7.721017999996548
+        },
+        {
+          "id": "span-dba6d60bd75b3021",
+          "session": "session-8568e147ce1237ca",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 163.83879599999636
+        }
+      ]
+    },
+    {
+      "id": "pilot-3-component-feature-C",
+      "task": "component-feature",
+      "arm": "C",
+      "repeat": 1,
+      "harness": {
+        "name": "OpenCode global-native",
+        "version": "2.1.4 / harness 0.1.20",
+        "adapter": "scoped-responses-screen",
+        "adapterVersion": "experimental-1"
+      },
+      "evidence": "measured",
+      "accounting": "subscription",
+      "models": [
+        {
+          "role": "primary",
+          "provider": "openai",
+          "model": "gpt-6.1-sol",
+          "variant": "default"
+        },
+        {
+          "role": "implementer",
+          "provider": "openai",
+          "model": "gpt-6.1-sol",
+          "variant": "default"
+        },
+        {
+          "role": "validator",
+          "provider": "openai",
+          "model": "gpt-6.1-sol",
+          "variant": "default"
+        }
+      ],
+      "conditionHash": "9a4d399455a5cb6fb4a37bbe479cd627596474246d0193039f1e273651ac2d27",
+      "artifactHash": "ea20371d6fd304f20e40cd4b2317f3b456424e530af501b940f1c60664ca6ca4",
+      "accepted": true,
+      "evaluationStatus": "accepted",
+      "issues": 0,
+      "coverage": {
+        "requests": "supported",
+        "usage": "supported",
+        "lineage": "supported",
+        "timing": "supported",
+        "cancellation": "unknown",
+        "parallel": "unsupported"
+      },
+      "attempts": 37,
+      "generations": 37,
+      "tools": 42,
+      "delegations": 2,
+      "cumulativeInput": 541881,
+      "peakInput": 34319,
+      "cacheRead": 430848,
+      "cacheWrite": 0,
+      "output": 8851,
+      "estimatedModelUsd": 0.3536608,
+      "reportedModelUsd": null,
+      "quotaDelta": null,
+      "otherChargesUsd": null,
+      "timeToEvaluationMs": 256443.30979895746,
+      "peakConcurrentWorkers": 1,
+      "lanes": [
+        {
+          "id": "span-4227733906101b44",
+          "session": "session-8b47b7fb284a5269",
+          "parent": null,
+          "kind": "workflow",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 256375.51178395748
+        },
+        {
+          "id": "span-cbc4d9183d1494fd",
+          "session": "session-6eab93315e20057f",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "delegation",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 77774.535583
+        },
+        {
+          "id": "span-b10b5c3c5723868b",
+          "session": "session-19f23d03a8220951",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "delegation",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 97159.915809
+        },
+        {
+          "id": "span-2c39c62a17890acc",
+          "session": "session-8b47b7fb284a5269",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 1765.28201
+        },
+        {
+          "id": "span-6dd636c11a173be5",
+          "session": "session-8b47b7fb284a5269",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 5465.10876
+        },
+        {
+          "id": "span-72d72186d0ba7cb3",
+          "session": "session-8b47b7fb284a5269",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 1778.099166
+        },
+        {
+          "id": "span-06e44778f7d175f3",
+          "session": "session-8b47b7fb284a5269",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 3978.6815700000006
+        },
+        {
+          "id": "span-5127512da6c4067d",
+          "session": "session-8b47b7fb284a5269",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 13913.261135
+        },
+        {
+          "id": "span-a9c214eb29b468da",
+          "session": "session-8b47b7fb284a5269",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 13720.650564
+        },
+        {
+          "id": "span-1359dd688c93a855",
+          "session": "session-6eab93315e20057f",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2918.0434289999976
+        },
+        {
+          "id": "span-9d1f971fe7642636",
+          "session": "session-6eab93315e20057f",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 4490.200252999995
+        },
+        {
+          "id": "span-da3a4db28bf36599",
+          "session": "session-6eab93315e20057f",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 3775.427746000001
+        },
+        {
+          "id": "span-13a9eeefe75105a3",
+          "session": "session-6eab93315e20057f",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2619.909867999995
+        },
+        {
+          "id": "span-81fff1f006743b9e",
+          "session": "session-6eab93315e20057f",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 20813.055666000007
+        },
+        {
+          "id": "span-379db3a74946ea04",
+          "session": "session-6eab93315e20057f",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 1935.6733200000017
+        },
+        {
+          "id": "span-2aa96829a335a23c",
+          "session": "session-6eab93315e20057f",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 7910.843995999996
+        },
+        {
+          "id": "span-4cd8dba941a711b1",
+          "session": "session-6eab93315e20057f",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2045.6614359999949
+        },
+        {
+          "id": "span-ad0b5abd38031ad7",
+          "session": "session-6eab93315e20057f",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 15358.125194999986
+        },
+        {
+          "id": "span-5a9027d67ef1a62f",
+          "session": "session-6eab93315e20057f",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 11699.408968000003
+        },
+        {
+          "id": "span-473bcf55b2f9510b",
+          "session": "session-8b47b7fb284a5269",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 16270.303683000006
+        },
+        {
+          "id": "span-bbf1fa19989499a9",
+          "session": "session-19f23d03a8220951",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2340.988218000013
+        },
+        {
+          "id": "span-921cf5f78e50b44a",
+          "session": "session-19f23d03a8220951",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 1932.0874490000133
+        },
+        {
+          "id": "span-1d8bd57531f1a3a4",
+          "session": "session-19f23d03a8220951",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 1774.669437000004
+        },
+        {
+          "id": "span-efbc2c8b35f2ba53",
+          "session": "session-19f23d03a8220951",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2362.1478249999927
+        },
+        {
+          "id": "span-33ee2d4b24bf5ea6",
+          "session": "session-19f23d03a8220951",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2160.7948289999913
+        },
+        {
+          "id": "span-cdfbc800f07bfa62",
+          "session": "session-19f23d03a8220951",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2560.674945000006
+        },
+        {
+          "id": "span-63276e84b0e32358",
+          "session": "session-19f23d03a8220951",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2622.421284000011
+        },
+        {
+          "id": "span-a5d35cf400b378c9",
+          "session": "session-19f23d03a8220951",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2762.90922999999
+        },
+        {
+          "id": "span-e029b8a8255335fd",
+          "session": "session-19f23d03a8220951",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2401.3889400000044
+        },
+        {
+          "id": "span-cbefdeb833903618",
+          "session": "session-19f23d03a8220951",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 4360.422890000016
+        },
+        {
+          "id": "span-782e17380ac83f9e",
+          "session": "session-19f23d03a8220951",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2502.655189000012
+        },
+        {
+          "id": "span-b3de58155b18b526",
+          "session": "session-19f23d03a8220951",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 1818.8887939999986
+        },
+        {
+          "id": "span-034c976cce1589cf",
+          "session": "session-19f23d03a8220951",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 9465.348545999994
+        },
+        {
+          "id": "span-907c82e64a44e6bd",
+          "session": "session-19f23d03a8220951",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 3597.4882949999883
+        },
+        {
+          "id": "span-867123dd8be0875b",
+          "session": "session-19f23d03a8220951",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 3378.94812299998
+        },
+        {
+          "id": "span-4bd5b49a29e9f074",
+          "session": "session-19f23d03a8220951",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 26014.796950999997
+        },
+        {
+          "id": "span-c1751b838bd1ce35",
+          "session": "session-19f23d03a8220951",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 17988.182021999994
+        },
+        {
+          "id": "span-db998651d8b61950",
+          "session": "session-8b47b7fb284a5269",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 8303.166182000015
+        },
+        {
+          "id": "span-32540c71a448f69d",
+          "session": "session-8b47b7fb284a5269",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 6629.124788999994
+        },
+        {
+          "id": "span-2bbb484661b9b8bd",
+          "session": "session-8b47b7fb284a5269",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 3943.5792260000017
+        },
+        {
+          "id": "span-38f291f56afaf49d",
+          "session": "session-8b47b7fb284a5269",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 5.078288000000157
+        },
+        {
+          "id": "span-4957fdbb376f5945",
+          "session": "session-8b47b7fb284a5269",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 36.111361999999644
+        },
+        {
+          "id": "span-1ad70f968c60018b",
+          "session": "session-8b47b7fb284a5269",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 22.09555100000034
+        },
+        {
+          "id": "span-7625cf4a15b87ec6",
+          "session": "session-8b47b7fb284a5269",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 17.14961399999993
+        },
+        {
+          "id": "span-3677d69cc4e7c4b6",
+          "session": "session-8b47b7fb284a5269",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 6.7275620000000345
+        },
+        {
+          "id": "span-1b483d9df500a44d",
+          "session": "session-8b47b7fb284a5269",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 38.571845999998914
+        },
+        {
+          "id": "span-6e7360559c77cf21",
+          "session": "session-8b47b7fb284a5269",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 3.9234309999992547
+        },
+        {
+          "id": "span-f4fb83e5f3bfe171",
+          "session": "session-8b47b7fb284a5269",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 11.029367999999522
+        },
+        {
+          "id": "span-a18be837c1a179b2",
+          "session": "session-8b47b7fb284a5269",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 77774.535583
+        },
+        {
+          "id": "span-b07e2827698f7d8a",
+          "session": "session-6eab93315e20057f",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 6.024620000003779
+        },
+        {
+          "id": "span-d3cac4c69919eb72",
+          "session": "session-6eab93315e20057f",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 2.975060000004305
+        },
+        {
+          "id": "span-aa571a9ed5f5db45",
+          "session": "session-6eab93315e20057f",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 13.169342000001052
+        },
+        {
+          "id": "span-65912ab6d8f7d6f0",
+          "session": "session-6eab93315e20057f",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 9.634320999997726
+        },
+        {
+          "id": "span-9717e6bfa0615578",
+          "session": "session-6eab93315e20057f",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 24.642222999995283
+        },
+        {
+          "id": "span-ae22c786757e881e",
+          "session": "session-6eab93315e20057f",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 54.39501900000323
+        },
+        {
+          "id": "span-b8ee6dd32bc40af5",
+          "session": "session-6eab93315e20057f",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 11.748507000003883
+        },
+        {
+          "id": "span-7e1c5b0c5c1c6b0b",
+          "session": "session-6eab93315e20057f",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 37.440403000000515
+        },
+        {
+          "id": "span-534771d4e278dcd9",
+          "session": "session-6eab93315e20057f",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 35.34741500000382
+        },
+        {
+          "id": "span-c77d5c5e3e50143b",
+          "session": "session-6eab93315e20057f",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 4.7333550000039395
+        },
+        {
+          "id": "span-1cf1a7b03d0b81e9",
+          "session": "session-6eab93315e20057f",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 136.16901199999847
+        },
+        {
+          "id": "span-4be8e1af8716f3e5",
+          "session": "session-6eab93315e20057f",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 4.074228999990737
+        },
+        {
+          "id": "span-bccf07038e607d9d",
+          "session": "session-6eab93315e20057f",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 74.61916299999575
+        },
+        {
+          "id": "span-7d05ac32bdfab054",
+          "session": "session-6eab93315e20057f",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 5.845963999992819
+        },
+        {
+          "id": "span-b7d5352e08e41763",
+          "session": "session-8b47b7fb284a5269",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 97159.915809
+        },
+        {
+          "id": "span-dc87e61eb87d7918",
+          "session": "session-19f23d03a8220951",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 6.681329999992158
+        },
+        {
+          "id": "span-66b51967f2a9009f",
+          "session": "session-19f23d03a8220951",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 2.2148419999866746
+        },
+        {
+          "id": "span-d9150c75a97ba0c1",
+          "session": "session-19f23d03a8220951",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 11.040454999980284
+        },
+        {
+          "id": "span-2e93143510c30c5a",
+          "session": "session-19f23d03a8220951",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 36.108153999986826
+        },
+        {
+          "id": "span-22f42be2a07279e0",
+          "session": "session-19f23d03a8220951",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 37.15060399999493
+        },
+        {
+          "id": "span-aa886c3f6bda4c3b",
+          "session": "session-19f23d03a8220951",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 7.0538829999859445
+        },
+        {
+          "id": "span-9d6bd0bfc5f1d207",
+          "session": "session-19f23d03a8220951",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 4.3905720000038855
+        },
+        {
+          "id": "span-77347ec9e6ad832d",
+          "session": "session-19f23d03a8220951",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 35.685459999978775
+        },
+        {
+          "id": "span-58b0e940b64192bd",
+          "session": "session-19f23d03a8220951",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "tool",
+          "operation": null,
+          "status": "failed",
+          "durationMs": 5.206405000004452
+        },
+        {
+          "id": "span-3076fb8d1688c84f",
+          "session": "session-19f23d03a8220951",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 35.84239799997886
+        },
+        {
+          "id": "span-62da00b9140d7683",
+          "session": "session-19f23d03a8220951",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 4.6427009999752045
+        },
+        {
+          "id": "span-5f902a58f8167982",
+          "session": "session-19f23d03a8220951",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 98.65407499999856
+        },
+        {
+          "id": "span-da24e6dd48cb49fa",
+          "session": "session-19f23d03a8220951",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 35.85990700000548
+        },
+        {
+          "id": "span-d96cdfe1a534d7f9",
+          "session": "session-19f23d03a8220951",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 5.919614000013098
+        },
+        {
+          "id": "span-bbf8a18f6c711817",
+          "session": "session-19f23d03a8220951",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 40.989879000000656
+        },
+        {
+          "id": "span-2d03e3a12518312a",
+          "session": "session-19f23d03a8220951",
+          "parent": "session-8b47b7fb284a5269",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 6.949022999993758
+        },
+        {
+          "id": "span-78144576bf643007",
+          "session": "session-8b47b7fb284a5269",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 14.882532999996329
+        },
+        {
+          "id": "span-5993c9888b44f41d",
+          "session": "session-8b47b7fb284a5269",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 2.164887999999337
+        }
+      ]
+    },
+    {
+      "id": "pilot-4-idempotency-A",
+      "task": "idempotency",
+      "arm": "A",
+      "repeat": 1,
+      "harness": {
+        "name": "OpenCode global-native",
+        "version": "2.1.4 / harness 0.1.20",
+        "adapter": "scoped-responses-screen",
+        "adapterVersion": "experimental-1"
+      },
+      "evidence": "measured",
+      "accounting": "subscription",
+      "models": [
+        {
+          "role": "primary",
+          "provider": "openai",
+          "model": "gpt-6.1-sol",
+          "variant": "default"
+        }
+      ],
+      "conditionHash": "5e76c9331be1aa22d4b9f764bfeb88b8483bab8350b575e2826ff62d2c2c0960",
+      "artifactHash": "f8201ac6d0d8e2bd79d70a66679278400ce4fc346024ad59fd15b92fc3674320",
+      "accepted": true,
+      "evaluationStatus": "accepted",
+      "issues": 0,
+      "coverage": {
+        "requests": "supported",
+        "usage": "supported",
+        "lineage": "supported",
+        "timing": "supported",
+        "cancellation": "unknown",
+        "parallel": "unsupported"
+      },
+      "attempts": 5,
+      "generations": 5,
+      "tools": 6,
+      "delegations": 0,
+      "cumulativeInput": 26662,
+      "peakInput": 6658,
+      "cacheRead": 14976,
+      "cacheWrite": 0,
+      "output": 1861,
+      "estimatedModelUsd": 0.0434796,
+      "reportedModelUsd": null,
+      "quotaDelta": null,
+      "otherChargesUsd": null,
+      "timeToEvaluationMs": 47760.76598402483,
+      "peakConcurrentWorkers": null,
+      "lanes": [
+        {
+          "id": "span-6cd37d13d9e2fe3e",
+          "session": "session-9ac72694a1abd2e5",
+          "parent": null,
+          "kind": "workflow",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 47697.688835024834
+        },
+        {
+          "id": "span-55c618a67b5b0e02",
+          "session": "session-9ac72694a1abd2e5",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 1762.3470160000002
+        },
+        {
+          "id": "span-075509d4302795e5",
+          "session": "session-9ac72694a1abd2e5",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2863.591817
+        },
+        {
+          "id": "span-74ea7be9ce5fff13",
+          "session": "session-9ac72694a1abd2e5",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 34175.379415
+        },
+        {
+          "id": "span-f510af2cf6293e8d",
+          "session": "session-9ac72694a1abd2e5",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2129.471519999999
+        },
+        {
+          "id": "span-9456550936e4679f",
+          "session": "session-9ac72694a1abd2e5",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2669.5717179999992
+        },
+        {
+          "id": "span-de5a7156a6c5af3d",
+          "session": "session-9ac72694a1abd2e5",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 4.348270999999841
+        },
+        {
+          "id": "span-5efb013c7b9615dc",
+          "session": "session-9ac72694a1abd2e5",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 19.879288999999517
+        },
+        {
+          "id": "span-736e721915117f93",
+          "session": "session-9ac72694a1abd2e5",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 11.584431000000222
+        },
+        {
+          "id": "span-e4fcceffc2e9ec59",
+          "session": "session-9ac72694a1abd2e5",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 39.826177999999345
+        },
+        {
+          "id": "span-9d3201172cfd288e",
+          "session": "session-9ac72694a1abd2e5",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 7.4607990000004065
+        },
+        {
+          "id": "span-42617e09a666b65a",
+          "session": "session-9ac72694a1abd2e5",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 149.67076599999564
+        }
+      ]
+    },
+    {
+      "id": "pilot-5-idempotency-C",
+      "task": "idempotency",
+      "arm": "C",
+      "repeat": 1,
+      "harness": {
+        "name": "OpenCode global-native",
+        "version": "2.1.4 / harness 0.1.20",
+        "adapter": "scoped-responses-screen",
+        "adapterVersion": "experimental-1"
+      },
+      "evidence": "measured",
+      "accounting": "subscription",
+      "models": [
+        {
+          "role": "primary",
+          "provider": "openai",
+          "model": "gpt-6.1-sol",
+          "variant": "default"
+        },
+        {
+          "role": "researcher",
+          "provider": "openai",
+          "model": "gpt-6.1-sol",
+          "variant": "default"
+        }
+      ],
+      "conditionHash": "c71607b8a05c63239b6ab602a4c734504a50ac87904939b4b5b8358a19234abe",
+      "artifactHash": "f44c62b564ca070d14f04efaa0a0853856747b4bd229dca99be2cbef0ca171a1",
+      "accepted": false,
+      "evaluationStatus": "failed",
+      "issues": 0,
+      "coverage": {
+        "requests": "supported",
+        "usage": "supported",
+        "lineage": "supported",
+        "timing": "supported",
+        "cancellation": "unknown",
+        "parallel": "unsupported"
+      },
+      "attempts": 14,
+      "generations": 14,
+      "tools": 24,
+      "delegations": 1,
+      "cumulativeInput": 210847,
+      "peakInput": 33003,
+      "cacheRead": 130816,
+      "cacheWrite": 0,
+      "output": 5421,
+      "estimatedModelUsd": 0.2273536,
+      "reportedModelUsd": null,
+      "quotaDelta": null,
+      "otherChargesUsd": null,
+      "timeToEvaluationMs": 182056.7972989938,
+      "peakConcurrentWorkers": 1,
+      "lanes": [
+        {
+          "id": "span-4020c8a121356d99",
+          "session": "session-5b6ddd78588daa19",
+          "parent": null,
+          "kind": "workflow",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 181967.0536119938
+        },
+        {
+          "id": "span-424d09e5b3cba478",
+          "session": "session-cf1723f5f7e4ac7b",
+          "parent": "session-5b6ddd78588daa19",
+          "kind": "delegation",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 106103.89631099999
+        },
+        {
+          "id": "span-39f5cfe99db97f6b",
+          "session": "session-5b6ddd78588daa19",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 7437.18381
+        },
+        {
+          "id": "span-b353ef78aba58556",
+          "session": "session-5b6ddd78588daa19",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 6319.545913
+        },
+        {
+          "id": "span-666c21e22b403236",
+          "session": "session-5b6ddd78588daa19",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 8873.259677999999
+        },
+        {
+          "id": "span-68ad967cbce501a9",
+          "session": "session-5b6ddd78588daa19",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 25127.781770999998
+        },
+        {
+          "id": "span-d28c6b6f1aa285a6",
+          "session": "session-5b6ddd78588daa19",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 18815.619183999996
+        },
+        {
+          "id": "span-55c89252f83a1b11",
+          "session": "session-cf1723f5f7e4ac7b",
+          "parent": "session-5b6ddd78588daa19",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 3286.408859000003
+        },
+        {
+          "id": "span-9fac7dcf4a5008bf",
+          "session": "session-cf1723f5f7e4ac7b",
+          "parent": "session-5b6ddd78588daa19",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 6383.316029000009
+        },
+        {
+          "id": "span-7df7bde70a63ce9b",
+          "session": "session-cf1723f5f7e4ac7b",
+          "parent": "session-5b6ddd78588daa19",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 7919.805089999994
+        },
+        {
+          "id": "span-25f882806487ffbd",
+          "session": "session-cf1723f5f7e4ac7b",
+          "parent": "session-5b6ddd78588daa19",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 13425.011262
+        },
+        {
+          "id": "span-8e8d9df1f372d20a",
+          "session": "session-cf1723f5f7e4ac7b",
+          "parent": "session-5b6ddd78588daa19",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 7987.217101000002
+        },
+        {
+          "id": "span-adf684b8c2ba1732",
+          "session": "session-cf1723f5f7e4ac7b",
+          "parent": "session-5b6ddd78588daa19",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 9197.906845999998
+        },
+        {
+          "id": "span-6490bfff3dc1377d",
+          "session": "session-cf1723f5f7e4ac7b",
+          "parent": "session-5b6ddd78588daa19",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 32601.279469
+        },
+        {
+          "id": "span-116de01116c3dbc0",
+          "session": "session-cf1723f5f7e4ac7b",
+          "parent": "session-5b6ddd78588daa19",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 21878.269065
+        },
+        {
+          "id": "span-451a3674dda72b5b",
+          "session": "session-5b6ddd78588daa19",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 5328.090843999991
+        },
+        {
+          "id": "span-2b85aa13daeea345",
+          "session": "session-5b6ddd78588daa19",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 5.72309900000073
+        },
+        {
+          "id": "span-215ff3a3c47d1286",
+          "session": "session-5b6ddd78588daa19",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 64.17469900000106
+        },
+        {
+          "id": "span-9fd9c79c01dcb4c0",
+          "session": "session-5b6ddd78588daa19",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 49.859230000000025
+        },
+        {
+          "id": "span-8a9e778141d73e34",
+          "session": "session-5b6ddd78588daa19",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 24.897243000001254
+        },
+        {
+          "id": "span-da4ee1e343d3486a",
+          "session": "session-5b6ddd78588daa19",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 17.922520000000077
+        },
+        {
+          "id": "span-2ecfbeef6fa16881",
+          "session": "session-5b6ddd78588daa19",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 12.075107000000571
+        },
+        {
+          "id": "span-a46fe8e1223d6c52",
+          "session": "session-5b6ddd78588daa19",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 2.8345980000012787
+        },
+        {
+          "id": "span-4fe241b9e73a423c",
+          "session": "session-5b6ddd78588daa19",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 2.3489209999970626
+        },
+        {
+          "id": "span-f9b19cc24dd8cf49",
+          "session": "session-5b6ddd78588daa19",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 11.29132799999934
+        },
+        {
+          "id": "span-e6653ac6d65ec901",
+          "session": "session-5b6ddd78588daa19",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 106103.89631099999
+        },
+        {
+          "id": "span-bdff1d6e4c735825",
+          "session": "session-cf1723f5f7e4ac7b",
+          "parent": "session-5b6ddd78588daa19",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 6.097365000008722
+        },
+        {
+          "id": "span-14ef95bf52f348a5",
+          "session": "session-cf1723f5f7e4ac7b",
+          "parent": "session-5b6ddd78588daa19",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 26.987001000001328
+        },
+        {
+          "id": "span-b151df6e273085c0",
+          "session": "session-cf1723f5f7e4ac7b",
+          "parent": "session-5b6ddd78588daa19",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 24.235866000002716
+        },
+        {
+          "id": "span-77acccba8d281768",
+          "session": "session-cf1723f5f7e4ac7b",
+          "parent": "session-5b6ddd78588daa19",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 24.847346000009566
+        },
+        {
+          "id": "span-2b018c275f0e3ca6",
+          "session": "session-cf1723f5f7e4ac7b",
+          "parent": "session-5b6ddd78588daa19",
+          "kind": "tool",
+          "operation": null,
+          "status": "failed",
+          "durationMs": 21.67022200000065
+        },
+        {
+          "id": "span-cc9252fd384935c8",
+          "session": "session-cf1723f5f7e4ac7b",
+          "parent": "session-5b6ddd78588daa19",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 42.9244880000042
+        },
+        {
+          "id": "span-7d79166d8cdb3bc5",
+          "session": "session-cf1723f5f7e4ac7b",
+          "parent": "session-5b6ddd78588daa19",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 18.619636999996146
+        },
+        {
+          "id": "span-242c23b63a5bdbf5",
+          "session": "session-cf1723f5f7e4ac7b",
+          "parent": "session-5b6ddd78588daa19",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 15.250272999997833
+        },
+        {
+          "id": "span-783fb815e7018fbb",
+          "session": "session-cf1723f5f7e4ac7b",
+          "parent": "session-5b6ddd78588daa19",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 38.822853000005125
+        },
+        {
+          "id": "span-faccdee91a8fda3d",
+          "session": "session-cf1723f5f7e4ac7b",
+          "parent": "session-5b6ddd78588daa19",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 43.08410300000105
+        },
+        {
+          "id": "span-ca44af06501b3a5f",
+          "session": "session-cf1723f5f7e4ac7b",
+          "parent": "session-5b6ddd78588daa19",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 47.85157199999958
+        },
+        {
+          "id": "span-1f00798fea7c07ad",
+          "session": "session-cf1723f5f7e4ac7b",
+          "parent": "session-5b6ddd78588daa19",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 4.138218000007328
+        },
+        {
+          "id": "span-9f2acc47785195ff",
+          "session": "session-cf1723f5f7e4ac7b",
+          "parent": "session-5b6ddd78588daa19",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 4.311027000003378
+        },
+        {
+          "id": "span-ed7ec9de364001e6",
+          "session": "session-cf1723f5f7e4ac7b",
+          "parent": "session-5b6ddd78588daa19",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 13.95280100000673
+        }
+      ]
+    },
+    {
+      "id": "pilot-6-idempotency-B",
+      "task": "idempotency",
+      "arm": "B",
+      "repeat": 1,
+      "harness": {
+        "name": "OpenCode global-native",
+        "version": "2.1.4 / harness 0.1.20",
+        "adapter": "scoped-responses-screen",
+        "adapterVersion": "experimental-1"
+      },
+      "evidence": "measured",
+      "accounting": "subscription",
+      "models": [
+        {
+          "role": "primary",
+          "provider": "openai",
+          "model": "gpt-6.1-sol",
+          "variant": "default"
+        },
+        {
+          "role": "researcher",
+          "provider": "openai",
+          "model": "gpt-6.1-sol",
+          "variant": "default"
+        },
+        {
+          "role": "planner",
+          "provider": "openai",
+          "model": "gpt-6.1-sol",
+          "variant": "default"
+        },
+        {
+          "role": "implementer",
+          "provider": "openai",
+          "model": "gpt-6.1-sol",
+          "variant": "default"
+        },
+        {
+          "role": "validator",
+          "provider": "openai",
+          "model": "gpt-6.1-sol",
+          "variant": "default"
+        }
+      ],
+      "conditionHash": "e5cb0c532125f0c8f847c3e174dd158c098837301764499765e6d67ac729089f",
+      "artifactHash": "ed1d348bc048c45cfe2b40d0978966ec20e20f225275a14c9139b7d8181b2b47",
+      "accepted": true,
+      "evaluationStatus": "accepted",
+      "issues": 0,
+      "coverage": {
+        "requests": "supported",
+        "usage": "supported",
+        "lineage": "supported",
+        "timing": "supported",
+        "cancellation": "unknown",
+        "parallel": "unsupported"
+      },
+      "attempts": 40,
+      "generations": 40,
+      "tools": 73,
+      "delegations": 4,
+      "cumulativeInput": 631915,
+      "peakInput": 36918,
+      "cacheRead": 524928,
+      "cacheWrite": 0,
+      "output": 17734,
+      "estimatedModelUsd": 0.4438068,
+      "reportedModelUsd": null,
+      "quotaDelta": null,
+      "otherChargesUsd": null,
+      "timeToEvaluationMs": 447719.2471779527,
+      "peakConcurrentWorkers": 1,
+      "lanes": [
+        {
+          "id": "span-2519f011546f5961",
+          "session": "session-d1f158cc8841afaf",
+          "parent": null,
+          "kind": "workflow",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 447654.4111659527
+        },
+        {
+          "id": "span-e3f58aebceb0864f",
+          "session": "session-016a246d9ce34902",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "delegation",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 86397.835559
+        },
+        {
+          "id": "span-c1a669afe3fe5b74",
+          "session": "session-3e1ea63acb7a661f",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "delegation",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 75476.16281800001
+        },
+        {
+          "id": "span-e742e589440824bc",
+          "session": "session-3addd17cf6057ab2",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "delegation",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 112694.10510900003
+        },
+        {
+          "id": "span-a09578935fb471e8",
+          "session": "session-91147242df60356a",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "delegation",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 80396.18266700004
+        },
+        {
+          "id": "span-3b6d1f73f6b65a54",
+          "session": "session-d1f158cc8841afaf",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 1668.592643
+        },
+        {
+          "id": "span-820a3330aa9b221a",
+          "session": "session-d1f158cc8841afaf",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 6223.352572
+        },
+        {
+          "id": "span-df503f37e525e626",
+          "session": "session-d1f158cc8841afaf",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 16459.283177999998
+        },
+        {
+          "id": "span-c288dfa60ec66b48",
+          "session": "session-d1f158cc8841afaf",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 10046.727777
+        },
+        {
+          "id": "span-a71416a93e5b3307",
+          "session": "session-016a246d9ce34902",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2342.530967999999
+        },
+        {
+          "id": "span-fd76a5bb2527f26e",
+          "session": "session-016a246d9ce34902",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2496.9077169999946
+        },
+        {
+          "id": "span-bf4e6bcf6eb9db2e",
+          "session": "session-016a246d9ce34902",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 7428.0016719999985
+        },
+        {
+          "id": "span-4db841708f9054da",
+          "session": "session-016a246d9ce34902",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 5546.412036999995
+        },
+        {
+          "id": "span-96e6a57106e7ea24",
+          "session": "session-016a246d9ce34902",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 5131.9328620000015
+        },
+        {
+          "id": "span-b704627540f1a250",
+          "session": "session-016a246d9ce34902",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2682.356728000006
+        },
+        {
+          "id": "span-6e929621e8af5967",
+          "session": "session-016a246d9ce34902",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 41899.471315999996
+        },
+        {
+          "id": "span-cead9318223b3bbe",
+          "session": "session-016a246d9ce34902",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 15613.484993000005
+        },
+        {
+          "id": "span-25d07eb9be346926",
+          "session": "session-d1f158cc8841afaf",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 12338.98030699999
+        },
+        {
+          "id": "span-2b2b0333906bf9e5",
+          "session": "session-3e1ea63acb7a661f",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2375.451577
+        },
+        {
+          "id": "span-4449cd956aefea0f",
+          "session": "session-3e1ea63acb7a661f",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 6020.083007999987
+        },
+        {
+          "id": "span-eb866ff9c1cddcde",
+          "session": "session-3e1ea63acb7a661f",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 9177.07831500002
+        },
+        {
+          "id": "span-60c81fe77ada2023",
+          "session": "session-3e1ea63acb7a661f",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 41570.05026799999
+        },
+        {
+          "id": "span-9628b86d184c5dfa",
+          "session": "session-3e1ea63acb7a661f",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 14285.994038999983
+        },
+        {
+          "id": "span-0dc1788fca235b18",
+          "session": "session-d1f158cc8841afaf",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 14377.644405
+        },
+        {
+          "id": "span-d5a472c29ad1b504",
+          "session": "session-3addd17cf6057ab2",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2453.934509999992
+        },
+        {
+          "id": "span-16418160dca17f80",
+          "session": "session-3addd17cf6057ab2",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 5815.690161000006
+        },
+        {
+          "id": "span-c8143f8055654be9",
+          "session": "session-3addd17cf6057ab2",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 5547.252363999985
+        },
+        {
+          "id": "span-cb910da6255f07fb",
+          "session": "session-3addd17cf6057ab2",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2880.3366220000025
+        },
+        {
+          "id": "span-1ae719f34e5c3c6b",
+          "session": "session-3addd17cf6057ab2",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 44154.44129099997
+        },
+        {
+          "id": "span-61575113266d4d5f",
+          "session": "session-3addd17cf6057ab2",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 3359.8147909999825
+        },
+        {
+          "id": "span-bff9ef147f9f0cc3",
+          "session": "session-3addd17cf6057ab2",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 7535.05908799998
+        },
+        {
+          "id": "span-78e02ca083014d37",
+          "session": "session-3addd17cf6057ab2",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2113.240239000006
+        },
+        {
+          "id": "span-bc347f4a1636ea55",
+          "session": "session-3addd17cf6057ab2",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 20766.322576000006
+        },
+        {
+          "id": "span-f2b17aa4ae0b7a13",
+          "session": "session-3addd17cf6057ab2",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 13944.011580999999
+        },
+        {
+          "id": "span-85d32b7b760e09ed",
+          "session": "session-d1f158cc8841afaf",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 16871.866261999996
+        },
+        {
+          "id": "span-be26de991720ef6e",
+          "session": "session-91147242df60356a",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 3128.3804779999773
+        },
+        {
+          "id": "span-c7d4e69d872c850c",
+          "session": "session-91147242df60356a",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 8258.617186999996
+        },
+        {
+          "id": "span-d8dda3812f19f914",
+          "session": "session-91147242df60356a",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 5663.214869000018
+        },
+        {
+          "id": "span-00fdfd8a99e51cc6",
+          "session": "session-91147242df60356a",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 5559.398621
+        },
+        {
+          "id": "span-19eefaad39938c94",
+          "session": "session-91147242df60356a",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 5600.888061000034
+        },
+        {
+          "id": "span-4239730fc8dea870",
+          "session": "session-91147242df60356a",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 29849.48370100005
+        },
+        {
+          "id": "span-54b552af5666d356",
+          "session": "session-91147242df60356a",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 19470.102775999985
+        },
+        {
+          "id": "span-32383e9cfb9da439",
+          "session": "session-d1f158cc8841afaf",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 2544.108380999998
+        },
+        {
+          "id": "span-43505d8d5b4eef3c",
+          "session": "session-d1f158cc8841afaf",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 3298.6461969999946
+        },
+        {
+          "id": "span-1df6700e30723f37",
+          "session": "session-d1f158cc8841afaf",
+          "parent": null,
+          "kind": "inference",
+          "operation": "primary",
+          "status": "completed",
+          "durationMs": 3327.0965240000514
+        },
+        {
+          "id": "span-2ba9832d9eeb6834",
+          "session": "session-d1f158cc8841afaf",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 5.868759000000409
+        },
+        {
+          "id": "span-3364afff4f7b57de",
+          "session": "session-d1f158cc8841afaf",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 36.166197000000466
+        },
+        {
+          "id": "span-0d49db1b7a1ca519",
+          "session": "session-d1f158cc8841afaf",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 38.423117000000275
+        },
+        {
+          "id": "span-b077c4801257ef72",
+          "session": "session-d1f158cc8841afaf",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 34.0056910000003
+        },
+        {
+          "id": "span-486fc6320345df7b",
+          "session": "session-d1f158cc8841afaf",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 15.697970999999598
+        },
+        {
+          "id": "span-cd328f731deadada",
+          "session": "session-d1f158cc8841afaf",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 9.584828999999445
+        },
+        {
+          "id": "span-31000fb089da1152",
+          "session": "session-d1f158cc8841afaf",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 2.8465389999983017
+        },
+        {
+          "id": "span-fdb45a411915241c",
+          "session": "session-d1f158cc8841afaf",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 8.368626999999833
+        },
+        {
+          "id": "span-40778044e37367bc",
+          "session": "session-d1f158cc8841afaf",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 86397.835559
+        },
+        {
+          "id": "span-739fc659b74a31ef",
+          "session": "session-016a246d9ce34902",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 6.111903999997594
+        },
+        {
+          "id": "span-dc151612434db682",
+          "session": "session-016a246d9ce34902",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 2.4568880000006175
+        },
+        {
+          "id": "span-8974c88b86836831",
+          "session": "session-016a246d9ce34902",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 20.48851200000354
+        },
+        {
+          "id": "span-c260e6767e481d53",
+          "session": "session-016a246d9ce34902",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 17.199491999999736
+        },
+        {
+          "id": "span-70810210902228aa",
+          "session": "session-016a246d9ce34902",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 15.627634999997099
+        },
+        {
+          "id": "span-37053975ed868231",
+          "session": "session-016a246d9ce34902",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 11.846667999998317
+        },
+        {
+          "id": "span-819a395fcd7738ed",
+          "session": "session-016a246d9ce34902",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "failed",
+          "durationMs": 14.54348900000332
+        },
+        {
+          "id": "span-e54a0e5a74125b54",
+          "session": "session-016a246d9ce34902",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 13.252951000002213
+        },
+        {
+          "id": "span-2ddd57b72a12ef6d",
+          "session": "session-016a246d9ce34902",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 53.02837600000203
+        },
+        {
+          "id": "span-2fb13bef320fd49a",
+          "session": "session-016a246d9ce34902",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 63.8053360000049
+        },
+        {
+          "id": "span-fb3110e24682dbff",
+          "session": "session-016a246d9ce34902",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 94.03236800000013
+        },
+        {
+          "id": "span-1210c90cb26474c0",
+          "session": "session-016a246d9ce34902",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 59.17411400000128
+        },
+        {
+          "id": "span-c0fff74ac536683c",
+          "session": "session-016a246d9ce34902",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 14.361687000004167
+        },
+        {
+          "id": "span-ab0039a1b8a94ffe",
+          "session": "session-016a246d9ce34902",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 42.05642399999488
+        },
+        {
+          "id": "span-5ecb7a1ada2cf330",
+          "session": "session-016a246d9ce34902",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 5.174337999997078
+        },
+        {
+          "id": "span-dff59711961ddb46",
+          "session": "session-016a246d9ce34902",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 6.565562999996473
+        },
+        {
+          "id": "span-d8619c48f3ba064c",
+          "session": "session-016a246d9ce34902",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 7.816504000002169
+        },
+        {
+          "id": "span-7adb908af3ab2c17",
+          "session": "session-d1f158cc8841afaf",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 75476.16281800001
+        },
+        {
+          "id": "span-0c089b6316929199",
+          "session": "session-3e1ea63acb7a661f",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 4.911060999991605
+        },
+        {
+          "id": "span-67843083df3c2bfa",
+          "session": "session-3e1ea63acb7a661f",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 43.2047480000183
+        },
+        {
+          "id": "span-f765ffb6f991fd88",
+          "session": "session-3e1ea63acb7a661f",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 37.026187000010395
+        },
+        {
+          "id": "span-0a48a2a91c94e4a2",
+          "session": "session-3e1ea63acb7a661f",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 58.29368199998862
+        },
+        {
+          "id": "span-104c1cb18e75b43b",
+          "session": "session-3e1ea63acb7a661f",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 2.468438000010792
+        },
+        {
+          "id": "span-30e101198b12c75a",
+          "session": "session-3e1ea63acb7a661f",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 11.504561999987345
+        },
+        {
+          "id": "span-a3650ecd7e1a00b0",
+          "session": "session-3e1ea63acb7a661f",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 7.459574000007706
+        },
+        {
+          "id": "span-a8107ebe61b1a50d",
+          "session": "session-3e1ea63acb7a661f",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 11.80203999998048
+        },
+        {
+          "id": "span-3f6a8c74b3b55e0f",
+          "session": "session-3e1ea63acb7a661f",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 10.06344800000079
+        },
+        {
+          "id": "span-532e6c913d3d69b1",
+          "session": "session-d1f158cc8841afaf",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 112694.10510900003
+        },
+        {
+          "id": "span-488590b5dd22356e",
+          "session": "session-3addd17cf6057ab2",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 10.165657000005012
+        },
+        {
+          "id": "span-d33d6af0aa6913bd",
+          "session": "session-3addd17cf6057ab2",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 30.3702119999798
+        },
+        {
+          "id": "span-1f8a41d4081b49bf",
+          "session": "session-3addd17cf6057ab2",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 2.9074729999992996
+        },
+        {
+          "id": "span-103a536963f2c492",
+          "session": "session-3addd17cf6057ab2",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 8.724904999980936
+        },
+        {
+          "id": "span-2a5e85bc45a4d058",
+          "session": "session-3addd17cf6057ab2",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 45.743707000016
+        },
+        {
+          "id": "span-5b9a5e880c286e7d",
+          "session": "session-3addd17cf6057ab2",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 6.494176999985939
+        },
+        {
+          "id": "span-5f8fee5c75163708",
+          "session": "session-3addd17cf6057ab2",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 11.190554000000702
+        },
+        {
+          "id": "span-8666bd11246f146b",
+          "session": "session-3addd17cf6057ab2",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 26.926027999987127
+        },
+        {
+          "id": "span-3cc32f6bc58ec488",
+          "session": "session-3addd17cf6057ab2",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 37.23019900001236
+        },
+        {
+          "id": "span-2a46a571c7f6f42a",
+          "session": "session-3addd17cf6057ab2",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 33.14492199997767
+        },
+        {
+          "id": "span-474f6f9a5a2832fd",
+          "session": "session-3addd17cf6057ab2",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 5.468806000018958
+        },
+        {
+          "id": "span-31013e9c9c27c871",
+          "session": "session-3addd17cf6057ab2",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 3.192877999972552
+        },
+        {
+          "id": "span-f6f65a1537f972a9",
+          "session": "session-3addd17cf6057ab2",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 115.94069300004048
+        },
+        {
+          "id": "span-4493ad7a40e5c2bd",
+          "session": "session-3addd17cf6057ab2",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 2.6158139999606647
+        },
+        {
+          "id": "span-91ae78120988fb6c",
+          "session": "session-3addd17cf6057ab2",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 72.49607399996603
+        },
+        {
+          "id": "span-5ca3f6b30e6e17ac",
+          "session": "session-3addd17cf6057ab2",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 6.22458199999528
+        },
+        {
+          "id": "span-ee41a6115f14e6fb",
+          "session": "session-d1f158cc8841afaf",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 80396.18266700004
+        },
+        {
+          "id": "span-4e92c030c015fd33",
+          "session": "session-91147242df60356a",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 5.183261999976821
+        },
+        {
+          "id": "span-80b9f05ae897b04c",
+          "session": "session-91147242df60356a",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 2.790865999995731
+        },
+        {
+          "id": "span-dd472b7556d2191f",
+          "session": "session-91147242df60356a",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 2.0137400000239722
+        },
+        {
+          "id": "span-baf8dbd0a088010e",
+          "session": "session-91147242df60356a",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 16.60468500002753
+        },
+        {
+          "id": "span-bf0155379e0d2d78",
+          "session": "session-91147242df60356a",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 55.27916500001447
+        },
+        {
+          "id": "span-2d9822a74f25dadf",
+          "session": "session-91147242df60356a",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 12.870424999971874
+        },
+        {
+          "id": "span-96bf09db70c4cf33",
+          "session": "session-91147242df60356a",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 34.50210199999856
+        },
+        {
+          "id": "span-5a1b5d8a486a8566",
+          "session": "session-91147242df60356a",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 49.54238399997121
+        },
+        {
+          "id": "span-9b2179d70164d8d5",
+          "session": "session-91147242df60356a",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 18.861378000001423
+        },
+        {
+          "id": "span-3d4db04ca602cfc8",
+          "session": "session-91147242df60356a",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 100.9896890000091
+        },
+        {
+          "id": "span-761e39122e8b42be",
+          "session": "session-91147242df60356a",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 41.668445999966934
+        },
+        {
+          "id": "span-60126e2db83915ec",
+          "session": "session-91147242df60356a",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 21.01282900001388
+        },
+        {
+          "id": "span-34d4a4023fbe0490",
+          "session": "session-91147242df60356a",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 49.03463599999668
+        },
+        {
+          "id": "span-2fcf33a8e0c050a5",
+          "session": "session-91147242df60356a",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 18.10265499999514
+        },
+        {
+          "id": "span-de3f4f12791f75a5",
+          "session": "session-91147242df60356a",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 7.585862000007182
+        },
+        {
+          "id": "span-ae08ab4eff304da5",
+          "session": "session-91147242df60356a",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 41.47123099997407
+        },
+        {
+          "id": "span-d02c5b731b5ab2b9",
+          "session": "session-91147242df60356a",
+          "parent": "session-d1f158cc8841afaf",
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 7.280236000020523
+        },
+        {
+          "id": "span-8ea2289f328d537a",
+          "session": "session-d1f158cc8841afaf",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 11.891215000010561
+        },
+        {
+          "id": "span-3798c9f4bc94bc96",
+          "session": "session-d1f158cc8841afaf",
+          "parent": null,
+          "kind": "tool",
+          "operation": null,
+          "status": "completed",
+          "durationMs": 2.596871000016108
+        }
+      ]
+    }
+  ],
+  "groups": [
+    {
+      "id": "a66ccc12540d8f0840fdc5a28d0c63809ccdc066e6b9f7266b94e1e9b7d3a24f",
+      "harness": "OpenCode global-native",
+      "task": "component-feature",
+      "arm": "B",
+      "evidence": "measured",
+      "runIds": [
+        "pilot-1-component-feature-B"
+      ],
+      "attempted": 1,
+      "accepted": 1,
+      "costPerAcceptedModelUsd": null
+    },
+    {
+      "id": "fc0f6ed12f3ee02a9d9058aaddc828b0d98160651825c2b6c9837e4e7a9788a9",
+      "harness": "OpenCode global-native",
+      "task": "component-feature",
+      "arm": "A",
+      "evidence": "measured",
+      "runIds": [
+        "pilot-2-component-feature-A"
+      ],
+      "attempted": 1,
+      "accepted": 1,
+      "costPerAcceptedModelUsd": null
+    },
+    {
+      "id": "1f2225879390911fb89a3b19e496c1d65b806fe1dc8b8ae78a62a7db86c2af9e",
+      "harness": "OpenCode global-native",
+      "task": "component-feature",
+      "arm": "C",
+      "evidence": "measured",
+      "runIds": [
+        "pilot-3-component-feature-C"
+      ],
+      "attempted": 1,
+      "accepted": 1,
+      "costPerAcceptedModelUsd": null
+    },
+    {
+      "id": "871bea70eb0e7580a4123abac6739da858c208eabc4de2b2933ce6bc26f6ce04",
+      "harness": "OpenCode global-native",
+      "task": "idempotency",
+      "arm": "A",
+      "evidence": "measured",
+      "runIds": [
+        "pilot-4-idempotency-A"
+      ],
+      "attempted": 1,
+      "accepted": 1,
+      "costPerAcceptedModelUsd": null
+    },
+    {
+      "id": "abe91840ee11c9ce788c0b210525b844ceb5152c0dc2bc71c2b22b55c4a92c81",
+      "harness": "OpenCode global-native",
+      "task": "idempotency",
+      "arm": "C",
+      "evidence": "measured",
+      "runIds": [
+        "pilot-5-idempotency-C"
+      ],
+      "attempted": 1,
+      "accepted": 0,
+      "costPerAcceptedModelUsd": null
+    },
+    {
+      "id": "e14186e713bcb07f64dabc0d9e8efea3073e70ccafd3710a185155755c48a363",
+      "harness": "OpenCode global-native",
+      "task": "idempotency",
+      "arm": "B",
+      "evidence": "measured",
+      "runIds": [
+        "pilot-6-idempotency-B"
+      ],
+      "attempted": 1,
+      "accepted": 1,
+      "costPerAcceptedModelUsd": null
+    }
+  ],
+  "pairs": [
+    {
+      "left": "pilot-1-component-feature-B",
+      "right": "pilot-2-component-feature-A",
+      "comparable": true,
+      "warnings": [],
+      "costDelta": null,
+      "latencyDeltaMs": -351779.6198210175
+    },
+    {
+      "left": "pilot-1-component-feature-B",
+      "right": "pilot-3-component-feature-C",
+      "comparable": false,
+      "warnings": [
+        "coverage.parallel"
+      ],
+      "costDelta": null,
+      "latencyDeltaMs": null
+    },
+    {
+      "left": "pilot-2-component-feature-A",
+      "right": "pilot-3-component-feature-C",
+      "comparable": false,
+      "warnings": [
+        "coverage.parallel"
+      ],
+      "costDelta": null,
+      "latencyDeltaMs": null
+    },
+    {
+      "left": "pilot-4-idempotency-A",
+      "right": "pilot-5-idempotency-C",
+      "comparable": false,
+      "warnings": [
+        "coverage.parallel"
+      ],
+      "costDelta": null,
+      "latencyDeltaMs": null
+    },
+    {
+      "left": "pilot-4-idempotency-A",
+      "right": "pilot-6-idempotency-B",
+      "comparable": true,
+      "warnings": [],
+      "costDelta": null,
+      "latencyDeltaMs": 399958.4811939279
+    },
+    {
+      "left": "pilot-5-idempotency-C",
+      "right": "pilot-6-idempotency-B",
+      "comparable": false,
+      "warnings": [
+        "coverage.parallel"
+      ],
+      "costDelta": null,
+      "latencyDeltaMs": null
+    }
+  ],
+  "evidence": []
+}
