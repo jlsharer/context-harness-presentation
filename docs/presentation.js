@@ -40,7 +40,7 @@ for (const control of controls) {
 }
 slides.forEach((slide, i) => el('jump').add(new Option((i+1)+' / '+slides.length+'  ·  '+slide.title, i+1)));
 function showSlide() {
-  if(location.hash === '#slide-15') history.replaceState(null, '', '#slide-4');
+  if(location.hash === '#slide-15') history.replaceState(null, '', '#slide-'+(slides.findIndex(s=>s.view==='lifecycle')+1));
   const match = /^#slide-(\d+)$/.exec(location.hash);
   current = match && +match[1] >= 1 && +match[1] <= slides.length ? +match[1] : 1;
   if (dialog.open) dialog.close();

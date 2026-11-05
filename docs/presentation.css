@@ -796,3 +796,198 @@ hr {
     font-size:.85rem;
   }
 }
+/* Shared example, call sequence, billing ledger and comparisons. */
+.loop-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.2cqw;
+  flex: 1;
+}
+.loop-grid section {
+  border: 1px solid var(--line);
+  background: #102942;
+  padding: 1.3cqw;
+  border-radius: .5rem;
+}
+#diagram .loop-grid h2 {
+  font-size: 1.55cqw;
+  margin: .7cqw 0;
+}
+.loop-grid p {
+  font-size: 1.25cqw;
+  margin: .7cqw 0;
+  color: var(--muted);
+}
+.prompt-tag { color: #f6c66b; }
+.context-tag { color: var(--teal); }
+.example-prompt {
+  font-size: 1.55cqw;
+  border-left: 4px solid #f6c66b;
+  padding: .7cqw 1cqw;
+  background: #16364b;
+}
+.call-table-head, .call-row {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr 1.1fr;
+  gap: 1.6cqw;
+  align-items: center;
+}
+.call-table-head {
+  font-size: 1.15cqw;
+  color: var(--teal);
+  font-weight: 700;
+}
+.call-rows { flex: 1; }
+.call-row {
+  border-top: 1px solid var(--line);
+  padding: .65cqw 0;
+  font-size: 1.2cqw;
+}
+.call-row small {
+  display: block;
+  font-size: 1.05cqw;
+  color: var(--muted);
+  margin-top: .3cqw;
+}
+.capacity-track, .evidence-track, .mini-track {
+  background: #183148;
+  border: 1px solid #567488;
+  height: 1.5cqw;
+  position: relative;
+}
+.capacity-track span, .accrued, .mini-track span {
+  display: block;
+  background: #3d9f98;
+  height: 100%;
+}
+.performance-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2cqw;
+  flex: 1;
+}
+.position-map, .performance-checks {
+  background: #102942;
+  border: 1px solid var(--line);
+  border-radius: .5rem;
+  padding: 1.6cqw;
+}
+.position-map p, .performance-checks p {
+  font-size: 1.25cqw;
+  color: var(--muted);
+}
+.evidence-line { margin: 1.8cqw 0; }
+.evidence-line b { font-size: 1.3cqw; }
+.evidence-track { margin: .6cqw 0; height: 2.1cqw; }
+.fact-marker {
+  position: absolute;
+  top: -.3cqw;
+  width: .5cqw;
+  height: 2.7cqw;
+  background: #ffce70;
+}
+.evidence-line small { font-size: 1cqw; color: var(--muted); }
+.performance-checks > div { padding: 1.1cqw 0; border-bottom: 1px solid var(--line); }
+.performance-checks b { font-size: 1.35cqw; color: var(--teal); }
+.billing-terms {
+  display: flex;
+  justify-content: space-between;
+  gap: .7cqw;
+  font-size: 1.25cqw;
+  color: var(--muted);
+}
+.billing-terms b { color: var(--teal); }
+.ledger, .decision-table { width: 100%; border-collapse: collapse; }
+.ledger { font-size: 1.3cqw; }
+.ledger th, .ledger td { padding: .5cqw .9cqw; border-bottom: 1px solid var(--line); text-align: right; }
+.ledger th:first-child { text-align: left; }
+.ledger thead, .ledger .total { background: #16364b; color: var(--teal); }
+.billing-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1cqw;
+}
+.billing-summary > div { background: #16364b; border-radius: .4rem; padding: 1cqw; }
+.billing-summary b { font-size: 1.35cqw; color: var(--teal); }
+.billing-summary span { display: block; font-size: 1.05cqw; margin-top: .4cqw; color: var(--muted); }
+.baseline-strip, .coordinator {
+  display: flex;
+  align-items: center;
+  gap: 1cqw;
+  padding: .9cqw;
+  border-radius: .4rem;
+  font-size: 1.15cqw;
+}
+.baseline-strip { border: 1px solid var(--line); }
+.coordinator { border: 2px solid #77bdfb; background: #16364b; }
+.baseline-strip strong, .coordinator strong { margin-left: auto; color: var(--teal); }
+.delegate-label { font-size: 1.15cqw; color: #77bdfb; text-align: center; }
+.worker-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.2cqw; }
+.worker-grid section { border: 2px solid #a9c9e2; padding: 1.1cqw; border-radius: .4rem; background: #102942; }
+.worker-grid p { color: var(--muted); font-size: 1.05cqw; min-height: 3cqw; }
+.worker-call-chain { display: flex; gap: .5cqw; margin: .7cqw 0; }
+.worker-call-chain > div { flex: 1; border: 1px solid var(--line); padding: .6cqw; font-size: 1.15cqw; background: #16364b; }
+.worker-call-chain span, .worker-call-chain small, .worker-grid section > small { display: block; }
+.worker-call-chain small, .worker-grid section > small { font-size: 1cqw; color: var(--muted); }
+.worker-grid section > strong { font-size: 1.2cqw; color: var(--teal); }
+.mini-track { height: .65cqw; margin-top: .6cqw; }
+.source-flow { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.4cqw; flex: 1; }
+.source-flow section { border: 1px solid var(--line); padding: 1.3cqw; border-radius: .5rem; background: #102942; }
+.source-flow .source-select { background: #153c48; }
+.source-flow .source-packet { border: 2px solid var(--teal); }
+.source-flow section > div { padding: 1cqw 0; border-top: 1px solid var(--line); font-size: 1.2cqw; }
+.source-flow b { color: var(--teal); font-size: 1.35cqw; }
+.source-flow p { font-size: 1.25cqw; margin: .4cqw 0; }
+.source-flow small { font-size: 1.05cqw; color: var(--muted); }
+.source-packet .highlight { background: #235c59; }
+.decision-table { font-size: 1.2cqw; flex: 1; }
+.decision-table th, .decision-table td { border: 1px solid var(--line); padding: 1cqw; vertical-align: top; text-align: left; }
+.decision-table th { background: #16364b; color: var(--teal); }
+.decision-table th:first-child { width: 12%; }
+.decision-table th:not(:first-child) { width: 29.33%; }
+.decision-table th small { color: var(--muted); font-weight: 400; font-size: 1.03cqw; }
+@media (max-width: 700px) {
+  .loop-grid, .performance-body, .worker-grid, .source-flow, .billing-summary { grid-template-columns: 1fr; }
+  .loop-grid section, .position-map, .performance-checks, .worker-grid section, .source-flow section { padding: .9rem; }
+  #diagram .loop-grid h2 { font-size: 1.1rem; margin: .5rem 0; }
+  .loop-grid p, .example-prompt, .call-row, .call-row small, .position-map p, .performance-checks p,
+  .evidence-line b, .evidence-line small, .performance-checks b, .billing-terms, .ledger,
+  .billing-summary b, .billing-summary span, .baseline-strip, .coordinator, .delegate-label,
+  .worker-grid p, .worker-call-chain > div, .worker-call-chain small, .worker-grid section > small,
+  .worker-grid section > strong, .source-flow section > div, .source-flow b, .source-flow p, .source-flow small {
+    font-size: .85rem;
+  }
+  .example-prompt { padding: .6rem; }
+  .call-table-head { display: none; }
+  .call-row { grid-template-columns: 1fr; padding: .8rem 0; gap: .7rem; }
+  .capacity-track { height: 1rem; }
+  .evidence-track { height: 1.4rem; }
+  .fact-marker { height: 1.8rem; top: -.2rem; width: .3rem; }
+  .evidence-line { margin: 1rem 0; }
+  .performance-checks > div { padding: .6rem 0; }
+  .billing-terms { flex-wrap: wrap; }
+  .billing-terms span { width: 47%; }
+  .ledger { font-size: .75rem; }
+  .ledger th, .ledger td { padding: .4rem .15rem; }
+  .billing-summary > div { padding: .7rem; }
+  .baseline-strip, .coordinator { flex-direction: column; align-items: start; padding: .7rem; }
+  .baseline-strip strong, .coordinator strong { margin-left: 0; }
+  .worker-call-chain > div { padding: .4rem; }
+  .mini-track { height: .4rem; }
+  .source-flow section > div { padding: .65rem 0; }
+  .decision-table { font-size: .7rem; line-height: 1.4; }
+  .decision-table th, .decision-table td { padding: .4rem .2rem; overflow-wrap: anywhere; }
+  .decision-table th small { font-size: .64rem; }
+}
+@media (min-width: 701px) {
+  #diagram:has(.call-rows) { gap: .65cqw; padding-top: 2cqw; padding-bottom: 2cqw; }
+  .call-row { padding: .5cqw 0; }
+}
+@media (min-width: 701px) {
+  #diagram:has(.performance-body) { gap: .8cqw; }
+  .evidence-line { margin: .85cqw 0; }
+  .performance-checks > div { padding: .7cqw 0; }
+  .position-map, .performance-checks { padding: 1.3cqw; }
+}
+.billing-terms small { display: block; font-size: 1.02cqw; margin-top: .5cqw; }
+@media (max-width: 700px) { .billing-terms small { font-size: .75rem; } }
