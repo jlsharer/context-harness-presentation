@@ -20,7 +20,9 @@ const criteria={
 await mkdir(destination,{recursive:true});
 const evidence=[];
 for(const run of pilot.runs){
- const canonical=JSON.parse(await readFile(path.join(run.runRoot,'private/canonical-evidence.json'),'utf8'));
+ if(!/^[a-zA-Z0-9_-]+$/.test(run.runId))throw Error('Invalid run identifier');
+ const canonical=JSON.parse(await readFile(path.join(pilotRoot,run.runId,'private/canonical-evidence.json'),'utf8'));
+ if(canonical.bundle.manifest.runId!==run.runId||canonical.bundle.manifest.taskId!==run.task.id||!report.runs.some(r=>r.id===run.runId&&r.task===run.task.id))throw Error('Crossed run evidence');
  if(hash(JSON.stringify(run.prompt))!==canonical.bundle.manifest.conditions.instructions)throw Error('Actual launch prompt hash mismatch');
  if(hash(run.task.evaluator)!==run.task.evaluatorHash)throw Error('Evaluator hash mismatch');
  const parts=run.prompt.split(run.task.prompt);if(parts.length!==2)throw Error('Task does not occur exactly once');
