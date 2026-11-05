@@ -91,31 +91,31 @@ assembly: `
 };
 
 diagrams.loop = `
-<div class="eyebrow">FROM ONE REQUEST TO AN ACCEPTED RESULT</div>
-<h1>The harness runs a loop around each model call</h1>
-<p class="intro">Prompt engineering shapes instructions and requests. Context engineering selects, orders and updates what the model can use.</p>
-<div class="loop-grid">
-${[
- ['1 · Receive', 'Understand the request', 'Specify the goal, constraints and acceptance test.', 'Capture user input and current task state.'],
- ['2 · Assemble', 'Prepare the next input', 'Load role instructions and the response format.', 'Select skills, memory, files and recent history.'],
- ['3 · Infer', 'Send one model request', 'The model interprets the supplied instructions.', 'The model uses the assembled input and emits output.'],
- ['4 · Act', 'Execute requested tools', 'Tool descriptions guide argument generation.', 'CLI or MCP results become candidate evidence.'],
- ['5 · Update', 'Prepare retained state', 'Restate an unresolved requirement if needed.', 'Filter logs, save artifacts and compact old history.'],
- ['6 · Check / repeat', 'Accept or return to assembly', 'Compare the result to the acceptance criteria.', 'Load missing evidence for the next call.']
-].map(row => `<section><span class="eyebrow">${row[0]}</span><h2>${row[1]}</h2><p><b class="prompt-tag">Prompt</b> ${row[2]}</p><p><b class="context-tag">Context</b> ${row[3]}</p></section>`).join('')}
+<div class="eyebrow">ONE SESSION · THE HARNESS CONTROLS CONTINUATION</div>
+<h1>A new model call starts at the inference boundary</h1>
+<div class="session-entry"><b>User prompt</b><span>→ receive / resume → load instructions, skills, tools and state</span></div>
+<div class="event-map" role="group" aria-label="Assemble input, invoke model, execute requested tools, update state, then repeat">
+<section class="event-node assemble-node"><span class="event-kind">HARNESS · PREPARE</span><h2>Assemble the input</h2><p><b>Prompt:</b> goal, constraints, response format</p><p><b>Context:</b> selected history, memory and evidence</p><small>Choose model · check limits · reserve output space</small></section>
+<div class="event-arrow" aria-hidden="true">→</div>
+<section class="event-node inference-node"><span class="event-kind">MODEL · INFERENCE CALL</span><h2>Generate the next response</h2><p>One request → text and/or tool requests</p><p>Decide what to do; generate arguments or a patch.</p><small>Streaming chunks belong to this same call.</small></section>
+<div class="return-arrow">↑ next input</div><div></div><div class="tool-arrow">↓ tool requests</div>
+<section class="event-node"><span class="event-kind">HARNESS · UPDATE</span><h2>Capture and select results</h2><p>Record outputs/errors; save full artifacts.</p><p>Filter what enters the next call; update task state.</p><small>Context engineering applies again here.</small></section>
+<div class="event-arrow" aria-hidden="true">←</div>
+<section class="event-node tools-node"><span class="event-kind">TOOLS · EXECUTION</span><h2>Do the requested actions</h2><p>Check arguments, permissions and approvals.</p><p>Read files · query MCP · apply patch · run tests</p><small>These ordinary tool actions do not invoke the model.</small></section>
 </div>
-<p class="takeaway">↺ Return to Assemble until validation passes or a budget / permission boundary stops the run.</p>`;
+<div class="exit-route"><b>Final answer branch</b><span>Model answer → completion checks → deliver. Failed check → assemble again.</span></div>
+<div class="diagram-footer"><p class="fine">One call can request several tools. The harness resumes inference when new results need interpretation. Model-backed tools/checks add their own calls.</p><button class="detail-button" data-detail="events" aria-haspopup="dialog">Explore the 16 events</button></div>`;
 
 diagrams.calls = `
-<div class="eyebrow">ONE USER REQUEST · ONE SESSION · HYPOTHETICAL ACCUMULATION</div>
-<h1>Six model calls can follow one prompt</h1>
+<div class="eyebrow">HYPOTHETICAL · ONE USER PROMPT → SIX CALLS → EIGHT TOOL EXECUTIONS</div>
+<h1>Six calls, eight tool executions, one prompt</h1>
 <div class="example-prompt">“${example.prompt}”</div>
-<div class="call-table-head"><span>Model call · 2K output each</span><span>Input against a 1M window</span><span>Tool action before the next call</span></div>
-<div class="call-rows">
-${example.calls.map((call, i) => `<div class="call-row"><div><b>${i + 1} · ${call.label}</b><small>${i === 0 ? '40K setup + 10K task' : example.calls[i-1].inputK + 'K prior + 2K output + ' + example.calls[i-1].toolK + 'K tool result'}</small></div><div><div class="capacity-track" role="img" aria-label="${call.inputK} thousand of one million input tokens, ${call.inputK/10} percent"><span style="width:${call.inputK/10}%"></span></div><small>${call.inputK}K input · ${call.inputK/10}% of 1M</small></div><div><b>${call.tool}</b><small>${call.toolK ? '+' + call.toolK + 'K retained tool results →' : 'User receives the answer'}</small></div></div>`).join('')}
+<div class="trace-head"><span>Model call</span><span>Input / 1M window</span><span>Model generates · 2K each</span><span>Harness executes after the call</span></div>
+<div class="trace-rows">
+${example.calls.map((call,i)=>`<div class="trace-row"><div class="trace-call"><b>${i+1}</b><span>${call.label}</span></div><div><div class="capacity-track" role="img" aria-label="${call.inputK} thousand input tokens of one million"><span style="width:${call.inputK/10}%"></span></div><strong>${call.inputK}K · ${call.inputK/10}%</strong><small>${i===0?'40K setup + 10K task':example.calls[i-1].inputK+'K + 2K + '+example.calls[i-1].toolK+'K'}</small></div><div class="model-output">${call.generates}</div><div class="tool-output"><b>${call.executions ? call.executions+' tool '+(call.executions===1?'execution':'executions') : 'No tool execution'}</b><span>${call.tool}</span><small>${call.toolK?'+'+call.toolK+'K results → next input':'Deliver the answer; session can persist.'}</small></div></div>`).join('')}
 </div>
-<div class="metrics"><div><strong>850K</strong><span>largest input · 85% of window</span></div><div><strong>2,550K + 12K</strong><span>six calls’ input sum + output</span></div><div><strong>6 invocations</strong><span>one provider request + response per call</span></div></div>
-<p class="fine">1M is illustrative; windows vary. Output uses remaining space. Full retention and large tool batches expose growth. User turns may trigger more calls; API spend follows usage, not turn count. Subscription quotas are separate.</p>`;
+<div class="trace-totals"><span><b>2,550K input</b> summed across calls</span><span><b>12K output</b> generated</span><span><b>850K peak</b> one-call input</span><button class="detail-button" data-detail="events" aria-haspopup="dialog">Explore the 16 events</button></div>
+<p class="fine">Call = invocation. Tool counts follow harness request boundaries; one CLI script may run several commands. Full retention assumed; 1M is illustrative. Prior input + 2K output + new tool results forms the next input.</p>`;
 
 diagrams.performance = `
 <div class="eyebrow">SAME SIX CALLS · CAPACITY AND EVIDENCE USE</div>
@@ -143,15 +143,16 @@ ${cacheLedger.map((row,i) => `<tr><th>${i+1}</th><td>${row.inputK}</td><td>${row
 
 diagrams.workers = `
 <div class="eyebrow">SAME ORDER FIX · SAME FIVE TOOL BATCHES · HYPOTHETICAL SEQUENTIAL WORKFLOW</div>
-<h1>Each worker has its own sequence of model calls</h1>
+<h1>One delegation can contain many model calls</h1>
+<div class="delegation-contract"><b>One assignment in</b><span>→ worker runs its own loop without parent intervention →</span><b>One completion out</b></div>
 <div class="baseline-strip"><b>Single session · slide 3</b><span>50 → 150 → 300 → 500 → 700 → 850K</span><strong>6 calls · 2,550K input · 12K output</strong></div>
 <div class="coordinator"><b>Orchestrator</b><span>Call A 50K → dispatch stages → Call B 60K</span><strong>110K cumulative input · 4K output</strong></div>
-<div class="delegate-label">↓ scoped inputs · Research → Implement → Validate · ↑ three reports + evidence</div>
+<div class="delegate-label">3 delegations · one assignment per worker · Research → Implement → Validate · 3 completion reports</div>
 <div class="worker-grid">
 ${example.sessions.slice(1).map(session=>`<section><h2>${session.name}</h2><p>${session.role}</p><div class="worker-call-chain">${session.inputsK.map((n,i)=>`<div><b>Call ${i+1}</b><span>${n}K in</span><small>2K out</small><div class="mini-track"><span style="width:${n/10}%"></span></div></div>`).join('')}</div><strong>${sum(session.inputsK)}K cumulative input</strong><small>${session.inputsK.length*example.outputK}K output · peak ${Math.max(...session.inputsK)}K</small></section>`).join('')}
 </div>
 <div class="billing-summary"><div><b>Orchestrated · ${workerCalls} calls · ${workerInputK}K in + ${workerOutputK}K out</b><span>Each 50K start includes 40K setup + 10K assigned work.</span></div><div><b>No-cache cost · ${money(uncachedCost(workerInputK,workerOutputK))} vs $5.22 single</b><span>Same prefix-cache policy · $3.144 vs $4.860 single.</span></div></div>
-<p class="fine">Each labeled box is one model call. Mini bars use the same 1M scale. Handoffs pass small reports. Assumed contexts illustrate a possible saving; compare quality, retries and handoff latency on matched tasks.</p>`;
+<p class="fine">One delegation is one worker run, not necessarily one inference. It is one model call only if the worker makes one generation request. Count child requests in traces. Mini bars: 1M scale. Costs are hypothetical; quality and latency need testing.</p>`;
 
 diagrams.scope = `
 <div class="eyebrow">ORGANIZATION + PUBLIC SOURCES → SELECTED EVIDENCE → MODEL INPUT</div>

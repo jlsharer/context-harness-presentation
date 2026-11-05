@@ -10,23 +10,31 @@ function node(tag, text, className) {
 }
 function openControl(control, button) {
   opener = button;
-  el('controlName').textContent = 'LIFECYCLE CONTROL  /  ' + control.name.toUpperCase();
+  dialog.classList.toggle('event-detail', control.kind === 'events');
+  el('controlName').textContent = control.category || 'LIFECYCLE CONTROL  /  ' + control.name.toUpperCase();
   el('question').textContent = control.title;
-  el('steps').replaceChildren(...control.steps.map(([key, body]) => {
+  el('steps').replaceChildren(...control.steps.map(([key, body, status]) => {
     const row = document.createElement('div');
-    row.append(node('dt', key), node('dd', body));
+    const definition = node('dd', '');
+    if(status) definition.append(node('strong', status, 'event-status'));
+    definition.append(document.createTextNode(body));
+    row.append(node('dt', key), definition);
     return row;
   }));
   const source = el('source');
   source.replaceChildren();
-  if (control.source) {
-    const link = node('a', 'Source · ' + new URL(control.source).hostname);
-    link.href = control.source;
+  const sources = control.sources || (control.source ? [control.source] : []);
+  for (const url of sources) {
+    const link = node('a', 'Source · ' + new URL(url).hostname + new URL(url).pathname);
+    link.href = url;
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
     source.append(link);
-  } else source.textContent = 'Illustrative checkpoint design';
+  }
+  if (!sources.length) source.textContent = 'Illustrative checkpoint design';
+  if (control.note) source.prepend(node('p', control.note));
   dialog.showModal();
+  dialog.scrollTop = 0;
 }
 for (const control of controls) {
   const card = node('button', '', 'card');
@@ -48,7 +56,12 @@ function showSlide() {
   const native = Boolean(diagrams[slide.view]);
   figure.hidden = hub || native;
   el('diagram').hidden = !native;
-  if(native) el('diagram').innerHTML = diagrams[slide.view];
+  if(native) {
+    el('diagram').innerHTML = diagrams[slide.view];
+    el('diagram').querySelectorAll('[data-detail="events"]').forEach(button => {
+      button.onclick = () => openControl(eventDetail, button);
+    });
+  }
   el('pageNumber').textContent = String(current).padStart(2,'0');
   el('pageNumber').hidden = hub || native;
   el('lifecycle').hidden = !hub;
@@ -73,7 +86,7 @@ el('previous').onclick = () => go(current-1);
 el('next').onclick = () => go(current+1);
 el('jump').onchange = e => go(+e.target.value);
 el('close').onclick = () => dialog.close();
-dialog.onclose = () => { if (slides[current-1].view==='lifecycle' && opener) opener.focus(); };
+dialog.onclose = () => { if (opener && opener.isConnected) opener.focus(); };
 window.addEventListener('hashchange', showSlide);
 document.addEventListener('keydown', e => {
   if(dialog.open || e.altKey || e.ctrlKey || e.metaKey || e.target.matches('select')) return;

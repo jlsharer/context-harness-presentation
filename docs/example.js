@@ -4,12 +4,12 @@ const example = {
   windowK: 1000, outputK: 2, prefixK: 40, initialTaskK: 10,
   rates: { input: 2, read: 0.10, write: 2.50, output: 10 },
   calls: [
-    { label: 'Orient', inputK: 50, tool: 'Read API spec + source', toolK: 98 },
-    { label: 'Investigate', inputK: 150, tool: 'Read related code + traces', toolK: 148 },
-    { label: 'Plan fix', inputK: 300, tool: 'Inspect dependencies + fixtures', toolK: 198 },
-    { label: 'Implement', inputK: 500, tool: 'Apply patch + run unit tests', toolK: 198 },
-    { label: 'Validate', inputK: 700, tool: 'Run integration suite + inspect logs', toolK: 148 },
-    { label: 'Report', inputK: 850, tool: 'Return result + test evidence', toolK: 0 }
+    { label: 'Orient', inputK: 50, tool: 'Read API spec, source and tests', toolK: 98, executions: 3, generates: 'Three read requests: spec, handler, tests' },
+    { label: 'Investigate', inputK: 150, tool: 'Read related code + traces', toolK: 148, executions: 1, generates: 'One search request for related code and traces' },
+    { label: 'Plan fix', inputK: 300, tool: 'Inspect dependencies + fixtures', toolK: 198, executions: 1, generates: 'One request to inspect dependencies and fixtures' },
+    { label: 'Implement', inputK: 500, tool: 'CLI script: apply patch + unit tests', toolK: 198, executions: 1, generates: 'Patch content + one script request' },
+    { label: 'Validate', inputK: 700, tool: 'Run integration suite; inspect saved logs', toolK: 148, executions: 2, generates: 'Two requests: integration tests and log inspection' },
+    { label: 'Report', inputK: 850, tool: 'Return result + test evidence', toolK: 0, executions: 0, generates: 'Final explanation + test evidence' }
   ],
   sessions: [
     { name: 'Orchestrator', inputsK: [50, 60], role: 'Dispatch workflow → integrate three reports' },

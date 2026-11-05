@@ -6,15 +6,15 @@ const slides = [
     "view": "intro"
   },
   {
-    "title": "The harness runs a loop around each model call",
-    "description": "The harness runs a loop around each model call",
-    "notes": "Prompt engineering applies to the goal, constraints, role guidance, tool descriptions and output contract. Context engineering selects and orders material and manages retained state. At Infer these choices are consumed by the model. At Act the harness executes requested tools and captures new evidence. At Check it validates the result and may reenter Assemble. The flow is conceptual, and individual harnesses combine or split steps.\n\nSources checked 4 November 2026\nhttps://developers.openai.com/api/docs/guides/function-calling",
+    "title": "A new model call starts at the inference boundary",
+    "description": "One prompt starts a harness loop: assemble input, invoke the model, execute requested tools, collect results, and return to assembly. A final answer goes through completion checks. The Explore the 16 events button opens the detailed breakdown.",
+    "notes": "Model call and model invocation mean one generation request at the harness-to-model boundary in this client-managed example. Token generation and streaming events are part of that call. The model generates text and/or tool requests; the harness validates and executes tools and selects results for the next request. A single response can request several tools. Rule-based checks, hooks, routing, logging and state updates do not themselves invoke a model; model-backed variants do. Hosted agent services may wrap multiple internal model calls inside one outer API request. Completion, cancellation, permissions and budget limits can stop or pause the loop.\n\nPrompt engineering shapes the goal, instructions, tool descriptions and response format. Context engineering selects and orders state at Assemble and Update. Exact ordering and hooks vary by harness. The modal exposes the 16 event details.\n\nSources checked 4 November 2026\nhttps://developers.openai.com/api/docs/guides/function-calling\nhttps://developers.openai.com/api/docs/guides/agents/running-agents\nhttps://developers.openai.com/api/docs/guides/compaction",
     "view": "loop"
   },
   {
-    "title": "Six model calls can follow one prompt",
-    "description": "Six model calls can follow one prompt",
-    "notes": "A model call is one provider inference request and its response as observed by the harness. Streaming chunks belong to that call. One user request triggers six sequential calls here. Tools can return large batches without being model invocations themselves. Provider-managed tools can hide internal processing inside one API request; use reported usage.\n\nHypothetical stress example with full retention. The 50K initial input comprises 40K stable setup and 10K task material. Setup examples are system instructions 8K, harness/tool schemas 16K, loaded skills 8K and memory 8K. Every call emits 2K output. Tool batches contain 98K, 148K, 198K, 198K and 148K tokens. Thus input snapshots are 50,150,300,500,700,850K. Total input is 2,550K and output is 12K. Largest input is 850K, leaving 150K before generation against the illustrative 1M window. This is an example choice, not a universal default. Tools are deliberately verbose; selection and compaction could change this trajectory.\n\nUncached Sonnet 5.5 example cost is 2.55M×$2 + .012M×$10 = $5.22, without other fees. A new user prompt can cause more work and input, but turn count is not a fixed unit of API spend. Subscription quotas are separate.\n\nSources checked 4 November 2026\nhttps://platform.claude.com/docs/en/about-claude/pricing\nhttps://platform.claude.com/docs/en/build-with-claude/prompt-caching\nhttps://developers.openai.com/api/docs/guides/function-calling",
+    "title": "Six calls, eight tool executions, one prompt",
+    "description": "Six inference calls, eight tool executions, and growing input in a hypothetical single session. Each call generates 2K output. Tool-result batches feed the next call. A modal lists all 16 loop events.",
+    "notes": "A model call is one provider inference request and its response as observed by the harness. Streaming chunks belong to that call. One user request triggers six sequential calls here. Tools can return large batches without being model invocations themselves. Provider-managed tools can hide internal processing inside one API request; use reported usage.\n\nHypothetical stress example with full retention. The 50K initial input comprises 40K stable setup and 10K task material. Setup examples are system instructions 8K, harness/tool schemas 16K, loaded skills 8K and memory 8K. Every call emits 2K output. Tool batches contain 98K, 148K, 198K, 198K and 148K tokens. Thus input snapshots are 50,150,300,500,700,850K. Total input is 2,550K and output is 12K. Largest input is 850K, leaving 150K before generation against the illustrative 1M window. This is an example choice, not a universal default. Tools are deliberately verbose; selection and compaction could change this trajectory.\n\nUncached Sonnet 5.5 example cost is 2.55M×$2 + .012M×$10 = $5.22, without other fees. A new user prompt can cause more work and input, but turn count is not a fixed unit of API spend. Subscription quotas are separate.\n\nSources checked 4 November 2026\nhttps://platform.claude.com/docs/en/about-claude/pricing\nhttps://platform.claude.com/docs/en/build-with-claude/prompt-caching\nhttps://developers.openai.com/api/docs/guides/function-calling\n\nExplicit tool counts: call1 requests three reads (API specification, source and tests); call2 requests one search of related code/traces; call3 requests one dependencies/fixtures inspection; call4 generates a patch and one CLI script request that applies it and runs unit tests; call5 requests integration tests plus saved-log inspection (two executions, sequenced if logs depend on that run); call6 generates the final answer with no tool request. Total 3+1+1+1+2+0=8 executions. One script can contain several shell commands; count at the harness tool-request boundary. The same five aggregate result sizes and six input sizes used in the cost ledger are preserved. These are illustrative verbose batches, not typical test-log measurements. The example demonstrates event boundaries rather than prescribing an optimal fix workflow.",
     "view": "calls"
   },
   {
@@ -37,9 +37,9 @@ const slides = [
     "view": "economics"
   },
   {
-    "title": "Each worker has its own sequence of model calls",
-    "description": "Each worker has its own sequence of model calls",
-    "notes": "This is a proposed sequential decomposition of the SAME duplicate-order task, preserving all five tool batches from slide 3. Research receives 98K, Implement receives 148K and 198K, Validate receives 198K and 148K. Every worker starts at 50K, made from 40K session-specific setup and 10K assigned context including required artifact/handoff excerpts. Every model call emits 2K. Research inputs 50/150K total200K; Implement inputs50/200/400K total650K; Validate inputs50/250/400K total700K. The orchestrator has two calls 50/60K total110K. Each labeled mini box is one call; the session totals sum repeated inputs.\n\nThe initial orchestrator response dispatches a predefined sequential harness workflow. Stage results move through typed artifact handoffs without extra parent model calls. A dynamic orchestration policy may need additional parent calls. The final parent input is initial50K + parent output2K + three final worker summaries6K + selected evidence2K =60K. There are10 model calls,1660K input and20K output, costing $3.52 uncached. Peak one-call input400K vs850K in the single session. These assumed packets must be tested for sufficient information and equivalent acceptance criteria. No speed or quality equivalence is asserted.\n\nFor an independent40K prefix cache in each of four sessions, assume four initial writes160K, six reads240K, and uncached1260K. Cost $0.40+$0.024+$2.52+$0.20 output=$3.144. Cross-session reuse is not assumed. All calls hit within each prefix’s TTL. Same rates as slide6. Compare against single-session$4.860 with caching, or compare both without caching$3.52 vs$5.22.\n\nA delegated worker may invoke a skill that makes multiple model requests. Delegation is a harness action; model usage is counted per request across parent and child sessions.\n\nSources checked 4 November 2026\nhttps://platform.claude.com/docs/en/about-claude/pricing\nhttps://platform.claude.com/docs/en/build-with-claude/prompt-caching\nhttps://code.claude.com/docs/en/sub-agents",
+    "title": "One delegation can contain many model calls",
+    "description": "Each worker receives one assignment, runs its own loop without parent intervention, and returns one completion report. Three worker runs contain eight worker model calls, plus two orchestrator model calls: ten total.",
+    "notes": "This is a proposed sequential decomposition of the SAME duplicate-order task, preserving all five tool batches from slide 3. Research receives 98K, Implement receives 148K and 198K, Validate receives 198K and 148K. Every worker starts at 50K, made from 40K session-specific setup and 10K assigned context including required artifact/handoff excerpts. Every model call emits 2K. Research inputs 50/150K total200K; Implement inputs50/200/400K total650K; Validate inputs50/250/400K total700K. The orchestrator has two calls 50/60K total110K. Each labeled mini box is one call; the session totals sum repeated inputs.\n\nThe initial orchestrator response dispatches a predefined sequential harness workflow. Stage results move through typed artifact handoffs without extra parent model calls. A dynamic orchestration policy may need additional parent calls. The final parent input is initial50K + parent output2K + three final worker summaries6K + selected evidence2K =60K. There are10 model calls,1660K input and20K output, costing $3.52 uncached. Peak one-call input400K vs850K in the single session. These assumed packets must be tested for sufficient information and equivalent acceptance criteria. No speed or quality equivalence is asserted.\n\nFor an independent40K prefix cache in each of four sessions, assume four initial writes160K, six reads240K, and uncached1260K. Cost $0.40+$0.024+$2.52+$0.20 output=$3.144. Cross-session reuse is not assumed. All calls hit within each prefix’s TTL. Same rates as slide6. Compare against single-session$4.860 with caching, or compare both without caching$3.52 vs$5.22.\n\nA delegated worker may invoke a skill that makes multiple model requests. Delegation is a harness action; model usage is counted per request across parent and child sessions.\n\nSources checked 4 November 2026\nhttps://platform.claude.com/docs/en/about-claude/pricing\nhttps://platform.claude.com/docs/en/build-with-claude/prompt-caching\nhttps://code.claude.com/docs/en/sub-agents\n\nDelegation semantics: one prompt sent to a worker followed by one completion response is one delegation (worker run). No additional parent intervention is required for the worker to execute tools and make more model requests. In this example the three workers have 2, 3 and 3 calls: eight child requests. The orchestrator has two requests for a total of ten. If a custom wrapper directly invokes a model once and returns that response, it is one model call. If it invokes an agent runner or hosted agent endpoint, one outer invocation may encapsulate many. Inspect child inference request IDs/usage spans to establish the count. The number of parent-visible messages alone cannot establish it. This presentation does not claim that a specific custom harness has been inspected.\n\nCurrent source confirms independent subagent requests\nhttps://code.claude.com/docs/en/sub-agents\nAccessed 4 November 2026.",
     "view": "workers"
   },
   {
@@ -202,3 +202,96 @@ const controls = [
     "source": "https://opencode.ai/v2/docs/agents"
   }
 ];
+const eventDetail = {
+  "kind": "events",
+  "category": "SESSION EVENT LOOP · REPRESENTATIVE ORDER",
+  "title": "Inside one pass through the loop",
+  "steps": [
+    [
+      "01 · Receive",
+      "Record the user prompt, attachments and session ID. One prompt may start a multi-step run.",
+      "No inference"
+    ],
+    [
+      "02 · Restore",
+      "Load retained conversation, task state, memory references and artifact locations.",
+      "No inference"
+    ],
+    [
+      "03 · Configure",
+      "Resolve system/developer instructions, available skills, tool schemas, permissions and budgets.",
+      "No inference"
+    ],
+    [
+      "04 · Startup hooks",
+      "Run configured scripts or inject context. A hook that explicitly asks a model to judge or summarize adds inference.",
+      "Depends on hook"
+    ],
+    [
+      "05 · Route",
+      "Choose the configured model or apply routing rules. A model-based router makes its own auxiliary request.",
+      "No inference for rules"
+    ],
+    [
+      "06 · Assemble",
+      "Select and order instructions, goal, skills, memory, retained messages and evidence. Preserve tool-request/result pairing.",
+      "No inference"
+    ],
+    [
+      "07 · Check limits",
+      "Check cancellation, context headroom, output allowance and spending limits. Pause or stop if a limit prevents continuation.",
+      "No inference"
+    ],
+    [
+      "08 · Invoke",
+      "Submit the assembled input and generation settings to the selected model. This is one model call, also called an invocation.",
+      "NEW MODEL CALL"
+    ],
+    [
+      "09 · Stream",
+      "Receive text, tool names and arguments. Streaming chunks and token generation are parts of the current call, not new calls.",
+      "Same model call"
+    ],
+    [
+      "10 · Record",
+      "Persist the response, request ID, usage and timing. Retained assistant output can become input on a later call.",
+      "No inference"
+    ],
+    [
+      "11 · Dispatch",
+      "Inspect the response type. Route tool requests to executors or a candidate final answer to completion checks.",
+      "No inference for dispatch"
+    ],
+    [
+      "12 · Authorize",
+      "Validate tool arguments and permissions. If approval is required, pause and resume after approval. A model-based reviewer is an extra call.",
+      "No inference for ordinary checks"
+    ],
+    [
+      "13 · Execute",
+      "Read files, query MCP, apply a patch, run tests or wait for a job. One model response may request multiple tools. A tool backed by a model adds its own inference.",
+      "No main-model call"
+    ],
+    [
+      "14 · Collect",
+      "Capture success, errors and logs; run post-tool hooks; save full artifacts and select useful excerpts. A scripted retry can execute without asking the model.",
+      "No inference for ordinary processing"
+    ],
+    [
+      "15 · Update context",
+      "Retain required outputs and tool results; prune or compact as configured. Model-generated summaries may add a request; provider-managed compaction can occur inside one API request.",
+      "Compaction is implementation-dependent"
+    ],
+    [
+      "16 · Continue / finish",
+      "With new evidence, return to Assemble and Invoke: that is the NEXT call. On a candidate final answer, run completion checks, then deliver and persist. Failed checks can feed the loop again.",
+      "Next invocation only if continuing"
+    ]
+  ],
+  "sources": [
+    "https://developers.openai.com/api/docs/guides/function-calling",
+    "https://developers.openai.com/api/docs/guides/agents/running-agents",
+    "https://developers.openai.com/api/docs/guides/compaction"
+  ],
+  "note": "Hypothetical client-managed loop; ordering and hooks vary by harness. The six-call example has 8 tool executions: 3 + 1 + 1 + 1 + 2 + 0. Call 4 requests one CLI script containing patch application and unit tests. Commands inside a script are not separate harness tool requests. A hosted agent endpoint can wrap multiple internal model calls. API spend follows reported usage; subscription quotas are separate."
+};
