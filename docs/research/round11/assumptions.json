@@ -1,0 +1,62 @@
+{
+  "scope": "Authored comparisons, not actual native prompt totals, attention or empirical gain measurements.",
+  "heat": {
+    "basis": "Unchanged R10 invented 2D Q/K and synthetic token-budget positions; one representative key per component",
+    "colors": "Fixed cool-to-warm0\u201340%+ normalized-share ramp, shared across lanes/steps",
+    "delta": "current minus prior share in percentage points; new/removed/no-query have no numeric delta"
+  },
+  "workerPackets": [
+    {
+      "name": "Trace commit paths",
+      "tools": 1800,
+      "skills": 450,
+      "task": 1000,
+      "report": 900
+    },
+    {
+      "name": "Check API contracts",
+      "tools": 2400,
+      "skills": 800,
+      "task": 750,
+      "report": 650
+    },
+    {
+      "name": "Verify replay + tests",
+      "tools": 3300,
+      "skills": 1200,
+      "task": 1250,
+      "report": 1150
+    }
+  ],
+  "workUnitTokens": [
+    1000,
+    900,
+    1400,
+    700,
+    1200,
+    800,
+    1600,
+    600,
+    1300,
+    1000,
+    900,
+    600
+  ],
+  "sourceUnitPercentages": [
+    14,
+    9,
+    18,
+    7,
+    16,
+    11,
+    15,
+    10
+  ],
+  "calls": "Initial C1 at step1 has no local results; C2 consumes initial results, C3 full results. Only validated report output becomes prepared parent input at step4. Accrued input excludes output billing.",
+  "nativeChoice": "Session/delegation selectors removed: old switches changed readout only. No source-derived comparable universal full token baseline established. Native loading/lifecycle views remain.",
+  "officialSourcesRechecked": [
+    "https://code.claude.com/docs/en/how-claude-code-works",
+    "https://learn.chatgpt.com/docs/enterprise/roll-out-a-gateway",
+    "https://opencode.ai/docs/instructions/"
+  ]
+}
