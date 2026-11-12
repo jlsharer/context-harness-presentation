@@ -1,0 +1,132 @@
+{
+  "version": 1,
+  "evidence": "modeled-token-budgets",
+  "measuredSavings": false,
+  "scope": "Assigned scenario budgets, not tokenized text, native usage, typical costs or measured policy gains. Logical teaching load order is not captured native serialization.",
+  "measuredSource": "benchmark-data/measured-service.json",
+  "measuredSourceSha256": "16698c7b12859aed0dbcf8f9e8ba69a8ed5db5fff15cbec54856428be457c77b",
+  "observedRuns": [
+    {
+      "id": "service-1-incident-recovery-A",
+      "peakInput": 26783,
+      "accepted": false
+    },
+    {
+      "id": "service-2-incident-recovery-B",
+      "peakInput": 55993,
+      "accepted": true
+    },
+    {
+      "id": "service-3-incident-recovery-C",
+      "peakInput": 51792,
+      "accepted": true
+    },
+    {
+      "id": "service-4-holds-invoices-B",
+      "peakInput": 49777,
+      "accepted": true
+    },
+    {
+      "id": "service-5-holds-invoices-C",
+      "peakInput": 55427,
+      "accepted": true
+    },
+    {
+      "id": "service-6-holds-invoices-A",
+      "peakInput": 31397,
+      "accepted": true
+    }
+  ],
+  "observedLimits": "Six recorded runs across different arms/tasks. Peak inputs are per-run maxima; not a matched managed-vs-uncurated estimate. Complete native/provider prompts were not retained.",
+  "profiles": {
+    "service": {
+      "label": "Focused service",
+      "files": "50-file incident fixture \u2192 larger service workflow",
+      "evidence": {
+        "uncurated": 12000,
+        "managed": 4500
+      },
+      "historyMultiplier": 1
+    },
+    "platform": {
+      "label": "Platform monorepo",
+      "files": "Several packages, shared contracts and organization guidance",
+      "evidence": {
+        "uncurated": 28000,
+        "managed": 8000
+      },
+      "historyMultiplier": 1.5
+    },
+    "org": {
+      "label": "Large organization workflow",
+      "files": "Many packages and shared skills; broader repository discovery",
+      "evidence": {
+        "uncurated": 62000,
+        "managed": 14000
+      },
+      "historyMultiplier": 2
+    }
+  },
+  "layers": [
+    {
+      "id": "base",
+      "label": "Harness + model instructions",
+      "role": "policy",
+      "tokens": 4000,
+      "detail": "Instruction allowance held constant in both paths. Exact hidden provider instructions and native system prompts were not captured; this is an assumption, not a reconstructed prompt."
+    },
+    {
+      "id": "tools",
+      "label": "Tool definitions + contracts",
+      "role": "execution",
+      "tokens": 6500,
+      "detail": "Schemas and tool contracts held constant. No required tool definitions are removed by the managed policy. Tool results are counted separately in history."
+    },
+    {
+      "id": "guidance",
+      "label": "Applicable AGENTS.md guidance",
+      "role": "policy",
+      "tokens": 4000,
+      "detail": "Global, organization, repository and workspace guidance as applicable to the chosen harness. Preserve all required rules in documented native order; arbitrary nested files are not all automatically loaded."
+    },
+    {
+      "id": "skills",
+      "label": "Skill catalog + invoked bodies",
+      "role": "policy",
+      "tokens": {
+        "uncurated": 6700,
+        "managed": 2500
+      },
+      "detail": "Both paths include a 700-token catalog allowance. Uncurated workflow explicitly invokes/pastes 6000 tokens of skill bodies; managed workflow invokes 1800 relevant tokens. Native discovery is not assumed to load every skill body automatically."
+    },
+    {
+      "id": "task",
+      "label": "Current task + acceptance",
+      "role": "evidence",
+      "tokens": 1500,
+      "detail": "Same task, constraints and acceptance requirements in both paths. Turn 2 adds a 500-token follow-up allowance. No task requirement is dropped."
+    },
+    {
+      "id": "evidence",
+      "label": "Selected repository evidence",
+      "role": "evidence",
+      "detail": "Uncurated workflow reads broad package material; managed workflow selects dependency-relevant files/contracts. Full artifacts remain retrievable. Amounts are scenario assumptions."
+    },
+    {
+      "id": "history",
+      "label": "Conversation + tool results",
+      "role": "stored",
+      "detail": "Selected messages and tool output. Each event adds its own authored allowance only after that output exists. Managed path bounds/summarizes returned material; no quality or accuracy gain is measured."
+    },
+    {
+      "id": "checkpoint",
+      "label": "Checkpoint + source anchors",
+      "role": "stored",
+      "tokens": {
+        "uncurated": 6000,
+        "managed": 2000
+      },
+      "detail": "Both paths compact at the same teaching boundary. Uncurated checkpoint gets a 6000-token allowance; managed checkpoint gets 2000 with required facts/anchors and a restoration check. This is not measured summary quality or native trigger timing."
+    }
+  ]
+}

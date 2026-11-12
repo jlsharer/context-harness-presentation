@@ -1,0 +1,83 @@
+{
+  "checkedOn": "2026-11-11",
+  "opencodeVersion": "V2 documented API; match installed version before copying examples",
+  "sources": {
+    "opencode": "https://opencode.ai/docs/build/plugins/server/",
+    "opencodeEvents": "https://opencode.ai/docs/api",
+    "claude": "https://code.claude.com/docs/en/hooks"
+  },
+  "entries": [
+    {
+      "id": "start",
+      "label": "Parent session start",
+      "purpose": "Prepare a small project policy and restore sourced task state before the first prompt.",
+      "opencode": "session.created event + orchestration before prompting",
+      "claude": "SessionStart",
+      "capability": "Observe creation; initialize through orchestration. Claude can add startup context.",
+      "limit": "Observing an OpenCode event does not itself rewrite or block the first request."
+    },
+    {
+      "id": "prompt",
+      "label": "User prompt admitted",
+      "purpose": "Attach task-specific evidence and explicit acceptance checks.",
+      "opencode": "session.hook(\"prompt\")",
+      "claude": "UserPromptSubmit",
+      "capability": "OpenCode transforms admitted input; Claude adds context alongside the prompt.",
+      "limit": "Prompt admission is not every model invocation; Claude UserPromptSubmit does not replace the prompt."
+    },
+    {
+      "id": "dispatch",
+      "label": "Before each model call",
+      "purpose": "Select the outgoing context, tools and request options for the current step.",
+      "opencode": "session.hook(\"context\")",
+      "claude": "No identical general per-request hook asserted here",
+      "capability": "OpenCode agent-loop hook includes tool-driven continuations.",
+      "limit": "Outgoing changes do not rewrite persisted history. Auxiliary request kinds have separate hooks."
+    },
+    {
+      "id": "pretool",
+      "label": "Before tool use",
+      "purpose": "Bound requested files, arguments and output scope before execution.",
+      "opencode": "tool.hook(\"execute.before\")",
+      "claude": "PreToolUse",
+      "capability": "Inspect or change tool input; Claude decision controls are event-specific.",
+      "limit": "A tool invocation is not itself another model invocation."
+    },
+    {
+      "id": "posttool",
+      "label": "After tool use",
+      "purpose": "Select useful result evidence, attach provenance and record an external artifact.",
+      "opencode": "tool.hook(\"execute.after\")",
+      "claude": "PostToolUse",
+      "capability": "Inspect successful/failed execution; documented result transformation.",
+      "limit": "Keep the original result retrievable; preserve the native tool/result contract."
+    },
+    {
+      "id": "child",
+      "label": "Child session start",
+      "purpose": "Apply a scoped task and evidence packet in an independently tracked child context.",
+      "opencode": "Create child → apply policy → prompt (orchestration)",
+      "claude": "SubagentStart",
+      "capability": "Claude adds child context; OpenCode initialization is an explicit orchestration step.",
+      "limit": "Fork is different: OpenCode copies history before its fork hook. Do not assume a fresh child inherits nothing or everything."
+    },
+    {
+      "id": "precompact",
+      "label": "Before compaction",
+      "purpose": "Include decisions, invariants, unresolved work and artifact references in the summary instructions.",
+      "opencode": "session.hook(\"compaction\")",
+      "claude": "PreCompact",
+      "capability": "Influence the summary request; Claude stdout supplies compaction instructions.",
+      "limit": "Compaction may lose details. Validate anchors and required constraints afterward."
+    },
+    {
+      "id": "postcompact",
+      "label": "After compaction",
+      "purpose": "Record the checkpoint, verify surviving constraints, and schedule restoration before the next request.",
+      "opencode": "session.compaction.ended event → next context hook",
+      "claude": "PostCompact; SessionStart(source=compact) for restoration",
+      "capability": "Observe the completed summary; next request is a separate restoration boundary.",
+      "limit": "PostCompact is observational; it cannot edit the completed compaction result."
+    }
+  ]
+}

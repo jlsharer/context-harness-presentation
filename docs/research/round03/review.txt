@@ -1,0 +1,7 @@
+Independent builder/research review, 11 November 2026
+
+No important unanswered builder questions. Ordering vs authority/native serialization, mechanism vs measured attention logits vs retrieval accuracy, historical vs current-model scope, and published vs local experiments are correctly separated. NoLiMa data consistently identifies v3/Table4 and publication-length labels.
+
+Pre-inclusion gates retained: native-build ordering verification before exact OpenCode capture claims; figure provenance/reuse verification before publication of research artwork. These do not block the initial visual checkpoint.
+
+Owner timing preference pending; proposed default main path25–30minutes with optional deep dives. No UI implementation or new experiment has been claimed for this planning turn.

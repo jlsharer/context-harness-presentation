@@ -1,0 +1,60 @@
+{
+  "sourceId": "nolima",
+  "sourceUrl": "https://arxiv.org/html/2502.05167v3",
+  "locator": "Table 4",
+  "transcriptionCheckedOn": "2026-11-11",
+  "evidenceKind": "published-measurement",
+  "model": "Llama 3.3 70B",
+  "metric": "Task accuracy (%)",
+  "series": [
+    {
+      "label": "One-hop, without CoT",
+      "values": [
+        90.3,
+        84.1,
+        73.2,
+        56.2
+      ]
+    },
+    {
+      "label": "Two-hop, without CoT",
+      "values": [
+        70.7,
+        57.4,
+        42.7,
+        25.9
+      ]
+    },
+    {
+      "label": "One-hop, with CoT",
+      "values": [
+        95.6,
+        91.1,
+        82.6,
+        60.6
+      ]
+    },
+    {
+      "label": "Two-hop, with CoT",
+      "values": [
+        82.4,
+        70.1,
+        56.7,
+        34.3
+      ]
+    }
+  ],
+  "interpretationLimit": "These are association-retrieval task results from the named study, not attention weights or measured results for the presentation's current models. The 4K/8K/16K/32K labels follow the publication; no exact tokenizer counts beyond those labels are asserted.",
+  "contextLengthLabels": [
+    "4K",
+    "8K",
+    "16K",
+    "32K"
+  ],
+  "contextLengthK": [
+    4,
+    8,
+    16,
+    32
+  ]
+}

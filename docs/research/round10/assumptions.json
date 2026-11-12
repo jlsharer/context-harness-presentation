@@ -1,0 +1,106 @@
+{
+  "reviewedOn": "2026-11-12",
+  "baseScenarioTokens": 6000,
+  "workerPackets": [
+    {
+      "tools": 1800,
+      "skills": 450
+    },
+    {
+      "tools": 2400,
+      "skills": 800
+    },
+    {
+      "tools": 3300,
+      "skills": 1200
+    }
+  ],
+  "countsAre": "Authored scenario allowances; no native full-baseline measurement",
+  "officialPartialOverhead": {
+    "models": [
+      "Opus5.5",
+      "Sonnet5.5",
+      "Haiku5.5"
+    ],
+    "autoOrNone": 286,
+    "anyOrTool": 406,
+    "requires": "At least one tool",
+    "excludes": [
+      "Tool schemas",
+      "Claude Code harness instructions"
+    ]
+  },
+  "sources": [
+    {
+      "id": "claude-subagents",
+      "title": "Claude subagent tools and skill preloads",
+      "url": "https://code.claude.com/docs/en/sub-agents",
+      "supports": "Explicit tools/disallowedTools restrictions and selected skill preloading.",
+      "limit": "Preload lists do not prohibit later discovery; custom subset token sizes are not published fixed defaults.",
+      "locator": "Restrict tools; preload skills",
+      "year": 2026,
+      "type": "official-documentation"
+    },
+    {
+      "id": "claude-costs",
+      "title": "Claude context inspection and cost controls",
+      "url": "https://code.claude.com/docs/en/costs",
+      "supports": "/context inspection, deferred MCP definitions and costs of additional sessions.",
+      "limit": "Usage depends on configured session; no universal full base-prompt token count established here.",
+      "locator": "Reduce token usage",
+      "year": 2026,
+      "type": "official-documentation"
+    },
+    {
+      "id": "claude-tool-overhead",
+      "title": "Claude API tool-use system-token overhead",
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview",
+      "supports": "Published Opus/Sonnet/Haiku5.5 auto/none286 and any/tool406 system tokens when tools are supplied.",
+      "limit": "Partial API tool-use overhead only; excludes schemas and Claude Code harness instructions. Not a full-harness baseline.",
+      "locator": "Pricing: tool use system prompt tokens",
+      "year": 2026,
+      "type": "official-documentation"
+    },
+    {
+      "id": "codex-catalog",
+      "title": "Codex model catalogs and instruction defaults",
+      "url": "https://learn.chatgpt.com/docs/enterprise/roll-out-a-gateway",
+      "supports": "Model/client/upstream-specific base_instructions, tool settings and current catalog defaults.",
+      "limit": "Public API model listing is not this catalog; no universal native prompt count given. No authenticated request made here.",
+      "locator": "Model catalog reference",
+      "year": 2026,
+      "type": "official-documentation"
+    },
+    {
+      "id": "codex-config",
+      "title": "Codex instruction configuration",
+      "url": "https://learn.chatgpt.com/docs/config-file/config-reference",
+      "supports": "model_instructions_file replaces built-in instructions; model/catalog settings affect context.",
+      "limit": "A setting or source text length is not complete native usage or hidden provider overhead.",
+      "locator": "model_instructions_file; model_catalog_json",
+      "year": 2026,
+      "type": "official-documentation"
+    },
+    {
+      "id": "opencode-agents",
+      "title": "OpenCode agent-specific system and capabilities",
+      "url": "https://opencode.ai/docs/agents",
+      "supports": "Agent-specific system can replace provider base guidance; other instruction sources remain.",
+      "limit": "Permissions/capabilities do not by themselves prove schema-token reduction or a fixed baseline size.",
+      "locator": "System; permissions; agent modes",
+      "year": 2026,
+      "type": "official-documentation"
+    },
+    {
+      "id": "instruction-stack-study",
+      "title": "Instruction stack capture study \u00b7 October2026",
+      "url": "https://arxiv.org/html/2610.37332",
+      "supports": "Version/configuration-sensitive first-request instruction stacks across1886 captures.",
+      "limit": "Controlled empty-repository captures through August2026; character counts/shares are not model-token counts or current native defaults.",
+      "locator": "Sections4.1,5.1,6",
+      "year": 2026,
+      "type": "primary-research"
+    }
+  ],
+  "heatScope": "One invented key/row; synthetic positions from scenario load order; not actual native attention"
+}

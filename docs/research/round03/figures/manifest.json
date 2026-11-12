@@ -1,0 +1,12 @@
+{
+  "file": "streamingllm-figure2.png",
+  "originalUrl": "https://arxiv.org/html/2309.17453v4/attention_weights.png",
+  "publicationUrl": "https://arxiv.org/html/2309.17453v4",
+  "figure": "Figure 2",
+  "attribution": "Xiao et al., Efficient Streaming Language Models with Attention Sinks, ICLR 2024",
+  "license": "CC BY 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+  "modification": "None; displayed at responsive size with original colors",
+  "sha256": "e69ebd4313fb0f20a363cbab496f5484cd9bbf5aa0e393880796ad2ae9c64308",
+  "scope": "Average attention logits, Llama-2-7B, 256 sentences of length 16; not a universal long-context attention-weight curve."
+}

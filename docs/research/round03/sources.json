@@ -1,0 +1,430 @@
+{
+  "reviewedOn": "2026-11-12",
+  "purpose": "Claim-level sources for the system-first presentation redesign; publication scope is preserved.",
+  "sources": [
+    {
+      "id": "opencode-instructions",
+      "title": "OpenCode Instructions",
+      "url": "https://opencode.ai/docs/instructions",
+      "type": "official-documentation",
+      "locator": "Ordering; Scope; Configuration",
+      "supports": "Documented initial instruction assembly and configured instruction-file ordering for current OpenCode V2.",
+      "limit": "Documented behavior must be matched to the actual selected build before calling a displayed request an exact native capture. Initial instruction order is not the complete provider serialization."
+    },
+    {
+      "id": "openai-prompt-engineering",
+      "title": "OpenAI Prompt Engineering",
+      "url": "https://developers.openai.com/api/docs/guides/prompt-engineering",
+      "type": "official-documentation",
+      "locator": "Message roles; Message formatting with Markdown and XML",
+      "supports": "Developer/user message authority and explicit prompt section boundaries.",
+      "limit": "Role authority is distinct from textual position. Prompt layouts vary by model and API."
+    },
+    {
+      "id": "openai-gpt41-layout",
+      "title": "GPT-4.1 Prompting Guide",
+      "url": "https://developers.openai.com/cookbook/examples/gpt4-1_prompting_guide",
+      "type": "official-model-guidance",
+      "locator": "Long Context / Prompt Organization",
+      "supports": "Reported placement guidance for long-context GPT-4.1 prompts.",
+      "limit": "Model-specific guidance, not proof of an optimal ordering for every current model or coding task."
+    },
+    {
+      "id": "anthropic-long-context",
+      "title": "Claude Prompting Best Practices",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "type": "official-documentation",
+      "locator": "Long context prompting",
+      "supports": "Document-first organization, source metadata and quote-grounding guidance for long-document tasks.",
+      "limit": "A provider recommendation is not an effect size measured in our experiments. Preserve task/model qualifications."
+    },
+    {
+      "id": "ordered-prompts",
+      "title": "Fantastically Ordered Prompts and Where to Find Them: Overcoming Few-Shot Prompt Order Sensitivity",
+      "url": "https://aclanthology.org/2022.acl-long.556/",
+      "type": "peer-reviewed-research",
+      "year": 2022,
+      "locator": "Abstract and experimental results",
+      "supports": "Changing few-shot example ordering changed measured performance in tested models/tasks.",
+      "limit": "Does not establish an exact effect for instruction-file permutations or our current harness/model configurations."
+    },
+    {
+      "id": "transformer",
+      "title": "Attention Is All You Need",
+      "url": "https://arxiv.org/html/1706.03762v7",
+      "type": "primary-research",
+      "year": 2017,
+      "locator": "Sections 3.1, 3.2.1 and 3.2.2",
+      "supports": "Scaled dot-product attention, decoder causal masking, and multiple attention heads.",
+      "limit": "The original encoder-decoder Transformer is a mechanism reference, not a complete architecture description of every current LLM."
+    },
+    {
+      "id": "lost-middle",
+      "title": "Lost in the Middle: How Language Models Use Long Contexts",
+      "url": "https://aclanthology.org/2024.tacl-1.9/",
+      "fullTextUrl": "https://arxiv.org/html/2307.03172v3",
+      "type": "peer-reviewed-research",
+      "year": 2024,
+      "locator": "v3, Appendix G.2 Table6; \u00a72.1 scoring",
+      "supports": "Position sensitivity in historical multi-document QA; checked Table6 accuracy across document indices.",
+      "limit": "The plotted quantity is task performance, not internal attention weight; historical model/task scope must remain visible."
+    },
+    {
+      "id": "nolima",
+      "title": "NoLiMa: Long-Context Evaluation Beyond Literal Matching",
+      "url": "https://arxiv.org/html/2502.05167v3",
+      "type": "primary-research",
+      "year": 2025,
+      "locator": "Figure 3, Table 4, Section 4.4; Appendix G for unsmoothed plots",
+      "supports": "Measured association-retrieval performance across lengths, task complexity and evidence positions.",
+      "limit": "Retrieval accuracy and authors' mechanistic interpretation must be distinguished. Figure 3 uses smoothing; do not mix v2 and v3 figure numbering or populations."
+    },
+    {
+      "id": "attention-sinks",
+      "title": "Efficient Streaming Language Models with Attention Sinks",
+      "url": "https://arxiv.org/html/2309.17453v4",
+      "type": "primary-research",
+      "year": 2024,
+      "locator": "Figure 2; Section 3.1; attention-visualization appendices",
+      "supports": "Published average attention-logit measurements in specified Llama-2 conditions, and the attention-sink phenomenon.",
+      "limit": "Figure 2 averages over 256 sentences of length 16 in Llama-2-7B. These are attention logits, not a universal long-context weight curve. Streaming KV-cache intervention requires inference-backend control."
+    },
+    {
+      "id": "context-engineering",
+      "title": "Effective Context Engineering for AI Agents",
+      "url": "https://www.anthropic.com/research/effective-context-engineering-for-ai-agents",
+      "type": "official-engineering-guidance",
+      "year": 2025,
+      "locator": "Anatomy of effective context; context retrieval; long-horizon tasks",
+      "supports": "Engineering guidance on selective retrieval, tool design, compaction, notes and scoped agents.",
+      "limit": "Recommendations and customer observations are distinct from controlled task-specific gains. No universal per-token attention-decay law is established."
+    },
+    {
+      "id": "openai-caching",
+      "title": "OpenAI prompt caching \u00b7 model-specific controls",
+      "url": "https://developers.openai.com/api/docs/guides/prompt-caching",
+      "type": "official-documentation",
+      "locator": "How caching works; Cache lifetime; Cached-token reporting",
+      "supports": "Eligible exact-prefix reuse; model-specific read/write reporting, retention and provider-controlled KV state.",
+      "limit": "Newer and earlier models have different controls and charges. Cached input stays included; no universal free cache writes, TTL or guaranteed hit."
+    },
+    {
+      "id": "opencode-hooks",
+      "title": "OpenCode V2 server hooks",
+      "type": "official-harness-documentation",
+      "url": "https://opencode.ai/docs/build/plugins/server/",
+      "supports": "Prompt admission, per-dispatch context, compaction request and tool execution hook boundaries.",
+      "limit": "V2 documentation; event observation and orchestration are distinct. Match installed version.",
+      "locator": "Hooks \u2192 Sessions and Tools",
+      "year": 2026
+    },
+    {
+      "id": "opencode-events",
+      "title": "OpenCode V2 session events",
+      "type": "official-harness-documentation",
+      "url": "https://opencode.ai/docs/api",
+      "supports": "Session creation and completed-compaction event names for observation.",
+      "limit": "Events are not blocking/rewriting hooks. No automatic startup injection is asserted.",
+      "locator": "V2EventEncoded: session.created, session.compaction.ended",
+      "year": 2026
+    },
+    {
+      "id": "claude-hooks",
+      "title": "Claude Code lifecycle hooks",
+      "type": "official-harness-documentation",
+      "url": "https://code.claude.com/docs/en/hooks",
+      "supports": "Event-specific startup/prompt/child/tool/compaction control; current PostToolUse updatedToolOutput supports schema-preserving model-visible replacement; SubagentHandback report interception has version/mode prerequisites.",
+      "limit": "PostCompact observes completed state. Output replacement leaves tool side effects and original telemetry intact. SubagentHandback automatic gating requires v2.1.271+ auto mode and the actual delivery path; source matching is not native runtime validation.",
+      "locator": "PostToolUse decision control; SubagentHandback / Agent output; PreCompact / PostCompact",
+      "year": 2026
+    },
+    {
+      "id": "gemini-carbon-card",
+      "title": "Gemini 4 Carbon model card \u00b7 October 2026 cohort",
+      "type": "official-model-evaluation",
+      "url": "https://deepmind.google/models/model-cards/gemini-4-carbon/",
+      "supports": "Published GraphWalks BFS F1 results for named Google, OpenAI and Anthropic models.",
+      "limit": "One task/cohort; aggregate256K\u20131M subset, not a per-length curve, exact-answer accuracy or overall model ranking.",
+      "locator": "Results table: Long context / GraphWalks",
+      "year": 2026
+    },
+    {
+      "id": "gemini-carbon-method",
+      "title": "GraphWalks comparison methodology",
+      "type": "official-model-evaluation",
+      "url": "https://deepmind.google/models/evals-methodology/gemini-4-carbon/",
+      "supports": "All compared GraphWalks results self-computed by Google DeepMind on200problems in256K\u20131M subset.",
+      "limit": "Highest/max available reasoning; not equal token budgets or our own experiment.",
+      "locator": "pp2\u20133: Methodology and Long Context",
+      "year": 2026
+    },
+    {
+      "id": "graphwalks-data",
+      "title": "GraphWalks task and scoring",
+      "type": "primary-benchmark",
+      "url": "https://huggingface.co/datasets/openai/graphwalks",
+      "supports": "Breadth-first-search task and precision/recall/F1 scoring for returned node sets.",
+      "limit": "Dataset includes versioned fixes. Do not call F1 exact-answer accuracy.",
+      "locator": "Dataset card: BFS task and scoring code",
+      "year": 2026
+    },
+    {
+      "id": "openai-accuracy",
+      "title": "OpenAI: evaluating long-context accuracy",
+      "type": "official-provider-documentation",
+      "url": "https://developers.openai.com/api/docs/guides/optimizing-llm-accuracy",
+      "supports": "Evaluate long-context behavior at different sizes; pair context choices with task evaluation.",
+      "limit": "Engineering guidance, not a quantitative gain claim for this fixture.",
+      "locator": "Using long context to scale prompt engineering",
+      "year": 2026
+    },
+    {
+      "id": "cre-2026",
+      "title": "Positional Failures in Long-Context LLMs \u00b72026",
+      "type": "primary-research",
+      "year": 2026,
+      "url": "https://arxiv.org/html/2605.23170v1",
+      "supports": "Task-position accuracy for four2026model releases across context tiers and filler types.",
+      "limit": "2026 preprint; n50 per condition. Math word problems, not software tasks. Task position, not answer-bearing document location. Provider reasoning defaults differ. A flat/reversed gap is allowed; no universal middle penalty or proven task-duplication repair.",
+      "locator": "v1 Tables1 and16; \u00a73 methods"
+    },
+    {
+      "id": "signal-2026",
+      "title": "Distractor-Aware Truncation \u00b72026",
+      "type": "primary-research",
+      "year": 2026,
+      "url": "https://arxiv.org/html/2608.03297v1",
+      "supports": "Paired accuracy changes for blind versus oracle answer-preserving context reduction.",
+      "limit": "Oracle signal selection uses dataset structure and gold labels. Not a production retriever or75%safe-trimming guarantee. Paired95%bootstrap CIs supplied. Absolute full baselines differ between protocol runs; deltas refer to each paired run.",
+      "locator": "v1 Table1; \u00a7\u00a73.1,5.5 context and oracle limits"
+    },
+    {
+      "id": "gemini-argon-card",
+      "title": "Gemini 4 Argon model card",
+      "url": "https://deepmind.google/models/model-cards/gemini-4-argon/",
+      "type": "official-documentation",
+      "locator": "Long context \u00b7 GraphWalks BFS rows",
+      "supports": "BFS F1 for two reported input bands across current provider models.",
+      "limit": "Different problem sets and coarse bands; not a precise degradation onset."
+    },
+    {
+      "id": "gemini-argon-method",
+      "title": "Gemini 4 Argon evaluation methodology",
+      "url": "https://deepmind.google/models/evals-methodology/gemini-4-argon/",
+      "type": "official-documentation",
+      "locator": "Long Context; general reasoning settings",
+      "supports": "650 items up to 128K; 200 problems at 256K\u20131M; self-computed GraphWalks.",
+      "limit": "650 is the GraphWalks subset count, not explicitly BFS-only."
+    },
+    {
+      "id": "tokenizer-reference",
+      "title": "Counting text tokens with tiktoken",
+      "url": "https://developers.openai.com/cookbook/examples/how_to_count_tokens_with_tiktoken",
+      "type": "official-documentation",
+      "locator": "Encodings; counting tokens",
+      "supports": "Deterministic reference text tokenization; different encodings produce different counts.",
+      "limit": "Shown o200k_base counts are not native request usage for the named models."
+    },
+    {
+      "id": "opencode-skills",
+      "title": "OpenCode Skills: catalogs and loading",
+      "url": "https://opencode.ai/docs/skills",
+      "type": "official-documentation",
+      "locator": "Discovery, Catalogs, Loading",
+      "supports": "Skills are advertised and loaded when needed; metadata and full skill instructions are distinct context inputs.",
+      "limit": "The uncurated scenario explicitly invokes extra skill bodies; it is not a claim that native defaults automatically inject every skill."
+    },
+    {
+      "id": "claude-memory",
+      "title": "Claude Code memory and loading",
+      "url": "https://code.claude.com/docs/en/memory",
+      "locator": "How CLAUDE.md files load",
+      "supports": "Ancestor guidance at launch; descendant guidance when working in that directory.",
+      "limit": "Default documented behavior; imports, rules, exclusions and version/settings affect actual loads.",
+      "type": "official-documentation"
+    },
+    {
+      "id": "codex-guidance",
+      "title": "Codex AGENTS.md discovery",
+      "url": "https://learn.chatgpt.com/docs/agent-configuration/agents-md",
+      "locator": "How Codex discovers guidance",
+      "supports": "Startup global + repository root to working-directory guidance, preferred file per directory.",
+      "limit": "Not a guarantee that shell cd rebuilds the startup chain; actual request roles require capture.",
+      "type": "official-documentation"
+    },
+    {
+      "id": "codex-skills",
+      "title": "Codex skill discovery",
+      "url": "https://learn.chatgpt.com/docs/build-skills",
+      "locator": "Where Codex loads local skills",
+      "supports": "Repository skill discovery under .agents/skills.",
+      "limit": "Native discovery does not prove selection or runtime outcome.",
+      "type": "official-documentation"
+    },
+    {
+      "id": "anthropic-cache",
+      "title": "Anthropic prompt caching",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching",
+      "locator": "Tracking cache performance; Data retention",
+      "supports": "Prefix reuse, read/creation/fresh accounting, ephemeral in-memory state and supported TTL choices.",
+      "limit": "Model/platform pricing and eligibility vary; reuse does not reduce included context.",
+      "type": "official-documentation"
+    },
+    {
+      "id": "gemini-cache",
+      "title": "Gemini context caching",
+      "url": "https://aistudio.google.com/docs/caching",
+      "locator": "Implicit caching",
+      "supports": "Gemini4/Interactions implicit caching and usage.total_cached_tokens.",
+      "limit": "Explicit cache objects are not supported for Gemini4/Interactions; other model/API combinations differ.",
+      "type": "official-documentation"
+    },
+    {
+      "id": "instruction-hierarchy",
+      "title": "Instruction hierarchy training",
+      "url": "https://openai.com/index/instruction-hierarchy-challenge/",
+      "locator": "What instruction hierarchy is",
+      "supports": "Models are trained to prioritize trusted instructions; example application-role order.",
+      "limit": "Intended instruction priority is not a fixed attention coefficient or guarantee of obedience.",
+      "type": "primary-research"
+    },
+    {
+      "id": "rope",
+      "title": "RoFormer positional attention",
+      "url": "https://arxiv.org/html/2104.09864v5",
+      "locator": "Sections3.2 and3.4.1",
+      "supports": "RoPE rotates query/key representations to encode relative position.",
+      "limit": "Toy vectors and angle in this deck are invented; no universal frontier attention curve is inferred.",
+      "type": "primary-research"
+    },
+    {
+      "id": "model-spec",
+      "title": "OpenAI Model Spec \u00b7 2026-10-29",
+      "url": "https://model-spec.openai.com/2026-10-29.html",
+      "locator": "Instructions and authority",
+      "supports": "Normative instruction hierarchy and scoped delegation of authority.",
+      "limit": "Provider-specific intended behavior; file names are not numeric role weights.",
+      "type": "official-documentation"
+    },
+    {
+      "id": "cursor-prompting",
+      "title": "Cursor context categories",
+      "url": "https://cursor.com/docs/agent/prompting",
+      "supports": "Native context inventory, conversation growth and compression.",
+      "limit": "Category list is not guaranteed full serialization order or actual attention weights.",
+      "locator": "Context usage",
+      "year": 2026,
+      "type": "official-documentation"
+    },
+    {
+      "id": "cursor-rules",
+      "title": "Cursor rule activation and precedence",
+      "url": "https://cursor.com/docs/rules",
+      "supports": "Rule activation, Team\u2192Project\u2192User conflict precedence, nested AGENTS.md.",
+      "limit": "Rule-source precedence is not provider-role authority or a numeric weight.",
+      "locator": "Rule anatomy; Team Rules; nested AGENTS.md",
+      "year": 2026,
+      "type": "official-documentation"
+    },
+    {
+      "id": "claude-context",
+      "title": "Claude Code context lifecycle",
+      "url": "https://code.claude.com/docs/en/context-window",
+      "supports": "Startup and on-demand context, compaction restoration and separate subagent windows.",
+      "limit": "Representative timeline counts are not our captured usage; settings/version affect behavior.",
+      "locator": "What timeline shows; what survives compaction",
+      "year": 2026,
+      "type": "official-documentation"
+    },
+    {
+      "id": "codex-hooks",
+      "title": "Codex lifecycle hooks",
+      "url": "https://learn.chatgpt.com/docs/hooks",
+      "supports": "Native lifecycle context/decision capabilities and per-request diagnostics.",
+      "limit": "Event outputs differ: PreModelRequest diagnostic only; PreCompact stdout ignored; SessionStart(compact) restores continuation context. Native runtime not tested here.",
+      "locator": "Hooks; event-specific output; review/trust",
+      "year": 2026,
+      "type": "official-documentation"
+    },
+    {
+      "id": "codex-subagents",
+      "title": "Codex subagent workflows",
+      "url": "https://learn.chatgpt.com/docs/agent-configuration/subagents",
+      "supports": "Separate worker work and returned summaries; token overhead of delegation.",
+      "limit": "Model does not capture native fork serialization, coordination overhead or empirical speed/cost gains.",
+      "locator": "Why subagent workflows help; availability",
+      "year": 2026,
+      "type": "official-documentation"
+    },
+    {
+      "id": "claude-subagents",
+      "title": "Claude subagent tools and skill preloads",
+      "url": "https://code.claude.com/docs/en/sub-agents",
+      "supports": "Explicit tools/disallowedTools restrictions and selected skill preloading.",
+      "limit": "Preload lists do not prohibit later discovery; custom subset token sizes are not published fixed defaults.",
+      "locator": "Restrict tools; preload skills",
+      "year": 2026,
+      "type": "official-documentation"
+    },
+    {
+      "id": "claude-costs",
+      "title": "Claude context inspection and cost controls",
+      "url": "https://code.claude.com/docs/en/costs",
+      "supports": "/context inspection, deferred MCP definitions and costs of additional sessions.",
+      "limit": "Usage depends on configured session; no universal full base-prompt token count established here.",
+      "locator": "Reduce token usage",
+      "year": 2026,
+      "type": "official-documentation"
+    },
+    {
+      "id": "claude-tool-overhead",
+      "title": "Claude API tool-use system-token overhead",
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview",
+      "supports": "Published Opus/Sonnet/Haiku5.5 auto/none286 and any/tool406 system tokens when tools are supplied.",
+      "limit": "Partial API tool-use overhead only; excludes schemas and Claude Code harness instructions. Not a full-harness baseline.",
+      "locator": "Pricing: tool use system prompt tokens",
+      "year": 2026,
+      "type": "official-documentation"
+    },
+    {
+      "id": "codex-catalog",
+      "title": "Codex model catalogs and instruction defaults",
+      "url": "https://learn.chatgpt.com/docs/enterprise/roll-out-a-gateway",
+      "supports": "Model/client/upstream-specific base_instructions, tool settings and current catalog defaults.",
+      "limit": "Public API model listing is not this catalog; no universal native prompt count given. No authenticated request made here.",
+      "locator": "Model catalog reference",
+      "year": 2026,
+      "type": "official-documentation"
+    },
+    {
+      "id": "codex-config",
+      "title": "Codex instruction configuration",
+      "url": "https://learn.chatgpt.com/docs/config-file/config-reference",
+      "supports": "model_instructions_file replaces built-in instructions; model/catalog settings affect context.",
+      "limit": "A setting or source text length is not complete native usage or hidden provider overhead.",
+      "locator": "model_instructions_file; model_catalog_json",
+      "year": 2026,
+      "type": "official-documentation"
+    },
+    {
+      "id": "opencode-agents",
+      "title": "OpenCode agent-specific system and capabilities",
+      "url": "https://opencode.ai/docs/agents",
+      "supports": "Agent-specific system can replace provider base guidance; other instruction sources remain.",
+      "limit": "Permissions/capabilities do not by themselves prove schema-token reduction or a fixed baseline size.",
+      "locator": "System; permissions; agent modes",
+      "year": 2026,
+      "type": "official-documentation"
+    },
+    {
+      "id": "instruction-stack-study",
+      "title": "Instruction stack capture study \u00b7 October2026",
+      "url": "https://arxiv.org/html/2610.37332",
+      "supports": "Version/configuration-sensitive first-request instruction stacks across1886 captures.",
+      "limit": "Controlled empty-repository captures through August2026; character counts/shares are not model-token counts or current native defaults.",
+      "locator": "Sections4.1,5.1,6",
+      "year": 2026,
+      "type": "primary-research"
+    }
+  ]
+}

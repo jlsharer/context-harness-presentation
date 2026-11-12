@@ -1,0 +1,32 @@
+{
+  "id": "frontier-graphwalks",
+  "sourceId": "gemini-carbon-card",
+  "methodSourceId": "gemini-carbon-method",
+  "sourceUrl": "https://deepmind.google/models/model-cards/gemini-4-carbon/",
+  "methodUrl": "https://deepmind.google/models/evals-methodology/gemini-4-carbon/",
+  "locator": "Results table, Long context / GraphWalks; methodology p3",
+  "publishedCohort": "October 2026 results; model card updated 2026-11-10",
+  "checkedOn": "2026-11-11",
+  "metric": "BFS F1 (%)",
+  "task": "Return graph nodes at a requested breadth-first-search depth. F1 balances correct returned nodes and required nodes recovered.",
+  "context": "256K–1M token subset; 200 GraphWalks problems",
+  "method": "Google DeepMind reports all GraphWalks results self-computed. Highest/max available thinking settings; best available reasoning where maximum results unavailable.",
+  "series": [
+    {
+      "provider": "Google DeepMind",
+      "model": "Gemini 4 Carbon",
+      "value": 96.2
+    },
+    {
+      "provider": "OpenAI",
+      "model": "GPT-6 Astra",
+      "value": 71.8
+    },
+    {
+      "provider": "Anthropic",
+      "model": "Claude Opus 5.5",
+      "value": 66.8
+    }
+  ],
+  "limits": "One published cohort and task, not an overall model ranking, internal attention measurement, exact-answer accuracy, or a length-by-length curve. No local experiment or equal token-budget claim."
+}

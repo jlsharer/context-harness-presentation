@@ -1,0 +1,16 @@
+{
+ "title":"GraphWalks BFS by reported input band · October 2026",
+ "sourceUrl":"https://deepmind.google/models/model-cards/gemini-4-argon/",
+ "methodUrl":"https://deepmind.google/models/evals-methodology/gemini-4-argon/",
+ "locator":"Long context · GraphWalks BFS rows; methodology Long Context",
+ "bands":["Up to 128K","256K–1M"],
+ "unit":"Mean BFS set-F1 (%)",
+ "models":[
+  {"id":"argon","provider":"Google","model":"Gemini 4 Argon","values":[99.7,84.2]},
+  {"id":"astra","provider":"OpenAI","model":"GPT-6 Astra","values":[98.7,71.8]},
+  {"id":"opus","provider":"Anthropic","model":"Claude Opus 5.5","values":[90.6,66.8]}
+ ],
+ "context":"Two reported input bands, not exact prompt sizes. The up-to-128K GraphWalks subset contains 650 items (BFS-only count not specified); 256K–1M contains 200 problems.",
+ "method":"All GraphWalks comparisons self-computed by Google DeepMind; highest/max available reasoning settings as described in methodology.",
+ "limits":"Separate problem sets and broad input bands. No controlled within-task size sweep, exact degradation threshold, session-age curve, direct attention-weight measurement or coding acceptance score. No data plotted in the gap between bands."
+}

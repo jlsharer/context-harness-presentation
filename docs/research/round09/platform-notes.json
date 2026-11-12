@@ -1,0 +1,61 @@
+{
+  "reviewedOn": "2026-11-12",
+  "nativeSources": [
+    {
+      "id": "cursor-prompting",
+      "title": "Cursor context categories",
+      "url": "https://cursor.com/docs/agent/prompting",
+      "supports": "Native context inventory, conversation growth and compression.",
+      "limit": "Category list is not guaranteed full serialization order or actual attention weights.",
+      "locator": "Context usage",
+      "year": 2026,
+      "type": "official-documentation"
+    },
+    {
+      "id": "cursor-rules",
+      "title": "Cursor rule activation and precedence",
+      "url": "https://cursor.com/docs/rules",
+      "supports": "Rule activation, Team\u2192Project\u2192User conflict precedence, nested AGENTS.md.",
+      "limit": "Rule-source precedence is not provider-role authority or a numeric weight.",
+      "locator": "Rule anatomy; Team Rules; nested AGENTS.md",
+      "year": 2026,
+      "type": "official-documentation"
+    },
+    {
+      "id": "claude-context",
+      "title": "Claude Code context lifecycle",
+      "url": "https://code.claude.com/docs/en/context-window",
+      "supports": "Startup and on-demand context, compaction restoration and separate subagent windows.",
+      "limit": "Representative timeline counts are not our captured usage; settings/version affect behavior.",
+      "locator": "What timeline shows; what survives compaction",
+      "year": 2026,
+      "type": "official-documentation"
+    },
+    {
+      "id": "codex-hooks",
+      "title": "Codex lifecycle hooks",
+      "url": "https://learn.chatgpt.com/docs/hooks",
+      "supports": "Native lifecycle context/decision capabilities and per-request diagnostics.",
+      "limit": "Event outputs differ: PreModelRequest diagnostic only; PreCompact stdout ignored; SessionStart(compact) restores continuation context. Native runtime not tested here.",
+      "locator": "Hooks; event-specific output; review/trust",
+      "year": 2026,
+      "type": "official-documentation"
+    },
+    {
+      "id": "codex-subagents",
+      "title": "Codex subagent workflows",
+      "url": "https://learn.chatgpt.com/docs/agent-configuration/subagents",
+      "supports": "Separate worker work and returned summaries; token overhead of delegation.",
+      "limit": "Model does not capture native fork serialization, coordination overhead or empirical speed/cost gains.",
+      "locator": "Why subagent workflows help; availability",
+      "year": 2026,
+      "type": "official-documentation"
+    }
+  ],
+  "rulings": [
+    "Claude/Cursor views are documented inventories/loading phases, not full provider serialization.",
+    "Codex PostCompact itself is not asserted to inject context; SessionStart(compact) does.",
+    "Reference package remains portable for Codex even though current native hooks exist.",
+    "Current-window sums and cumulative dispatched inputs are distinct modeled metrics."
+  ]
+}
