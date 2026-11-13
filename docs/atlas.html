@@ -1,26 +1,286 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Context Engineered · System Atlas</title><link rel="stylesheet" href="atlas.css?v=r13b"><link rel="stylesheet" href="atlas-round04.css?v=r13b"><link rel="stylesheet" href="atlas-round05.css?v=r13b"><link rel="stylesheet" href="atlas-round06.css?v=r13b"><link rel="stylesheet" href="atlas-round07.css?v=r13b"><link rel="stylesheet" href="atlas-round08.css?v=r13b"><link rel="stylesheet" href="atlas-round09.css?v=r13b"><link rel="stylesheet" href="atlas-round10.css?v=r13b"><link rel="stylesheet" href="atlas-round11.css?v=r13b"><link rel="stylesheet" href="atlas-round12.css?v=r13b"><script defer src="atlas-sources.js?v=r13b"></script><script defer src="atlas-evidence.js?v=r13b"></script><script defer src="atlas-content.js?v=r13b"></script><script defer src="atlas-research.js?v=r13b"></script><script defer src="atlas-session.js?v=r13b"></script><script defer src="atlas-round04-content.js?v=r13b"></script><script defer src="atlas-research05.js?v=r13b"></script><script defer src="atlas-round05-content.js?v=r13b"></script><script defer src="atlas-tokens.js?v=r13b"></script><script defer src="atlas-research06.js?v=r13b"></script><script defer src="atlas-round06-content.js?v=r13b"></script><script defer src="atlas-workload.js?v=r13b"></script><script defer src="atlas-learning.js?v=r13b"></script><script defer src="atlas-round07-content.js?v=r13b"></script><script defer src="atlas-replay08.js?v=r13b"></script><script defer src="atlas-platform08.js?v=r13b"></script><script defer src="atlas-kits08.js?v=r13b"></script><script defer src="atlas-content08.js?v=r13b"></script><script defer src="atlas-model09.js?v=r13b"></script><script defer src="atlas-content09.js?v=r13b"></script><script defer src="atlas-model10.js?v=r13b"></script><script defer src="atlas-content10.js?v=r13b"></script><script defer src="atlas-model11.js?v=r13b"></script><script defer src="atlas-content11.js?v=r13b"></script><script defer src="atlas-pricing12.js?v=r13b"></script><script defer src="atlas-model12.js?v=r13b"></script><script defer src="atlas-content12.js?v=r13b"></script><link rel="stylesheet" href="atlas-round13.css?v=r13b"><script defer src="atlas-audit13.js?v=r13b"></script><script defer src="atlas-content13.js?v=r13b"></script><link rel="stylesheet" href="atlas-skill-guide.css?v=r13b"><script defer src="atlas-skill-guide.js?v=r13b"></script><script defer src="atlas-controller08.js?v=r13b"></script></head>
-<body data-view="system"><main class="atlas-shell"><button id="togglePresentation">Present</button>
-<header class="atlas-masthead"><a href="#system" class="wordmark"><span>⌘</span> CONTEXT / ENGINEERED</a><button id="restartAtlas" title="Reset all walkthrough progress and return to Purpose">Restart</button><nav aria-label="Atlas views"><button data-view="qa">QA foundations</button><button data-view="welcome">Purpose</button><button data-view="contents">Contents</button><button data-view="system">Single session</button><button data-view="orchestration">Delegation</button><button data-view="loading">Loading rules</button><button data-view="cache">Caching</button><button data-view="attention">Goal + evidence</button><button data-view="hooks">Lifecycle map</button><button data-view="recipes">Packages</button><button data-view="references">References</button></nav><span class="checkpoint">ROUND 13 · DESIGN CHECKPOINT</span></header>
-<section class="atlas-intro"><div><div class="eyebrow" id="viewEyebrow"></div><h1 id="viewTitle"></h1></div><p id="viewDescription"></p></section>
-<div id="semanticKey"></div><section id="atlasCanvas" aria-label="Interactive working system"></section>
-<aside id="changeReadout" class="change-readout" aria-live="polite"></aside>
-<footer id="sourceFooter" aria-label="Sources for this view"></footer>
-<div class="atlas-navigation"><div id="qaGuide" hidden><button data-qa-jump="qa">Overview</button><button data-qa-jump="system">1 · Context</button><button data-qa-jump="automation">2 · Automate</button><button data-qa-jump="audit">3 · Your setup</button><button id="exitQaGuide">Full field guide ↗</button></div><button id="previousView">← Previous view</button><p id="viewPosition"></p><button id="nextView">Expand the assembler →</button></div>
-</main>
-<dialog id="skillGuideDialog" aria-labelledby="skillGuideTitle"><div class="dialog-header"><h2 id="skillGuideTitle">How to use the Claude context skill</h2><button data-close>Close ×</button></div><div id="skillGuideBody"></div></dialog>
-<dialog id="auditPreviewDialog" aria-labelledby="auditPreviewTitle"><div class="dialog-header"><h2 id="auditPreviewTitle">Selected artifacts + integration</h2><button data-close>Close ×</button></div><div id="auditPreviewBody"></div></dialog>
-<dialog id="contextDialog" aria-labelledby="contextTitle"><div class="dialog-header"><h2 id="contextTitle">Context component details</h2><button data-close>Close ×</button></div><div id="contextDetails"></div></dialog>
-<dialog id="authorityDialog" aria-labelledby="authorityTitle"><div class="dialog-header"><h2 id="authorityTitle">Instruction priority, attention + confidence</h2><button data-close>Close ×</button></div><div id="authorityBody"></div></dialog>
-<dialog id="routingDialog" aria-labelledby="routingTitle"><div class="dialog-header"><h2 id="routingTitle">Route this agent · estimated API costs</h2><button data-close>Close ×</button></div><div id="routingBody"></div></dialog>
-<dialog id="pricingDialog" aria-labelledby="pricingTitle"><div class="dialog-header"><h2 id="pricingTitle">Model costs + cache read/write rates</h2><button data-close>Close ×</button></div><div id="pricingBody"></div></dialog>
-<dialog id="ledgerDialog" aria-labelledby="ledgerTitle"><div class="dialog-header"><h2 id="ledgerTitle">Every estimated inference request</h2><button data-close>Close ×</button></div><div id="ledgerBody"></div></dialog>
-<dialog id="heatDialog" aria-labelledby="heatTitle"><div class="dialog-header"><h2 id="heatTitle">Read the attention heat map</h2><button data-close>Close ×</button></div><div id="heatGuide"></div><p><a href="https://arxiv.org/html/1706.03762v7">Attention mechanism ↗</a> · <a href="https://arxiv.org/html/2104.09864v5">Positional encoding ↗</a></p></dialog>
-<dialog id="weightDialog" aria-labelledby="weightTitle"><div class="dialog-header"><h2 id="weightTitle">Instruction authority and computed attention weights</h2><button data-close>Close ×</button></div><div id="weightBody"></div><button id="showLogits">Published internal measurement + scope ↗</button><p><a href="https://model-spec.openai.com/2026-10-29.html">Model Spec authority ↗</a> · <a href="https://openai.com/index/instruction-hierarchy-challenge/">Instruction hierarchy training ↗</a> · <a href="https://arxiv.org/html/1706.03762v7">Transformer attention ↗</a> · <a href="https://arxiv.org/html/2104.09864v5">RoPE position encoding ↗</a></p></dialog><dialog id="researchDialog" aria-labelledby="researchTitle"><div class="dialog-header"><h2 id="researchTitle">Published internal-attention measurement</h2><button data-close>Close ×</button></div><p>Average attention <strong>logits</strong> · Llama-2-7B · 256 sentences, each length 16 · selected layers/head 0.</p><div class="figure-guide09"><h3>How to read one attention map</h3><div><p><strong>1 · Find a cell.</strong> Columns are key positions (tokens being looked at); rows are query positions (tokens doing the looking). Each small panel is one reported layer, head0.</p><p><strong>2 · Read the color scale.</strong> Warm/red colors indicate higher average attention logits (scores), and cool/blue lower scores. Read each panel’s own color scale; scales differ across panels. Logits are not percentages; each query needs normalization across its accessible keys to get weights. The future-key upper triangle is causally inaccessible.</p><p><strong>3 · Compare patterns.</strong> Near-diagonal emphasis in layers0/1 indicates local comparisons. A strong first column in later shown layers indicates attention to the initial token: an attention sink, which can attract attention without meaningful task content.</p><p><strong>4 · Keep the implication scoped.</strong> Large scores do not establish instruction authority, factual importance or task accuracy. This historical Llama-2 example explains a mechanism; it is not a current frontier-model benchmark.</p></div><p><strong>What a harness can do:</strong> curate context and verify behavior. The paper’s intervention preserves initial key/value (KV) states while evicting other cached states; implementing that requires serving-layer access. It is not a prompt-cache billing trick or a rule to put every instruction first.</p></div><img id="researchImage" src="research/round03/figures/streamingllm-figure2.png" alt="StreamingLLM Figure 2: reported attention logits for several layers in Llama-2-7B. Early layers show local patterns; later shown layers emphasize the initial token."><p>Original Figure 2, unchanged. Xiao et al., <em>Efficient Streaming Language Models with Attention Sinks</em>, ICLR 2024. <a href="https://arxiv.org/html/2309.17453v4" target="_blank" rel="noopener noreferrer">Paper and experimental scope ↗</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a>.</p><p class="dialog-scope">This is a specific published internal measurement, not a universal attention curve. Its streaming KV-cache intervention requires serving-layer control.</p></dialog>
-<dialog id="manifestDialog" aria-labelledby="manifestTitle"><div class="dialog-header"><h2 id="manifestTitle">Candidate assembly manifest</h2><button data-close>Close ×</button></div><p id="manifestIntro">A teaching manifest of selected source text and its layout. This is not a captured native/provider request; tool definitions and hidden instructions are not reconstructed.</p><pre id="fullManifest"></pre><p id="manifestLinks"></p></dialog>
-<dialog id="summaryDialog" aria-labelledby="summaryTitle"><div class="dialog-header"><h2 id="summaryTitle">S1 · a separate summary request</h2><button data-close>Close ×</button></div><div id="summaryGraphic"></div><p>Reference o200k_base tokens for teaching text, not native usage. Output text is counted alone; its later parent layer also includes a heading and separators.</p><details><summary>Inspect exact S1 input and output</summary><pre id="summaryText"></pre></details></dialog>
-<dialog id="dataDialog" aria-labelledby="dataTitle"><div class="dialog-header"><h2 id="dataTitle">Research data and scope</h2><button data-close>Close ×</button></div><p id="dataScope"></p><div id="researchDataTable"></div><p><a id="dataDownload" download>Download source-linked data ↓</a> · <a id="dataSource" target="_blank" rel="noopener noreferrer">Primary source ↗</a></p><p id="dataLimit"></p></dialog>
-<dialog id="nativeDialog" aria-labelledby="nativeTitle"><div class="dialog-header"><h2 id="nativeTitle">Native initial assembly · what is documented</h2><button data-close>Close ×</button></div><div id="nativeOrder" class="native-stack"></div></dialog>
-<dialog id="mechanismDialog" aria-labelledby="mechanismTitle"><div class="dialog-header"><h2 id="mechanismTitle">Attention: mechanism and internal measurements</h2><button data-close>Close ×</button></div><p><strong>Capacity</strong> is what can fit; <strong>attention</strong> is how accessible tokens interact; <strong>task accuracy/F1</strong> measures the result. A larger context window does not itself establish reliable use of all included information.</p><p class="formula">softmax(QKᵀ / √d<sub>k</sub> + M)V</p><div class="qkv"><b>Q</b><span>Query: the current token’s representation for comparison.</span><b>K</b><span>Keys: representations of accessible tokens.</span><b>V</b><span>Values: information combined using normalized scores.</span><b>M</b><span>Causal mask: excludes future positions.</span></div><p>Different heads and layers compute different patterns. An internal attention/logit measurement and a task-performance score answer different questions.</p><button id="legacyShowLogits">Inspect the published StreamingLLM measurement ↗</button><p><a href="https://arxiv.org/html/1706.03762v7" target="_blank" rel="noopener noreferrer">Transformer attention mechanism ↗</a> · <a href="research/round03/attention-definitions.md">Local attention definitions ↗</a></p></dialog>
-<div id="atlasStatus" role="status" class="sr"></div>
-</body></html>
+<html lang="en"
+  ><head
+    ><meta charset="utf-8" /><meta
+      name="viewport"
+      content="width=device-width,initial-scale=1" /><title>Context Engineered · System Atlas</title
+    ><link rel="stylesheet" href="atlas.css?v=fmt1" /><link
+      rel="stylesheet"
+      href="atlas-round04.css?v=fmt1" /><link
+      rel="stylesheet"
+      href="atlas-round05.css?v=fmt1" /><link
+      rel="stylesheet"
+      href="atlas-round06.css?v=fmt1" /><link
+      rel="stylesheet"
+      href="atlas-round07.css?v=fmt1" /><link
+      rel="stylesheet"
+      href="atlas-round08.css?v=fmt1" /><link
+      rel="stylesheet"
+      href="atlas-round09.css?v=fmt1" /><link
+      rel="stylesheet"
+      href="atlas-round10.css?v=fmt1" /><link
+      rel="stylesheet"
+      href="atlas-round11.css?v=fmt1" /><link
+      rel="stylesheet"
+      href="atlas-round12.css?v=fmt1" /><script defer src="atlas-sources.js?v=fmt1"></script
+    ><script defer src="atlas-evidence.js?v=fmt1"></script
+    ><script defer src="atlas-content.js?v=fmt1"></script
+    ><script defer src="atlas-research.js?v=fmt1"></script
+    ><script defer src="atlas-session.js?v=fmt1"></script
+    ><script defer src="atlas-round04-content.js?v=fmt1"></script
+    ><script defer src="atlas-research05.js?v=fmt1"></script
+    ><script defer src="atlas-round05-content.js?v=fmt1"></script
+    ><script defer src="atlas-tokens.js?v=fmt1"></script
+    ><script defer src="atlas-research06.js?v=fmt1"></script
+    ><script defer src="atlas-round06-content.js?v=fmt1"></script
+    ><script defer src="atlas-workload.js?v=fmt1"></script
+    ><script defer src="atlas-learning.js?v=fmt1"></script
+    ><script defer src="atlas-round07-content.js?v=fmt1"></script
+    ><script defer src="atlas-replay08.js?v=fmt1"></script
+    ><script defer src="atlas-platform08.js?v=fmt1"></script
+    ><script defer src="atlas-kits08.js?v=fmt1"></script
+    ><script defer src="atlas-content08.js?v=fmt1"></script
+    ><script defer src="atlas-model09.js?v=fmt1"></script
+    ><script defer src="atlas-content09.js?v=fmt1"></script
+    ><script defer src="atlas-model10.js?v=fmt1"></script
+    ><script defer src="atlas-content10.js?v=fmt1"></script
+    ><script defer src="atlas-model11.js?v=fmt1"></script
+    ><script defer src="atlas-content11.js?v=fmt1"></script
+    ><script defer src="atlas-pricing12.js?v=fmt1"></script
+    ><script defer src="atlas-model12.js?v=fmt1"></script
+    ><script defer src="atlas-content12.js?v=fmt1"></script
+    ><link rel="stylesheet" href="atlas-round13.css?v=fmt1" /><script
+      defer
+      src="atlas-audit13.js?v=fmt1"
+    ></script
+    ><script defer src="atlas-content13.js?v=fmt1"></script
+    ><link rel="stylesheet" href="atlas-skill-guide.css?v=fmt1" /><script
+      defer
+      src="atlas-skill-guide.js?v=fmt1"
+    ></script
+    ><script defer src="atlas-controller08.js?v=fmt1"></script
+  ></head>
+  <body data-view="system"
+    ><main class="atlas-shell"
+      ><button id="togglePresentation">Present</button>
+      <header class="atlas-masthead"
+        ><a href="#system" class="wordmark"><span>⌘</span> CONTEXT / ENGINEERED</a
+        ><button id="restartAtlas" title="Reset all walkthrough progress and return to Purpose"
+          >Restart</button
+        ><nav aria-label="Atlas views"
+          ><button data-view="qa">QA foundations</button><button data-view="welcome">Purpose</button
+          ><button data-view="contents">Contents</button
+          ><button data-view="system">Single session</button
+          ><button data-view="orchestration">Delegation</button
+          ><button data-view="loading">Loading rules</button
+          ><button data-view="cache">Caching</button
+          ><button data-view="attention">Goal + evidence</button
+          ><button data-view="hooks">Lifecycle map</button
+          ><button data-view="recipes">Packages</button
+          ><button data-view="references">References</button></nav
+        ><span class="checkpoint">ROUND 13 · DESIGN CHECKPOINT</span></header
+      >
+      <section class="atlas-intro"
+        ><div><div class="eyebrow" id="viewEyebrow"></div><h1 id="viewTitle"></h1></div
+        ><p id="viewDescription"></p
+      ></section>
+      <div id="semanticKey"></div
+      ><section id="atlasCanvas" aria-label="Interactive working system"></section>
+      <aside id="changeReadout" class="change-readout" aria-live="polite"></aside>
+      <footer id="sourceFooter" aria-label="Sources for this view"></footer>
+      <div class="atlas-navigation"
+        ><div id="qaGuide" hidden
+          ><button data-qa-jump="qa">Overview</button
+          ><button data-qa-jump="system">1 · Context</button
+          ><button data-qa-jump="automation">2 · Automate</button
+          ><button data-qa-jump="audit">3 · Your setup</button
+          ><button id="exitQaGuide">Full field guide ↗</button></div
+        ><button id="previousView">← Previous view</button><p id="viewPosition"></p
+        ><button id="nextView">Expand the assembler →</button></div
+      >
+    </main>
+    <dialog id="skillGuideDialog" aria-labelledby="skillGuideTitle"
+      ><div class="dialog-header"
+        ><h2 id="skillGuideTitle">How to use the Claude context skill</h2
+        ><button data-close>Close ×</button></div
+      ><div id="skillGuideBody"></div
+    ></dialog>
+    <dialog id="auditPreviewDialog" aria-labelledby="auditPreviewTitle"
+      ><div class="dialog-header"
+        ><h2 id="auditPreviewTitle">Selected artifacts + integration</h2
+        ><button data-close>Close ×</button></div
+      ><div id="auditPreviewBody"></div
+    ></dialog>
+    <dialog id="contextDialog" aria-labelledby="contextTitle"
+      ><div class="dialog-header"
+        ><h2 id="contextTitle">Context component details</h2
+        ><button data-close>Close ×</button></div
+      ><div id="contextDetails"></div
+    ></dialog>
+    <dialog id="authorityDialog" aria-labelledby="authorityTitle"
+      ><div class="dialog-header"
+        ><h2 id="authorityTitle">Instruction priority, attention + confidence</h2
+        ><button data-close>Close ×</button></div
+      ><div id="authorityBody"></div
+    ></dialog>
+    <dialog id="routingDialog" aria-labelledby="routingTitle"
+      ><div class="dialog-header"
+        ><h2 id="routingTitle">Route this agent · estimated API costs</h2
+        ><button data-close>Close ×</button></div
+      ><div id="routingBody"></div
+    ></dialog>
+    <dialog id="pricingDialog" aria-labelledby="pricingTitle"
+      ><div class="dialog-header"
+        ><h2 id="pricingTitle">Model costs + cache read/write rates</h2
+        ><button data-close>Close ×</button></div
+      ><div id="pricingBody"></div
+    ></dialog>
+    <dialog id="ledgerDialog" aria-labelledby="ledgerTitle"
+      ><div class="dialog-header"
+        ><h2 id="ledgerTitle">Every estimated inference request</h2
+        ><button data-close>Close ×</button></div
+      ><div id="ledgerBody"></div
+    ></dialog>
+    <dialog id="heatDialog" aria-labelledby="heatTitle"
+      ><div class="dialog-header"
+        ><h2 id="heatTitle">Read the attention heat map</h2><button data-close>Close ×</button></div
+      ><div id="heatGuide"></div
+      ><p
+        ><a href="https://arxiv.org/html/1706.03762v7">Attention mechanism ↗</a> ·
+        <a href="https://arxiv.org/html/2104.09864v5">Positional encoding ↗</a></p
+      ></dialog
+    >
+    <dialog id="weightDialog" aria-labelledby="weightTitle"
+      ><div class="dialog-header"
+        ><h2 id="weightTitle">Instruction authority and computed attention weights</h2
+        ><button data-close>Close ×</button></div
+      ><div id="weightBody"></div
+      ><button id="showLogits">Published internal measurement + scope ↗</button
+      ><p
+        ><a href="https://model-spec.openai.com/2026-10-29.html">Model Spec authority ↗</a> ·
+        <a href="https://openai.com/index/instruction-hierarchy-challenge/"
+          >Instruction hierarchy training ↗</a
+        >
+        · <a href="https://arxiv.org/html/1706.03762v7">Transformer attention ↗</a> ·
+        <a href="https://arxiv.org/html/2104.09864v5">RoPE position encoding ↗</a></p
+      ></dialog
+    ><dialog id="researchDialog" aria-labelledby="researchTitle"
+      ><div class="dialog-header"
+        ><h2 id="researchTitle">Published internal-attention measurement</h2
+        ><button data-close>Close ×</button></div
+      ><p
+        >Average attention <strong>logits</strong> · Llama-2-7B · 256 sentences, each length 16 ·
+        selected layers/head 0.</p
+      ><div class="figure-guide09"
+        ><h3>How to read one attention map</h3
+        ><div
+          ><p
+            ><strong>1 · Find a cell.</strong> Columns are key positions (tokens being looked at);
+            rows are query positions (tokens doing the looking). Each small panel is one reported
+            layer, head0.</p
+          ><p
+            ><strong>2 · Read the color scale.</strong> Warm/red colors indicate higher average
+            attention logits (scores), and cool/blue lower scores. Read each panel’s own color
+            scale; scales differ across panels. Logits are not percentages; each query needs
+            normalization across its accessible keys to get weights. The future-key upper triangle
+            is causally inaccessible.</p
+          ><p
+            ><strong>3 · Compare patterns.</strong> Near-diagonal emphasis in layers0/1 indicates
+            local comparisons. A strong first column in later shown layers indicates attention to
+            the initial token: an attention sink, which can attract attention without meaningful
+            task content.</p
+          ><p
+            ><strong>4 · Keep the implication scoped.</strong> Large scores do not establish
+            instruction authority, factual importance or task accuracy. This historical Llama-2
+            example explains a mechanism; it is not a current frontier-model benchmark.</p
+          ></div
+        ><p
+          ><strong>What a harness can do:</strong> curate context and verify behavior. The paper’s
+          intervention preserves initial key/value (KV) states while evicting other cached states;
+          implementing that requires serving-layer access. It is not a prompt-cache billing trick or
+          a rule to put every instruction first.</p
+        ></div
+      ><img
+        id="researchImage"
+        src="research/round03/figures/streamingllm-figure2.png"
+        alt="StreamingLLM Figure 2: reported attention logits for several layers in Llama-2-7B. Early layers show local patterns; later shown layers emphasize the initial token."
+      /><p
+        >Original Figure 2, unchanged. Xiao et al.,
+        <em>Efficient Streaming Language Models with Attention Sinks</em>, ICLR 2024.
+        <a href="https://arxiv.org/html/2309.17453v4" target="_blank" rel="noopener noreferrer"
+          >Paper and experimental scope ↗</a
+        >
+        ·
+        <a
+          href="https://creativecommons.org/licenses/by/4.0/"
+          target="_blank"
+          rel="noopener noreferrer"
+          >CC BY 4.0</a
+        >.</p
+      ><p class="dialog-scope"
+        >This is a specific published internal measurement, not a universal attention curve. Its
+        streaming KV-cache intervention requires serving-layer control.</p
+      ></dialog
+    >
+    <dialog id="manifestDialog" aria-labelledby="manifestTitle"
+      ><div class="dialog-header"
+        ><h2 id="manifestTitle">Candidate assembly manifest</h2
+        ><button data-close>Close ×</button></div
+      ><p id="manifestIntro"
+        >A teaching manifest of selected source text and its layout. This is not a captured
+        native/provider request; tool definitions and hidden instructions are not reconstructed.</p
+      ><pre id="fullManifest"></pre><p id="manifestLinks"></p
+    ></dialog>
+    <dialog id="summaryDialog" aria-labelledby="summaryTitle"
+      ><div class="dialog-header"
+        ><h2 id="summaryTitle">S1 · a separate summary request</h2
+        ><button data-close>Close ×</button></div
+      ><div id="summaryGraphic"></div
+      ><p
+        >Reference o200k_base tokens for teaching text, not native usage. Output text is counted
+        alone; its later parent layer also includes a heading and separators.</p
+      ><details
+        ><summary>Inspect exact S1 input and output</summary><pre id="summaryText"></pre></details
+    ></dialog>
+    <dialog id="dataDialog" aria-labelledby="dataTitle"
+      ><div class="dialog-header"
+        ><h2 id="dataTitle">Research data and scope</h2><button data-close>Close ×</button></div
+      ><p id="dataScope"></p><div id="researchDataTable"></div
+      ><p
+        ><a id="dataDownload" download>Download source-linked data ↓</a> ·
+        <a id="dataSource" target="_blank" rel="noopener noreferrer">Primary source ↗</a></p
+      ><p id="dataLimit"></p
+    ></dialog>
+    <dialog id="nativeDialog" aria-labelledby="nativeTitle"
+      ><div class="dialog-header"
+        ><h2 id="nativeTitle">Native initial assembly · what is documented</h2
+        ><button data-close>Close ×</button></div
+      ><div id="nativeOrder" class="native-stack"></div
+    ></dialog>
+    <dialog id="mechanismDialog" aria-labelledby="mechanismTitle"
+      ><div class="dialog-header"
+        ><h2 id="mechanismTitle">Attention: mechanism and internal measurements</h2
+        ><button data-close>Close ×</button></div
+      ><p
+        ><strong>Capacity</strong> is what can fit; <strong>attention</strong> is how accessible
+        tokens interact; <strong>task accuracy/F1</strong> measures the result. A larger context
+        window does not itself establish reliable use of all included information.</p
+      ><p class="formula">softmax(QKᵀ / √d<sub>k</sub> + M)V</p
+      ><div class="qkv"
+        ><b>Q</b><span>Query: the current token’s representation for comparison.</span><b>K</b
+        ><span>Keys: representations of accessible tokens.</span><b>V</b
+        ><span>Values: information combined using normalized scores.</span><b>M</b
+        ><span>Causal mask: excludes future positions.</span></div
+      ><p
+        >Different heads and layers compute different patterns. An internal attention/logit
+        measurement and a task-performance score answer different questions.</p
+      ><button id="legacyShowLogits">Inspect the published StreamingLLM measurement ↗</button
+      ><p
+        ><a href="https://arxiv.org/html/1706.03762v7" target="_blank" rel="noopener noreferrer"
+          >Transformer attention mechanism ↗</a
+        >
+        · <a href="research/round03/attention-definitions.md">Local attention definitions ↗</a></p
+      ></dialog
+    >
+    <div id="atlasStatus" role="status" class="sr"></div> </body
+></html>

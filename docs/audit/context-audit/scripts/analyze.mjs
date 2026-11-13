@@ -1,29 +1,410 @@
-import fs from 'node:fs';import path from 'node:path';
-const count=x=>(typeof x==='number'||typeof x==='string'&&x.trim()!=='')&&Number.isFinite(Number(x))&&Number(x)>=0?Number(x):null;
-const unwrap=v=>v&&typeof v==='object'?(v.stringValue??v.intValue??v.doubleValue??v.boolValue??v):v;
-const attrs=a=>Array.isArray(a)?Object.fromEntries(a.map(x=>[x.key,unwrap(x.value)])):a||{};
-export function discover(claudeHome,limit=20){const base=path.join(path.resolve(claudeHome),'projects'),found=[];let scanned=0;function visit(dir,depth){if(depth>4||scanned>=5000||!fs.existsSync(dir))return;for(const e of fs.readdirSync(dir,{withFileTypes:true})){if(++scanned>5000)break;const f=path.join(dir,e.name);if(e.isDirectory())visit(f,depth+1);else if(e.isFile()&&e.name.endsWith('.jsonl')){const st=fs.statSync(f);found.push({path:f,bytes:st.size,modified:st.mtime.toISOString()});}}}visit(base,0);return found.sort((a,b)=>b.modified.localeCompare(a.modified)).slice(0,Math.max(1,Math.min(50,limit)));}
-async function* lines(file,coverage){let tail='',discard=false,index=0,bytes=0;for await(const chunk of fs.createReadStream(file,{encoding:'utf8',highWaterMark:65536})){bytes+=Buffer.byteLength(chunk);if(bytes>100000000){coverage.limits.push('Stopped file at100MB: '+path.basename(file));break;}const pieces=chunk.split('\n');for(let i=0;i<pieces.length;i++){const part=pieces[i];if(!discard){tail+=part;if(tail.length>2000000){discard=true;tail='';coverage.oversizedLines++;}}if(i<pieces.length-1){index++;if(!discard&&tail.trim())yield {text:tail,line:index};tail='';discard=false;}}}if(tail.trim()&&!discard)yield{text:tail,line:index+1};}
-function events(record,coverage){if(record.resourceLogs===undefined)return[record];const out=[],bad=()=>{coverage.malformedLines++;};if(!Array.isArray(record.resourceLogs)){bad();return out;}for(const r of record.resourceLogs){if(!r||!Array.isArray(r.scopeLogs)){bad();continue;}for(const group of r.scopeLogs){if(!group||!Array.isArray(group.logRecords)){bad();continue;}for(const entry of group.logRecords)out.push(entry);}}return out;}
-export async function analyze({claudeHome,files=[],events:eventsFile,limit=20,since,discover:scan=false}={}){
- if(!claudeHome)throw Error('Provide --claude-home');if(since&&!Number.isFinite(Date.parse(since)))throw Error('Invalid --since date');const coverage={usageSource:'none',files:[],malformedLines:0,oversizedLines:0,deduplicated:0,excludedNativeRequests:0,limits:['Selected records only; unobserved events are not proof of absence. Native transcript formats may vary.','Request input totals are not a reconstruction of currently resident context.'],config:{}};
- const settings=path.join(path.resolve(claudeHome),'settings.json');if(fs.existsSync(settings)){try{const c=JSON.parse(fs.readFileSync(settings));coverage.config={hookEvents:Object.keys(c.hooks||{}),hasPermissions:!!c.permissions,hasTelemetryEnv:Object.keys(c.env||{}).some(k=>k.startsWith('OTEL_')||k==='CLAUDE_CODE_ENABLE_TELEMETRY')};}catch{coverage.limits.push('Existing settings could not be parsed; no configuration was changed.');}}
- if(scan)files=[...files,...discover(claudeHome,limit).map(f=>f.path)];files=[...new Set(files.map(f=>path.resolve(f)))].slice(0,50);const native=new Map(),otel=new Map(),compactions={native:0,otel:0},compactSources={native:[],otel:[]},tools=[],sessions=new Set();let sourceRows=0,nativeSeen=false,otelSeen=false;
- for(const file of [...files,...(eventsFile?[path.resolve(eventsFile)]:[])]){const kind=eventsFile&&file===path.resolve(eventsFile)?'otel':'native';if(!fs.existsSync(file)||!fs.statSync(file).isFile()){coverage.limits.push('Missing input: '+path.basename(file));continue;}coverage.files.push({path:file,kind});if(kind==='native')nativeSeen=true;else otelSeen=true;
- for await(const row of lines(file,coverage)){if(++sourceRows>100000){coverage.limits.push('Stopped analysis at100,000 records.');break;}let data;try{data=JSON.parse(row.text);}catch{coverage.malformedLines++;continue;}if(!data||typeof data!=='object'||Array.isArray(data)){coverage.malformedLines++;continue;}for(const [eventIndex,x] of events(data,coverage).entries()){if(!x||typeof x!=='object'||Array.isArray(x)){coverage.malformedLines++;continue;}const a=attrs(x.attributes),stamp=x.timestamp||a['event.timestamp']||x.timestampUnixNano&&new Date(Number(x.timestampUnixNano)/1e6).toISOString();if(since&&stamp&&Date.parse(stamp)<Date.parse(since))continue;const src={file,line:row.line,record:eventIndex+1},sid=x.sessionId||a['session.id']||a.session_id||path.basename(file);sessions.add(sid);
- if(kind==='native'){
- if(x.type==='system'&&x.subtype==='compact_boundary'){compactions.native++;compactSources.native.push(src);}
- const m=x.message;if(x.type==='assistant'&&m&&typeof m==='object'){const key=sid+':'+(m.id||x.uuid||row.line),u=m.usage||{},r={id:key,model:m.model||'unknown',session:sid,fresh:count(u.input_tokens),read:count(u.cache_read_input_tokens),write:count(u.cache_creation_input_tokens),output:count(u.output_tokens),cost:null,timestamp:stamp||null,source:src};if(native.has(key)){coverage.deduplicated++;if(!m.usage)continue;}native.set(key,r);}
- for(const c of Array.isArray(m?.content)?m.content:[]){if(c.type==='tool_result'){const text=typeof c.content==='string'?c.content:JSON.stringify(c.content||'');tools.push({characters:text.length,error:!!c.is_error,source:src});}}
- }else{const name=x.name||a['event.name']||unwrap(x.body)||'';if(/(?:^|\.)compaction$/.test(name)){compactions.otel++;compactSources.otel.push(src);}if(/subagent_completed/.test(name)&&!coverage.limits.some(t=>t.includes('final request')))coverage.limits.push('Subagent completion total covers the final request, not total worker usage; excluded.');if(!/(?:^|\.)api_request$/.test(name))continue;const key=a.request_id||a.client_request_id||file+':'+row.line+':'+eventIndex,u=a,r={id:key,model:a.model||'unknown',session:sid,fresh:count(u.input_tokens),read:count(u.cache_read_tokens),write:count(u.cache_creation_tokens),output:count(u.output_tokens),cost:count(u.cost_usd)??(count(u.cost_usd_micros)!==null?count(u.cost_usd_micros)/1e6:null),timestamp:stamp||null,source:src};if(otel.has(key))coverage.deduplicated++;otel.set(key,r);}
- }}}
- const requests=[...(otel.size?otel:native).values()].map(r=>({...r,input:[r.fresh,r.read,r.write].every(v=>v!==null)?r.fresh+r.read+r.write:null}));coverage.usageSource=otel.size?'otel':native.size?'native':'none';coverage.excludedNativeRequests=otel.size?native.size:0;if(otel.size&&native.size)coverage.limits.push('OTel is the accounting source; native request usage excluded to avoid unjoinable overlap. Native event metadata remains separate.');if(native.size)coverage.limits.push('Repeated native message IDs use the last available usage record; identifiable messages without usage remain unknown. Streaming completeness is not independently verified.');
- const sum=k=>requests.reduce((s,r)=>s+(r[k]??0),0),complete=k=>requests.length>0&&requests.every(r=>r[k]!==null),models={};for(const r of requests)models[r.model]=(models[r.model]||0)+1;const metrics={requests:requests.length,sessions:otel.size&&nativeSeen?null:sessions.size,sessionCountScope:'Selected identifiers only; mixed unjoined streams do not establish actual session count.',totalInput:complete('input')?sum('input'):null,knownInputSubtotal:sum('fresh')+sum('read')+sum('write'),peakInput:requests.some(r=>r.input!==null)?Math.max(...requests.filter(r=>r.input!==null).map(r=>r.input)):null,peakScope:'Maximum of fully reported selected requests; not the unknown true peak.',outputTokens:complete('output')?sum('output'):null,knownOutput:sum('output'),knownCost:sum('cost'),totalCost:complete('cost')?sum('cost'):null,compactions:otelSeen&&compactions.otel?compactions.otel:nativeSeen?compactions.native:otelSeen?compactions.otel:null,models,largeResults:tools.filter(t=>t.characters>16000).length};
- const findings=[],add=(id,title,pkg,priority,confidence,detail,evidence)=>findings.push({id,title,package:pkg,priority,confidence,detail,evidence,benefit:'Candidate improvement; savings and task quality require follow-up measurement.'});
- if(!complete('input')||!complete('cost'))add('coverage','Measure the missing usage first','measurement',1,'High','Some request/cache/cost fields are missing. A complete session total or dollar saving cannot be established.',requests.filter(r=>r.input===null||r.cost===null).slice(0,3).map(r=>r.source));
- if(tools.some(t=>t.characters>16000&&!t.error))add('verbose','Keep large results out of repeated input','results',1,'Medium',tools.filter(t=>t.characters>16000&&!t.error).length+' selected successful tool results exceed 16,000 characters. Preserve full artifacts; shorten only successful supported outputs. Characters are not measured tokens.',tools.filter(t=>t.characters>16000&&!t.error).slice(0,3).map(t=>t.source));
- if((metrics.peakInput||0)>80000&&requests.length>=8||metrics.compactions>0)add('continuity','Preserve a compact, source-linked checkpoint','continuity',2,'Medium','Compaction or large repeated requests make continuity worth testing. Observed compactions: '+(metrics.compactions??'unknown')+'. This is not evidence that instructions were lost.',(compactSources.otel.length?compactSources.otel:compactSources.native.length?compactSources.native:requests.filter(r=>(r.input||0)>80000).map(r=>r.source)).slice(0,3));
- const dominant=Object.entries(models).sort((a,b)=>b[1]-a[1])[0];if(requests.length>=8&&dominant&&dominant[1]/requests.length>=.8&&/opus|fable/i.test(dominant[0]))add('routing','Test scoped workers for bounded QA stages','workflow',3,'Low',dominant[1]+'/'+requests.length+' requests use '+dominant[0]+'. Task difficulty is unclassified; test lower-cost routing with acceptance checks before adopting.',requests.slice(0,2).map(r=>r.source));
- if(!findings.length)add('baseline','Keep a traceable baseline before changing policy','measurement',2,'Medium','No strong inefficiency is established by this sample. Compare representative accepted tasks before installing more machinery.',[]);
- findings.sort((a,b)=>a.priority-b.priority);return{schema:1,scope:'Local metadata analysis; no raw prompt/output text, actual attention weights or guaranteed savings.',coverage,metrics,requests,findings};
+import fs from 'node:fs';
+import path from 'node:path';
+
+const count = (x) =>
+  (typeof x === 'number' || (typeof x === 'string' && x.trim() !== '')) &&
+  Number.isFinite(Number(x)) &&
+  Number(x) >= 0
+    ? Number(x)
+    : null;
+
+const unwrap = (v) =>
+  v && typeof v === 'object'
+    ? (v.stringValue ?? v.intValue ?? v.doubleValue ?? v.boolValue ?? v)
+    : v;
+
+const attrs = (a) =>
+  Array.isArray(a) ? Object.fromEntries(a.map((x) => [x.key, unwrap(x.value)])) : a || {};
+
+export function discover(claudeHome, limit = 20) {
+  const base = path.join(path.resolve(claudeHome), 'projects'),
+    found = [];
+  let scanned = 0;
+
+  function visit(dir, depth) {
+    if (depth > 4 || scanned >= 5000 || !fs.existsSync(dir)) return;
+    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (++scanned > 5000) break;
+      const f = path.join(dir, e.name);
+      if (e.isDirectory()) visit(f, depth + 1);
+      else if (e.isFile() && e.name.endsWith('.jsonl')) {
+        const st = fs.statSync(f);
+        found.push({ path: f, bytes: st.size, modified: st.mtime.toISOString() });
+      }
+    }
+  }
+
+  visit(base, 0);
+  return found
+    .sort((a, b) => b.modified.localeCompare(a.modified))
+    .slice(0, Math.max(1, Math.min(50, limit)));
+}
+
+async function* lines(file, coverage) {
+  let tail = '',
+    discard = false,
+    index = 0,
+    bytes = 0;
+  for await (const chunk of fs.createReadStream(file, { encoding: 'utf8', highWaterMark: 65536 })) {
+    bytes += Buffer.byteLength(chunk);
+    if (bytes > 100000000) {
+      coverage.limits.push('Stopped file at100MB: ' + path.basename(file));
+      break;
+    }
+    const pieces = chunk.split('\n');
+    for (let i = 0; i < pieces.length; i++) {
+      const part = pieces[i];
+      if (!discard) {
+        tail += part;
+        if (tail.length > 2000000) {
+          discard = true;
+          tail = '';
+          coverage.oversizedLines++;
+        }
+      }
+      if (i < pieces.length - 1) {
+        index++;
+        if (!discard && tail.trim()) yield { text: tail, line: index };
+        tail = '';
+        discard = false;
+      }
+    }
+  }
+  if (tail.trim() && !discard) yield { text: tail, line: index + 1 };
+}
+
+function events(record, coverage) {
+  if (record.resourceLogs === undefined) return [record];
+
+  const out = [],
+    bad = () => {
+      coverage.malformedLines++;
+    };
+
+  if (!Array.isArray(record.resourceLogs)) {
+    bad();
+    return out;
+  }
+  for (const r of record.resourceLogs) {
+    if (!r || !Array.isArray(r.scopeLogs)) {
+      bad();
+      continue;
+    }
+    for (const group of r.scopeLogs) {
+      if (!group || !Array.isArray(group.logRecords)) {
+        bad();
+        continue;
+      }
+      for (const entry of group.logRecords) out.push(entry);
+    }
+  }
+  return out;
+}
+
+export async function analyze({
+  claudeHome,
+  files = [],
+  events: eventsFile,
+  limit = 20,
+  since,
+  discover: scan = false,
+} = {}) {
+  if (!claudeHome) throw Error('Provide --claude-home');
+  if (since && !Number.isFinite(Date.parse(since))) throw Error('Invalid --since date');
+  const coverage = {
+    usageSource: 'none',
+    files: [],
+    malformedLines: 0,
+    oversizedLines: 0,
+    deduplicated: 0,
+    excludedNativeRequests: 0,
+    limits: [
+      'Selected records only; unobserved events are not proof of absence. Native transcript formats may vary.',
+      'Request input totals are not a reconstruction of currently resident context.',
+    ],
+    config: {},
+  };
+  const settings = path.join(path.resolve(claudeHome), 'settings.json');
+  if (fs.existsSync(settings)) {
+    try {
+      const c = JSON.parse(fs.readFileSync(settings));
+      coverage.config = {
+        hookEvents: Object.keys(c.hooks || {}),
+        hasPermissions: !!c.permissions,
+        hasTelemetryEnv: Object.keys(c.env || {}).some(
+          (k) => k.startsWith('OTEL_') || k === 'CLAUDE_CODE_ENABLE_TELEMETRY',
+        ),
+      };
+    } catch {
+      coverage.limits.push('Existing settings could not be parsed; no configuration was changed.');
+    }
+  }
+  if (scan) files = [...files, ...discover(claudeHome, limit).map((f) => f.path)];
+  files = [...new Set(files.map((f) => path.resolve(f)))].slice(0, 50);
+  const native = new Map(),
+    otel = new Map(),
+    compactions = { native: 0, otel: 0 },
+    compactSources = { native: [], otel: [] },
+    tools = [],
+    sessions = new Set();
+  let sourceRows = 0,
+    nativeSeen = false,
+    otelSeen = false;
+  for (const file of [...files, ...(eventsFile ? [path.resolve(eventsFile)] : [])]) {
+    const kind = eventsFile && file === path.resolve(eventsFile) ? 'otel' : 'native';
+    if (!fs.existsSync(file) || !fs.statSync(file).isFile()) {
+      coverage.limits.push('Missing input: ' + path.basename(file));
+      continue;
+    }
+    coverage.files.push({ path: file, kind });
+    if (kind === 'native') nativeSeen = true;
+    else otelSeen = true;
+    for await (const row of lines(file, coverage)) {
+      if (++sourceRows > 100000) {
+        coverage.limits.push('Stopped analysis at100,000 records.');
+        break;
+      }
+      let data;
+      try {
+        data = JSON.parse(row.text);
+      } catch {
+        coverage.malformedLines++;
+        continue;
+      }
+      if (!data || typeof data !== 'object' || Array.isArray(data)) {
+        coverage.malformedLines++;
+        continue;
+      }
+      for (const [eventIndex, x] of events(data, coverage).entries()) {
+        if (!x || typeof x !== 'object' || Array.isArray(x)) {
+          coverage.malformedLines++;
+          continue;
+        }
+        const a = attrs(x.attributes),
+          stamp =
+            x.timestamp ||
+            a['event.timestamp'] ||
+            (x.timestampUnixNano && new Date(Number(x.timestampUnixNano) / 1e6).toISOString());
+        if (since && stamp && Date.parse(stamp) < Date.parse(since)) continue;
+        const src = { file, line: row.line, record: eventIndex + 1 },
+          sid = x.sessionId || a['session.id'] || a.session_id || path.basename(file);
+        sessions.add(sid);
+        if (kind === 'native') {
+          if (x.type === 'system' && x.subtype === 'compact_boundary') {
+            compactions.native++;
+            compactSources.native.push(src);
+          }
+          const m = x.message;
+          if (x.type === 'assistant' && m && typeof m === 'object') {
+            const key = sid + ':' + (m.id || x.uuid || row.line),
+              u = m.usage || {},
+              r = {
+                id: key,
+                model: m.model || 'unknown',
+                session: sid,
+                fresh: count(u.input_tokens),
+                read: count(u.cache_read_input_tokens),
+                write: count(u.cache_creation_input_tokens),
+                output: count(u.output_tokens),
+                cost: null,
+                timestamp: stamp || null,
+                source: src,
+              };
+            if (native.has(key)) {
+              coverage.deduplicated++;
+              if (!m.usage) continue;
+            }
+            native.set(key, r);
+          }
+          for (const c of Array.isArray(m?.content) ? m.content : []) {
+            if (c.type === 'tool_result') {
+              const text =
+                typeof c.content === 'string' ? c.content : JSON.stringify(c.content || '');
+              tools.push({ characters: text.length, error: !!c.is_error, source: src });
+            }
+          }
+        } else {
+          const name = x.name || a['event.name'] || unwrap(x.body) || '';
+          if (/(?:^|\.)compaction$/.test(name)) {
+            compactions.otel++;
+            compactSources.otel.push(src);
+          }
+          if (
+            /subagent_completed/.test(name) &&
+            !coverage.limits.some((t) => t.includes('final request'))
+          )
+            coverage.limits.push(
+              'Subagent completion total covers the final request, not total worker usage; excluded.',
+            );
+          if (!/(?:^|\.)api_request$/.test(name)) continue;
+          const key =
+              a.request_id || a.client_request_id || file + ':' + row.line + ':' + eventIndex,
+            u = a,
+            r = {
+              id: key,
+              model: a.model || 'unknown',
+              session: sid,
+              fresh: count(u.input_tokens),
+              read: count(u.cache_read_tokens),
+              write: count(u.cache_creation_tokens),
+              output: count(u.output_tokens),
+              cost:
+                count(u.cost_usd) ??
+                (count(u.cost_usd_micros) !== null ? count(u.cost_usd_micros) / 1e6 : null),
+              timestamp: stamp || null,
+              source: src,
+            };
+          if (otel.has(key)) coverage.deduplicated++;
+          otel.set(key, r);
+        }
+      }
+    }
+  }
+  const requests = [...(otel.size ? otel : native).values()].map((r) => ({
+    ...r,
+    input: [r.fresh, r.read, r.write].every((v) => v !== null) ? r.fresh + r.read + r.write : null,
+  }));
+  coverage.usageSource = otel.size ? 'otel' : native.size ? 'native' : 'none';
+  coverage.excludedNativeRequests = otel.size ? native.size : 0;
+  if (otel.size && native.size)
+    coverage.limits.push(
+      'OTel is the accounting source; native request usage excluded to avoid unjoinable overlap. Native event metadata remains separate.',
+    );
+  if (native.size)
+    coverage.limits.push(
+      'Repeated native message IDs use the last available usage record; identifiable messages ' +
+        'without usage remain unknown. Streaming completeness is not independently verified.',
+    );
+
+  const sum = (k) => requests.reduce((s, r) => s + (r[k] ?? 0), 0),
+    complete = (k) => requests.length > 0 && requests.every((r) => r[k] !== null),
+    models = {};
+
+  for (const r of requests) models[r.model] = (models[r.model] || 0) + 1;
+  const metrics = {
+    requests: requests.length,
+    sessions: otel.size && nativeSeen ? null : sessions.size,
+    sessionCountScope:
+      'Selected identifiers only; mixed unjoined streams do not establish actual session count.',
+    totalInput: complete('input') ? sum('input') : null,
+    knownInputSubtotal: sum('fresh') + sum('read') + sum('write'),
+    peakInput: requests.some((r) => r.input !== null)
+      ? Math.max(...requests.filter((r) => r.input !== null).map((r) => r.input))
+      : null,
+    peakScope: 'Maximum of fully reported selected requests; not the unknown true peak.',
+    outputTokens: complete('output') ? sum('output') : null,
+    knownOutput: sum('output'),
+    knownCost: sum('cost'),
+    totalCost: complete('cost') ? sum('cost') : null,
+    compactions:
+      otelSeen && compactions.otel
+        ? compactions.otel
+        : nativeSeen
+          ? compactions.native
+          : otelSeen
+            ? compactions.otel
+            : null,
+    models,
+    largeResults: tools.filter((t) => t.characters > 16000).length,
+  };
+
+  const findings = [],
+    add = (id, title, pkg, priority, confidence, detail, evidence) =>
+      findings.push({
+        id,
+        title,
+        package: pkg,
+        priority,
+        confidence,
+        detail,
+        evidence,
+        benefit: 'Candidate improvement; savings and task quality require follow-up measurement.',
+      });
+
+  if (!complete('input') || !complete('cost'))
+    add(
+      'coverage',
+      'Measure the missing usage first',
+      'measurement',
+      1,
+      'High',
+      'Some request/cache/cost fields are missing. A complete session total or dollar saving cannot be established.',
+      requests
+        .filter((r) => r.input === null || r.cost === null)
+        .slice(0, 3)
+        .map((r) => r.source),
+    );
+  if (tools.some((t) => t.characters > 16000 && !t.error))
+    add(
+      'verbose',
+      'Keep large results out of repeated input',
+      'results',
+      1,
+      'Medium',
+      tools.filter((t) => t.characters > 16000 && !t.error).length +
+        (' selected successful tool results exceed 16,000 characters. Preserve full artifacts; ' +
+          'shorten only successful supported outputs. Characters are not measured tokens.'),
+      tools
+        .filter((t) => t.characters > 16000 && !t.error)
+        .slice(0, 3)
+        .map((t) => t.source),
+    );
+  if (((metrics.peakInput || 0) > 80000 && requests.length >= 8) || metrics.compactions > 0)
+    add(
+      'continuity',
+      'Preserve a compact, source-linked checkpoint',
+      'continuity',
+      2,
+      'Medium',
+      'Compaction or large repeated requests make continuity worth testing. Observed compactions: ' +
+        (metrics.compactions ?? 'unknown') +
+        '. This is not evidence that instructions were lost.',
+      (compactSources.otel.length
+        ? compactSources.otel
+        : compactSources.native.length
+          ? compactSources.native
+          : requests.filter((r) => (r.input || 0) > 80000).map((r) => r.source)
+      ).slice(0, 3),
+    );
+  const dominant = Object.entries(models).sort((a, b) => b[1] - a[1])[0];
+  if (
+    requests.length >= 8 &&
+    dominant &&
+    dominant[1] / requests.length >= 0.8 &&
+    /opus|fable/i.test(dominant[0])
+  )
+    add(
+      'routing',
+      'Test scoped workers for bounded QA stages',
+      'workflow',
+      3,
+      'Low',
+      dominant[1] +
+        '/' +
+        requests.length +
+        ' requests use ' +
+        dominant[0] +
+        '. Task difficulty is unclassified; test lower-cost routing with acceptance checks before adopting.',
+      requests.slice(0, 2).map((r) => r.source),
+    );
+  if (!findings.length)
+    add(
+      'baseline',
+      'Keep a traceable baseline before changing policy',
+      'measurement',
+      2,
+      'Medium',
+      'No strong inefficiency is established by this sample. Compare representative accepted tasks before installing more machinery.',
+      [],
+    );
+  findings.sort((a, b) => a.priority - b.priority);
+  return {
+    schema: 1,
+    scope:
+      'Local metadata analysis; no raw prompt/output text, actual attention weights or guaranteed savings.',
+    coverage,
+    metrics,
+    requests,
+    findings,
+  };
 }

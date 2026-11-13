@@ -161,3 +161,10 @@ Run `node tests/context-audit.mjs`, `node tests/context-audit-edge.mjs` and `nod
 `python3 tools/build-context-audit.py` regenerates the synthetic report, atlas-audit13.js and deterministic source-matched ZIP. No real histories are shipped or read by the browser. Sources are documented/dated; recommendations and usage fixture remain illustrative. Run sheet: docs/qa-presenter.txt. New live entry: atlas.html#qa.
 
 Audience usage guide: QA foundations/Audit expose five readable steps with real bootstrap commands, audit/workflow/evaluation prompts, shared package explanations, clipboard controls, and shareable `?help=skill&helpStep=workflow#qa` links. R13 browser checks both entry points, actual copied text/link, direct opening, and every step at320/390px. The helper bundle is unchanged.
+
+
+Source formatting
+
+Install the pinned developer tools with `npm ci`. For Python formatting, create `.venv-format` with `python3 -m venv .venv-format`, then run `.venv-format/bin/python -m pip install -r requirements-format.txt` (Windows: use the environment’s Scripts/python.exe). `npm run format` formats source; `npm run format:check` verifies it. `FORMAT_PYTHON` can point to another environment with Black installed. EditorConfig uses two spaces for web source and four for Python/PowerShell.
+
+`npm run packages:build` rebuilds the active toolkit, audit, policy and readable benchmark downloads using formatted source. Source generators invoke the same formatter before writing bundles. The formatter preserves executable AST structure and exact embedded string values while separating long static strings and functions. Original measured repository bytes remain in service-starters.zip; service-starters-readable.zip contains a semantically equivalent formatted copy. JSONL event streams and historical source snapshots retain their original data format. No developer formatter dependency is installed into a teammate’s harness.

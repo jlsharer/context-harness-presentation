@@ -11,15 +11,8 @@
   },
   "metric": "GSM8K task accuracy (%)",
   "sampleCount": 50,
-  "tiers": [
-    "8K",
-    "32K",
-    "64K"
-  ],
-  "conditions": [
-    "End task",
-    "Middle task"
-  ],
+  "tiers": ["8K", "32K", "64K"],
+  "conditions": ["End task", "Middle task"],
   "fillers": {
     "worked": "Worked solutions",
     "questions": "Unanswered questions"
@@ -29,128 +22,56 @@
       "model": "DeepSeek-V4-Pro",
       "thinking": "Vendor default; enabled",
       "worked": {
-        "8K": [
-          100,
-          98
-        ],
-        "32K": [
-          100,
-          98
-        ],
-        "64K": [
-          100,
-          96
-        ]
+        "8K": [100, 98],
+        "32K": [100, 98],
+        "64K": [100, 96]
       },
       "questions": {
-        "8K": [
-          100,
-          68
-        ],
-        "32K": [
-          100,
-          84
-        ],
-        "64K": [
-          100,
-          82
-        ]
+        "8K": [100, 68],
+        "32K": [100, 84],
+        "64K": [100, 82]
       }
     },
     {
       "model": "MiMo-V2.5-Pro",
       "thinking": "Vendor default; enabled",
       "worked": {
-        "8K": [
-          98,
-          90
-        ],
-        "32K": [
-          100,
-          84
-        ],
-        "64K": [
-          100,
-          68
-        ]
+        "8K": [98, 90],
+        "32K": [100, 84],
+        "64K": [100, 68]
       },
       "questions": {
-        "8K": [
-          100,
-          44
-        ],
-        "32K": [
-          94,
-          50
-        ],
-        "64K": [
-          84,
-          30
-        ]
+        "8K": [100, 44],
+        "32K": [94, 50],
+        "64K": [84, 30]
       }
     },
     {
       "model": "Kimi-K2.6",
       "thinking": "Vendor default; enabled",
       "worked": {
-        "8K": [
-          96,
-          98
-        ],
-        "32K": [
-          98,
-          96
-        ],
-        "64K": [
-          94,
-          96
-        ]
+        "8K": [96, 98],
+        "32K": [98, 96],
+        "64K": [94, 96]
       },
       "questions": {
-        "8K": [
-          98,
-          78
-        ],
-        "32K": [
-          98,
-          60
-        ],
-        "64K": [
-          98,
-          64
-        ]
+        "8K": [98, 78],
+        "32K": [98, 60],
+        "64K": [98, 64]
       }
     },
     {
       "model": "GLM-5.1",
       "thinking": "Vendor default; disabled",
       "worked": {
-        "8K": [
-          98,
-          98
-        ],
-        "32K": [
-          96,
-          98
-        ],
-        "64K": [
-          96,
-          98
-        ]
+        "8K": [98, 98],
+        "32K": [96, 98],
+        "64K": [96, 98]
       },
       "questions": {
-        "8K": [
-          100,
-          64
-        ],
-        "32K": [
-          100,
-          60
-        ],
-        "64K": [
-          100,
-          50
-        ]
+        "8K": [100, 64],
+        "32K": [100, 60],
+        "64K": [100, 50]
       }
     }
   ],

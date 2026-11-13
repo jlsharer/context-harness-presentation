@@ -1,4 +1,69 @@
-const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');const docs=path.resolve(__dirname,'../docs'),data=JSON.parse(vm.runInNewContext(fs.readFileSync(docs+'/atlas-research05.js','utf8')+';JSON.stringify(atlasResearch05)'));for(const [key,file] of [['position','position.json'],['signal','signal-retention.json']])assert.deepEqual(data[key],JSON.parse(fs.readFileSync(docs+'/research/round05/'+file)));
-const P=data.position;assert.equal(P.sampleCount,50);assert.match(P.sourceUrl,/2605\.23170v1/);assert.deepEqual(P.models.map(m=>m.model),['DeepSeek-V4-Pro','MiMo-V2.5-Pro','Kimi-K2.6','GLM-5.1']);assert.deepEqual(P.models.map(m=>m.questions['64K']),[[100,82],[84,30],[98,64],[100,50]]);assert.deepEqual(P.models.map(m=>m.worked['64K']),[[100,96],[100,68],[94,96],[96,98]]);for(const m of P.models)for(const filler of ['worked','questions'])for(const tier of P.tiers)for(const v of m[filler][tier])assert.ok(v>=0&&v<=100);assert.match(P.limits,/Task position/);
-const S=data.signal;assert.match(S.sourceUrl,/2608\.03297v1/);assert.equal(S.sampleCount,240);assert.deepEqual(S.models.map(m=>[m.naive,m.aware]),[[-17.5,10.4],[-43.3,.8],[-61.3,1.7]]);assert.deepEqual(S.models.map(m=>m.awareCI),[[6.2,15],[-3.3,5],[-1.3,4.6]]);assert.match(S.limits,/Oracle/);assert.match(S.contextScope,/7K/);assert.match(S.metric,/percentage points/);
-console.log('PASS: current research bundle; CRE2026 exact model/condition values; paired Δpp/CIs; context ranges and oracle/model limits.');
+const assert = require('node:assert/strict'),
+  fs = require('node:fs'),
+  path = require('node:path'),
+  vm = require('node:vm');
+const docs = path.resolve(__dirname, '../docs'),
+  data = JSON.parse(
+    vm.runInNewContext(
+      fs.readFileSync(docs + '/atlas-research05.js', 'utf8') + ';JSON.stringify(atlasResearch05)',
+    ),
+  );
+for (const [key, file] of [
+  ['position', 'position.json'],
+  ['signal', 'signal-retention.json'],
+])
+  assert.deepEqual(data[key], JSON.parse(fs.readFileSync(docs + '/research/round05/' + file)));
+const P = data.position;
+assert.equal(P.sampleCount, 50);
+assert.match(P.sourceUrl, /2605\.23170v1/);
+assert.deepEqual(
+  P.models.map((m) => m.model),
+  ['DeepSeek-V4-Pro', 'MiMo-V2.5-Pro', 'Kimi-K2.6', 'GLM-5.1'],
+);
+assert.deepEqual(
+  P.models.map((m) => m.questions['64K']),
+  [
+    [100, 82],
+    [84, 30],
+    [98, 64],
+    [100, 50],
+  ],
+);
+assert.deepEqual(
+  P.models.map((m) => m.worked['64K']),
+  [
+    [100, 96],
+    [100, 68],
+    [94, 96],
+    [96, 98],
+  ],
+);
+for (const m of P.models)
+  for (const filler of ['worked', 'questions'])
+    for (const tier of P.tiers) for (const v of m[filler][tier]) assert.ok(v >= 0 && v <= 100);
+assert.match(P.limits, /Task position/);
+const S = data.signal;
+assert.match(S.sourceUrl, /2608\.03297v1/);
+assert.equal(S.sampleCount, 240);
+assert.deepEqual(
+  S.models.map((m) => [m.naive, m.aware]),
+  [
+    [-17.5, 10.4],
+    [-43.3, 0.8],
+    [-61.3, 1.7],
+  ],
+);
+assert.deepEqual(
+  S.models.map((m) => m.awareCI),
+  [
+    [6.2, 15],
+    [-3.3, 5],
+    [-1.3, 4.6],
+  ],
+);
+assert.match(S.limits, /Oracle/);
+assert.match(S.contextScope, /7K/);
+assert.match(S.metric, /percentage points/);
+console.log(
+  'PASS: current research bundle; CRE2026 exact model/condition values; paired Δpp/CIs; context ranges and oracle/model limits.',
+);

@@ -17,18 +17,11 @@
   ],
   "countsAre": "Authored scenario allowances; no native full-baseline measurement",
   "officialPartialOverhead": {
-    "models": [
-      "Opus5.5",
-      "Sonnet5.5",
-      "Haiku5.5"
-    ],
+    "models": ["Opus5.5", "Sonnet5.5", "Haiku5.5"],
     "autoOrNone": 286,
     "anyOrTool": 406,
     "requires": "At least one tool",
-    "excludes": [
-      "Tool schemas",
-      "Claude Code harness instructions"
-    ]
+    "excludes": ["Tool schemas", "Claude Code harness instructions"]
   },
   "sources": [
     {

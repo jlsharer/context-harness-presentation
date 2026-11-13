@@ -1,71 +1,237 @@
 const atlasEvidence = {
-  "files": [
+  'files': [
     {
-      "name": "context/00-index.md",
-      "text": "# Context map and authority\nSynthetic, frozen benchmark evidence. No document describes an actual company incident.\n\n## AUTHORITY-1\nUse current contracts and requirements dated 2026-10-20 over historical ADRs. Incident observations establish only the fixture mechanism, not production frequency or financial impact. Historical documents remain available to explain misleading assumptions. No live web or MCP lookup is needed.\n\nRead current requirements, trace relevant code, then use incident evidence to resolve a causal hypothesis. Do not alter context files. The service baseline is intentionally incomplete for the task; the documents are the requirements.\n\nInternal nodes: API, storage, security, workflow, audit, incident logs and historical decisions. External-style nodes: the frozen delivery-provider contract and integer-money guide, supplied locally to avoid time-dependent retrieval.\n"
+      'name': 'context/00-index.md',
+      'text':
+        '# Context map and authority\nSynthetic, frozen benchmark evidence. No document describes ' +
+        'an actual company incident.\n\n## AUTHORITY-1\nUse current contracts and requirements ' +
+        'dated 2026-10-20 over historical ADRs. Incident observations establish only the fixture ' +
+        'mechanism, not production frequency or financial impact. Historical documents remain ' +
+        'available to explain misleading assumptions. No live web or MCP lookup is needed.\n\nRead ' +
+        'current requirements, trace relevant code, then use incident evidence to resolve a ' +
+        'causal hypothesis. Do not alter context files. The service baseline is intentionally ' +
+        'incomplete for the task; the documents are the requirements.\n\nInternal nodes: API, ' +
+        'storage, security, workflow, audit, incident logs and historical decisions. ' +
+        'External-style nodes: the frozen delivery-provider contract and integer-money guide, ' +
+        'supplied locally to avoid time-dependent retrieval.\n',
     },
     {
-      "name": "context/01-api-contract.md",
-      "text": "# Current API contract \u2014 2026-10-20\nOwner: service team. Status: authoritative internal contract.\n\n## API-1\ncreateService({journal,sink,clock}) returns createOrder, countOrders, listOrders, getOrder, recover, holdOrder, releaseOrder, exportInvoices and auditEvents. actor={tenantId,permissions}; all data is tenant scoped.\n\n## API-2\ncreateOrder(actor,{key,items:[{sku,quantity,unitCents}],taxBps?,deferFulfillment?}) returns exactly {id,tenantId,key,status:'committed',totalCents,createdAt}. Repeated tenant/key returns the first committed identity even if a different request body arrives; it must not create another durable record. Count committed orders, never attempts. IDs may have gaps. Invalid data is INVALID/400; unauthorized is FORBIDDEN/403. Foreign/missing order IDs are indistinguishable NOT_FOUND/404.\n\n## API-3\nDefault create attempts fulfillment after commit. deferFulfillment:true skips initial dispatch but recovery may later dispatch it unless held. Post-commit acknowledgement failure may reject the initial call; a retry must recover the committed order and complete pending delivery. listOrders sorts by stable order ID and returns cloned DTOs. No public API field removal or changed error code is allowed.\n\n## API-4\nThe thin router exposes POST/GET /orders, GET /orders/:id, POST /fulfillment/run, POST /orders/:id/hold and /release, GET /invoices. It maps service errors to their status and unexpected storage failures to STORAGE_UNAVAILABLE/503. It is an in-process HTTP-shaped adapter; no listening socket is required.\n"
+      'name': 'context/01-api-contract.md',
+      'text':
+        '# Current API contract — 2026-10-20\nOwner: service team. Status: authoritative internal ' +
+        'contract.\n\n## API-1\ncreateService({journal,sink,clock}) returns createOrder, ' +
+        'countOrders, listOrders, getOrder, recover, holdOrder, releaseOrder, exportInvoices and ' +
+        'auditEvents. actor={tenantId,permissions}; all data is tenant scoped.\n\n## API-2\n' +
+        'createOrder(actor,{key,items:[{sku,quantity,unitCents}],taxBps?,deferFulfillment?}) ' +
+        "returns exactly {id,tenantId,key,status:'committed',totalCents,createdAt}. Repeated " +
+        'tenant/key returns the first committed identity even if a different request body ' +
+        'arrives; it must not create another durable record. Count committed orders, never ' +
+        'attempts. IDs may have gaps. Invalid data is INVALID/400; unauthorized is ' +
+        'FORBIDDEN/403. Foreign/missing order IDs are indistinguishable NOT_FOUND/404.\n\n## API-3\n' +
+        'Default create attempts fulfillment after commit. deferFulfillment:true skips initial ' +
+        'dispatch but recovery may later dispatch it unless held. Post-commit acknowledgement ' +
+        'failure may reject the initial call; a retry must recover the committed order and ' +
+        'complete pending delivery. listOrders sorts by stable order ID and returns cloned DTOs. ' +
+        'No public API field removal or changed error code is allowed.\n\n## API-4\nThe thin router ' +
+        'exposes POST/GET /orders, GET /orders/:id, POST /fulfillment/run, POST /orders/:id/hold ' +
+        'and /release, GET /invoices. It maps service errors to their status and unexpected ' +
+        'storage failures to STORAGE_UNAVAILABLE/503. It is an in-process HTTP-shaped adapter; ' +
+        'no listening socket is required.\n',
     },
     {
-      "name": "context/02-storage-contract.md",
-      "text": "# Current storage guarantees \u2014 2026-10-20\nOwner: storage team. Status: authoritative.\n\n## STORAGE-1\nA journal instance persists across simulated service restarts. appendOrder is a legacy nonunique append. commitOrder atomically enforces tenant/key uniqueness at the persistence boundary, after beforeCommit has resolved. Its returned record may be an existing committed order rather than the supplied draft. Do not assume a process-local lookup or service-instance mutex prevents races across service instances.\n\n## STORAGE-2\nfailNext({key:'tenant:key',phase:'before'|'after'}) injects one deterministic failure. Before means no commit; after means commit happened but its acknowledgement was lost. Neither caller-side rejection nor a missing in-memory cache entry proves rollback. Read durable events to resolve ambiguity.\n\n## STORAGE-3\nProjection state derives from committed events. Recovery may reprocess an event multiple times. A journal record for dispatch may be missing after an external delivery; durable downstream idempotency is therefore necessary. Different order keys must make progress while one beforeCommit callback is blocked.\n"
+      'name': 'context/02-storage-contract.md',
+      'text':
+        '# Current storage guarantees — 2026-10-20\nOwner: storage team. Status: authoritative.\n\n' +
+        '## STORAGE-1\nA journal instance persists across simulated service restarts. appendOrder ' +
+        'is a legacy nonunique append. commitOrder atomically enforces tenant/key uniqueness at ' +
+        'the persistence boundary, after beforeCommit has resolved. Its returned record may be ' +
+        'an existing committed order rather than the supplied draft. Do not assume a ' +
+        'process-local lookup or service-instance mutex prevents races across service instances.\n' +
+        "\n## STORAGE-2\nfailNext({key:'tenant:key',phase:'before'|'after'}) injects one " +
+        'deterministic failure. Before means no commit; after means commit happened but its ' +
+        'acknowledgement was lost. Neither caller-side rejection nor a missing in-memory cache ' +
+        'entry proves rollback. Read durable events to resolve ambiguity.\n\n## STORAGE-3\n' +
+        'Projection state derives from committed events. Recovery may reprocess an event ' +
+        'multiple times. A journal record for dispatch may be missing after an external ' +
+        'delivery; durable downstream idempotency is therefore necessary. Different order keys ' +
+        'must make progress while one beforeCommit callback is blocked.\n',
     },
     {
-      "name": "context/03-delivery-provider.md",
-      "text": "# Frozen delivery provider contract\nSynthetic external-style reference, version 2, 2026-10-20.\n\n## DELIVERY-1\ncreateSink() represents a durable external provider retained across service restarts. send(order) creates a new receipt every time. sendOnce(idempotencyKey,order) returns the first receipt for that key without repeating delivery. Bind the key to tenant and committed order identity; do not use an attempt ID.\n\n## DELIVERY-2\nReceipt creation is synchronous in this fixture. The boundary stands in for a provider idempotency guarantee, not a distributed transaction with the journal. Repeating recovery and repairing a missing local fulfillment.sent record must not create another external receipt. No production durability or network throughput is inferred.\n"
+      'name': 'context/03-delivery-provider.md',
+      'text':
+        '# Frozen delivery provider contract\nSynthetic external-style reference, version 2, ' +
+        '2026-10-20.\n\n## DELIVERY-1\ncreateSink() represents a durable external provider retained ' +
+        'across service restarts. send(order) creates a new receipt every time. ' +
+        'sendOnce(idempotencyKey,order) returns the first receipt for that key without repeating ' +
+        'delivery. Bind the key to tenant and committed order identity; do not use an attempt ' +
+        'ID.\n\n## DELIVERY-2\nReceipt creation is synchronous in this fixture. The boundary stands ' +
+        'in for a provider idempotency guarantee, not a distributed transaction with the ' +
+        'journal. Repeating recovery and repairing a missing local fulfillment.sent record must ' +
+        'not create another external receipt. No production durability or network throughput is inferred.\n',
     },
     {
-      "name": "context/04-security.md",
-      "text": "# Current security policy \u2014 2026-10-20\nOwner: security team. Status: authoritative.\n\n## SECURITY-1\norders:write authorizes create. orders:read authorizes queries, counts and audit queries. fulfillment:write authorizes recovery, hold and release. billing:read alone authorizes invoice export. Never substitute a different permission because a handler is read-only.\n\n## SECURITY-2\nAuthenticate and authorize before mutating any state or emitting success audit events. A foreign order ID produces NOT_FOUND. Tenant identity participates in idempotency and query filtering. Denied requests leave journal, provider and counters unchanged. Do not leak another tenant's order through invoice pagination or a permissive object lookup.\n"
+      'name': 'context/04-security.md',
+      'text':
+        '# Current security policy — 2026-10-20\nOwner: security team. Status: authoritative.\n\n## ' +
+        'SECURITY-1\norders:write authorizes create. orders:read authorizes queries, counts and ' +
+        'audit queries. fulfillment:write authorizes recovery, hold and release. billing:read ' +
+        'alone authorizes invoice export. Never substitute a different permission because a ' +
+        'handler is read-only.\n\n## SECURITY-2\nAuthenticate and authorize before mutating any ' +
+        'state or emitting success audit events. A foreign order ID produces NOT_FOUND. Tenant ' +
+        'identity participates in idempotency and query filtering. Denied requests leave ' +
+        "journal, provider and counters unchanged. Do not leak another tenant's order through " +
+        'invoice pagination or a permissive object lookup.\n',
     },
     {
-      "name": "context/05-incident-timeline.md",
-      "text": "# Incident evidence \u2014 synthetic reproduction INC-42\nObserved in deterministic fixture; not production telemetry.\n\n## INCIDENT-1\nTwo requests for north:k both read an absent projection before either persistence promise resolves. Separate generated IDs are observed in committed events. A sequential retry test did not reveal this interleaving.\n\n## INCIDENT-2\nA before-commit timeout left no order.committed event. The active service nevertheless reported one successful order. A later retry increased the reported count again.\n\n## INCIDENT-3\nAn after-commit timeout left order.committed present but no fulfillment.sent record. The retry returned the cached/projected order without completing delivery. Restart recovery later produced repeated provider receipts because it used a non-idempotent dispatch surface.\n\n## INCIDENT-4\nThe evidence establishes local causal mechanisms. It does not establish production impact, request frequency, monetary losses or provider outage rates. Preserve this uncertainty explicitly.\n"
+      'name': 'context/05-incident-timeline.md',
+      'text':
+        '# Incident evidence — synthetic reproduction INC-42\nObserved in deterministic fixture; ' +
+        'not production telemetry.\n\n## INCIDENT-1\nTwo requests for north:k both read an absent ' +
+        'projection before either persistence promise resolves. Separate generated IDs are ' +
+        'observed in committed events. A sequential retry test did not reveal this interleaving.\n' +
+        '\n## INCIDENT-2\nA before-commit timeout left no order.committed event. The active ' +
+        'service nevertheless reported one successful order. A later retry increased the ' +
+        'reported count again.\n\n## INCIDENT-3\nAn after-commit timeout left order.committed ' +
+        'present but no fulfillment.sent record. The retry returned the cached/projected order ' +
+        'without completing delivery. Restart recovery later produced repeated provider receipts ' +
+        'because it used a non-idempotent dispatch surface.\n\n## INCIDENT-4\nThe evidence ' +
+        'establishes local causal mechanisms. It does not establish production impact, request ' +
+        'frequency, monetary losses or provider outage rates. Preserve this uncertainty explicitly.\n',
     },
     {
-      "name": "context/06-incident-log.json",
-      "text": "{\n  \"synthetic\": true,\n  \"anchor\": \"LOG-1\",\n  \"events\": [\n    {\n      \"ms\": 0,\n      \"request\": \"r1\",\n      \"tenant\": \"north\",\n      \"key\": \"k\",\n      \"event\": \"lookup\",\n      \"result\": \"absent\"\n    },\n    {\n      \"ms\": 1,\n      \"request\": \"r2\",\n      \"tenant\": \"north\",\n      \"key\": \"k\",\n      \"event\": \"lookup\",\n      \"result\": \"absent\"\n    },\n    {\n      \"ms\": 2,\n      \"request\": \"r1\",\n      \"event\": \"count.increment\",\n      \"count\": 1\n    },\n    {\n      \"ms\": 3,\n      \"request\": \"r2\",\n      \"event\": \"count.increment\",\n      \"count\": 2\n    },\n    {\n      \"ms\": 5,\n      \"request\": \"r1\",\n      \"event\": \"order.committed\",\n      \"id\": \"ord-000001\"\n    },\n    {\n      \"ms\": 6,\n      \"request\": \"r2\",\n      \"event\": \"order.committed\",\n      \"id\": \"ord-000002\"\n    },\n    {\n      \"ms\": 10,\n      \"request\": \"r3\",\n      \"key\": \"timeout\",\n      \"event\": \"order.committed\",\n      \"id\": \"ord-000003\"\n    },\n    {\n      \"ms\": 11,\n      \"request\": \"r3\",\n      \"event\": \"ack.timeout\",\n      \"phase\": \"after\"\n    },\n    {\n      \"ms\": 12,\n      \"request\": \"retry-r3\",\n      \"event\": \"projection.hit\",\n      \"id\": \"ord-000003\"\n    },\n    {\n      \"ms\": 13,\n      \"request\": \"retry-r3\",\n      \"event\": \"reply\",\n      \"delivery\": \"not-observed\"\n    },\n    {\n      \"ms\": 20,\n      \"request\": \"recovery-1\",\n      \"event\": \"delivery\",\n      \"receipt\": \"receipt-3\"\n    },\n    {\n      \"ms\": 30,\n      \"request\": \"recovery-2\",\n      \"event\": \"delivery\",\n      \"receipt\": \"receipt-4\"\n    }\n  ]\n}\n"
+      'name': 'context/06-incident-log.json',
+      'text':
+        '{\n  "synthetic": true,\n  "anchor": "LOG-1",\n  "events": [\n    {\n      "ms": 0,\n      ' +
+        '"request": "r1",\n      "tenant": "north",\n      "key": "k",\n      "event": "lookup",\n   ' +
+        '   "result": "absent"\n    },\n    {\n      "ms": 1,\n      "request": "r2",\n      ' +
+        '"tenant": "north",\n      "key": "k",\n      "event": "lookup",\n      "result": "absent"\n ' +
+        '   },\n    {\n      "ms": 2,\n      "request": "r1",\n      "event": "count.increment",\n    ' +
+        '  "count": 1\n    },\n    {\n      "ms": 3,\n      "request": "r2",\n      "event": ' +
+        '"count.increment",\n      "count": 2\n    },\n    {\n      "ms": 5,\n      "request": "r1",\n ' +
+        '     "event": "order.committed",\n      "id": "ord-000001"\n    },\n    {\n      "ms": 6,\n  ' +
+        '    "request": "r2",\n      "event": "order.committed",\n      "id": "ord-000002"\n    },\n ' +
+        '   {\n      "ms": 10,\n      "request": "r3",\n      "key": "timeout",\n      "event": ' +
+        '"order.committed",\n      "id": "ord-000003"\n    },\n    {\n      "ms": 11,\n      ' +
+        '"request": "r3",\n      "event": "ack.timeout",\n      "phase": "after"\n    },\n    {\n     ' +
+        ' "ms": 12,\n      "request": "retry-r3",\n      "event": "projection.hit",\n      "id": ' +
+        '"ord-000003"\n    },\n    {\n      "ms": 13,\n      "request": "retry-r3",\n      "event": ' +
+        '"reply",\n      "delivery": "not-observed"\n    },\n    {\n      "ms": 20,\n      "request": ' +
+        '"recovery-1",\n      "event": "delivery",\n      "receipt": "receipt-3"\n    },\n    {\n     ' +
+        ' "ms": 30,\n      "request": "recovery-2",\n      "event": "delivery",\n      "receipt": ' +
+        '"receipt-4"\n    }\n  ]\n}\n',
     },
     {
-      "name": "context/07-historical-retries.md",
-      "text": "# ADR-OLD-1 \u2014 retry assumption, 2025-06-01\nStatus: superseded; retained to explain the old implementation.\n\nAn early client assumed any timeout meant storage rolled back. The service counted accepted attempts and relied on an in-memory key lookup. Recovery was assumed to run once.\n\nThis ADR is not authoritative. Current STORAGE-1/2/3, API-2/3 and DELIVERY-1/2 replace these assumptions. Do not disable retries to hide a duplicated effect.\n"
+      'name': 'context/07-historical-retries.md',
+      'text':
+        '# ADR-OLD-1 — retry assumption, 2025-06-01\nStatus: superseded; retained to explain the ' +
+        'old implementation.\n\nAn early client assumed any timeout meant storage rolled back. The ' +
+        'service counted accepted attempts and relied on an in-memory key lookup. Recovery was ' +
+        'assumed to run once.\n\nThis ADR is not authoritative. Current STORAGE-1/2/3, API-2/3 and ' +
+        'DELIVERY-1/2 replace these assumptions. Do not disable retries to hide a duplicated effect.\n',
     },
     {
-      "name": "context/08-holds-requirements.md",
-      "text": "# Current fulfillment holds \u2014 2026-10-20\nOwner: workflow team. Status: authoritative feature requirements.\n\n## HOLDS-1\nholdOrder(actor,{orderId,reason,correlationId}) returns {orderId,held:true}. Require fulfillment:write, same tenant, nonempty reason up to200 characters and correlationId of1\u2013100 characters. A fulfilled order cannot be held (CONFLICT/409). A held order cannot dispatch, including after service restart.\n\n## HOLDS-2\nreleaseOrder(actor,{orderId,correlationId}) returns {orderId,held:false}. Repeating an already-effective hold or release is a no-op; it emits no additional transition or audit event. Release does not itself send delivery; a subsequent recover may deliver exactly once. Both hold and release must persist as events and reconstruct state after restart. Concurrent calls in this in-process service must not duplicate transitions.\n"
+      'name': 'context/08-holds-requirements.md',
+      'text':
+        '# Current fulfillment holds — 2026-10-20\nOwner: workflow team. Status: authoritative ' +
+        'feature requirements.\n\n## HOLDS-1\nholdOrder(actor,{orderId,reason,correlationId}) ' +
+        'returns {orderId,held:true}. Require fulfillment:write, same tenant, nonempty reason up ' +
+        'to200 characters and correlationId of1–100 characters. A fulfilled order cannot be held ' +
+        '(CONFLICT/409). A held order cannot dispatch, including after service restart.\n\n## ' +
+        'HOLDS-2\nreleaseOrder(actor,{orderId,correlationId}) returns {orderId,held:false}. ' +
+        'Repeating an already-effective hold or release is a no-op; it emits no additional ' +
+        'transition or audit event. Release does not itself send delivery; a subsequent recover ' +
+        'may deliver exactly once. Both hold and release must persist as events and reconstruct ' +
+        'state after restart. Concurrent calls in this in-process service must not duplicate transitions.\n',
     },
     {
-      "name": "context/09-invoice-requirements.md",
-      "text": "# Current invoice export \u2014 2026-10-20\nOwner: billing team. Status: authoritative feature requirements.\n\n## INVOICE-1\nexportInvoices(actor,{cursor?:0,limit?:20,correlationId}) requires billing:read and returns {items,nextCursor}. Each item is {orderId,tenantId,subtotalCents,taxCents,totalCents}. Include only that tenant's committed orders, sorted by stable order ID. Invoice totals are recomputed from committed line items and taxBps.\n\n## INVOICE-2\nInteger minor units only. subtotal=sum(quantity*unitCents). Tax is rounded half up once per order: floor((subtotal*taxBps+5000)/10000). E.g.101c at5000bps\u219251c tax,152c total;1c\u21921c tax,2c total. No floating currency conversion.\n\n## INVOICE-3\nCursor is a nonnegative integer offset; limit is an integer1\u2013100. nextCursor is null when exhausted, including empty pages. Invalid pagination is INVALID/400, with no success audit. The snapshot is static within each acceptance pagination case; concurrent inserts across pages are outside this task. Every valid export invocation emits one audit event; correlation ID identifies that invocation but is not a deduplication key.\n"
+      'name': 'context/09-invoice-requirements.md',
+      'text':
+        '# Current invoice export — 2026-10-20\nOwner: billing team. Status: authoritative ' +
+        'feature requirements.\n\n## INVOICE-1\n' +
+        'exportInvoices(actor,{cursor?:0,limit?:20,correlationId}) requires billing:read and ' +
+        'returns {items,nextCursor}. Each item is ' +
+        "{orderId,tenantId,subtotalCents,taxCents,totalCents}. Include only that tenant's " +
+        'committed orders, sorted by stable order ID. Invoice totals are recomputed from ' +
+        'committed line items and taxBps.\n\n## INVOICE-2\nInteger minor units only. ' +
+        'subtotal=sum(quantity*unitCents). Tax is rounded half up once per order: ' +
+        'floor((subtotal*taxBps+5000)/10000). E.g.101c at5000bps→51c tax,152c total;1c→1c tax,2c ' +
+        'total. No floating currency conversion.\n\n## INVOICE-3\nCursor is a nonnegative integer ' +
+        'offset; limit is an integer1–100. nextCursor is null when exhausted, including empty ' +
+        'pages. Invalid pagination is INVALID/400, with no success audit. The snapshot is static ' +
+        'within each acceptance pagination case; concurrent inserts across pages are outside ' +
+        'this task. Every valid export invocation emits one audit event; correlation ID ' +
+        'identifies that invocation but is not a deduplication key.\n',
     },
     {
-      "name": "context/10-audit-contract.md",
-      "text": "# Shared audit schema \u2014 2026-10-20\nOwner: platform team. Status: authoritative.\n\n## AUDIT-1\nSuccessful hold.created, hold.released and invoice.exported actions emit {id,action,tenantId,subjectId,correlationId,outcome:'success',at}. Subject is the order ID for a transition and 'invoices' for export. at comes from the injected clock. Retain existing order.created behavior.\n\n## AUDIT-2\nTransition and its audit fact are one durable event. No-op holds/releases do not append another event. Failed authorization, validation or nonexistent orders cannot produce success audit. auditEvents(actor) remains tenant scoped. No credentials or request bodies belong in audit facts.\n"
+      'name': 'context/10-audit-contract.md',
+      'text':
+        '# Shared audit schema — 2026-10-20\nOwner: platform team. Status: authoritative.\n\n## ' +
+        'AUDIT-1\nSuccessful hold.created, hold.released and invoice.exported actions emit ' +
+        "{id,action,tenantId,subjectId,correlationId,outcome:'success',at}. Subject is the order " +
+        "ID for a transition and 'invoices' for export. at comes from the injected clock. Retain " +
+        'existing order.created behavior.\n\n## AUDIT-2\nTransition and its audit fact are one ' +
+        'durable event. No-op holds/releases do not append another event. Failed authorization, ' +
+        'validation or nonexistent orders cannot produce success audit. auditEvents(actor) ' +
+        'remains tenant scoped. No credentials or request bodies belong in audit facts.\n',
     },
     {
-      "name": "context/11-historical-billing.md",
-      "text": "# ADR-OLD-2 \u2014 prototype invoice export, 2025-10-01\nStatus: superseded internal experiment.\n\nA prototype exported all tenants to a global dashboard, used orders:read and truncated floating tax fractions. Holds were process-local UI flags. None of these choices is permitted by current SECURITY-1/2, HOLDS-1/2, INVOICE-1/2/3 or AUDIT-1/2.\n"
+      'name': 'context/11-historical-billing.md',
+      'text':
+        '# ADR-OLD-2 — prototype invoice export, 2025-10-01\nStatus: superseded internal ' +
+        'experiment.\n\nA prototype exported all tenants to a global dashboard, used orders:read ' +
+        'and truncated floating tax fractions. Holds were process-local UI flags. None of these ' +
+        'choices is permitted by current SECURITY-1/2, HOLDS-1/2, INVOICE-1/2/3 or AUDIT-1/2.\n',
     },
     {
-      "name": "context/12-operations.md",
-      "text": "# Operational context\nSynthetic internal runbook, 2026-10-20.\n\n## OPS-1\nRun npm test from the repository root; dependencies and network are unnecessary. Simulate restart by creating another service with the same journal and sink. beforeCommit can pause one key to expose concurrency. Use fault injection rather than sleeps to model storage ambiguity.\n\n## OPS-2\nDo not rewrite the API, delete regressions or add packages. The task is the service core, not a deployment. Native CLI/MCP capabilities may supply file access, but all required task context is already in this repository. Maintain evidence anchors when composing a scoped handoff.\n"
+      'name': 'context/12-operations.md',
+      'text':
+        '# Operational context\nSynthetic internal runbook, 2026-10-20.\n\n## OPS-1\nRun npm test ' +
+        'from the repository root; dependencies and network are unnecessary. Simulate restart by ' +
+        'creating another service with the same journal and sink. beforeCommit can pause one key ' +
+        'to expose concurrency. Use fault injection rather than sleeps to model storage ' +
+        'ambiguity.\n\n## OPS-2\nDo not rewrite the API, delete regressions or add packages. The ' +
+        'task is the service core, not a deployment. Native CLI/MCP capabilities may supply file ' +
+        'access, but all required task context is already in this repository. Maintain evidence ' +
+        'anchors when composing a scoped handoff.\n',
     },
     {
-      "name": "context/13-money-reference.md",
-      "text": "# Integer-money reference\nSynthetic external-style reference, version1, frozen2026-10-20.\n\n## MONEY-1\nA basis point is1/10000. Keep integer cents throughout multiplication and addition; ensure intermediate arithmetic stays within Number.MAX_SAFE_INTEGER. Round tax once per order using the current invoice contract. Signed values, discounts, exchange rates and refunds are outside this fixture.\n\n## MONEY-2\nLine quantities1\u201310000, unitCents0\u20131000000, taxBps0\u201310000, at most100 line items. Reject a calculation whose intermediate rounded numerator is not a safe integer. These bounds are validation rules, not measured workloads.\n"
+      'name': 'context/13-money-reference.md',
+      'text':
+        '# Integer-money reference\nSynthetic external-style reference, version1, ' +
+        'frozen2026-10-20.\n\n## MONEY-1\nA basis point is1/10000. Keep integer cents throughout ' +
+        'multiplication and addition; ensure intermediate arithmetic stays within ' +
+        'Number.MAX_SAFE_INTEGER. Round tax once per order using the current invoice contract. ' +
+        'Signed values, discounts, exchange rates and refunds are outside this fixture.\n\n## ' +
+        'MONEY-2\nLine quantities1–10000, unitCents0–1000000, taxBps0–10000, at most100 line ' +
+        'items. Reject a calculation whose intermediate rounded numerator is not a safe integer. ' +
+        'These bounds are validation rules, not measured workloads.\n',
     },
     {
-      "name": "context/14-unrelated-roadmap.md",
-      "text": "# 2027 roadmap note\nStatus: draft; not a requirement for these tasks.\n\n## ROADMAP-1\nPossible future work: tracking integration, subscriptions, currency conversion, geographic routing and a browser dashboard. Do not implement these in this task. This document deliberately provides plausible but irrelevant context.\n"
-    }
+      'name': 'context/14-unrelated-roadmap.md',
+      'text':
+        '# 2027 roadmap note\nStatus: draft; not a requirement for these tasks.\n\n## ROADMAP-1\n' +
+        'Possible future work: tracking integration, subscriptions, currency conversion, ' +
+        'geographic routing and a browser dashboard. Do not implement these in this task. This ' +
+        'document deliberately provides plausible but irrelevant context.\n',
+    },
   ],
-  "task": "Investigate why retrying an order after a storage timeout can produce inconsistent fulfillment and an incorrect successful-order count. Use the incident bundle and current API/storage contracts to identify the causal sequence, distinguishing observations from hypotheses. Write an evidence-backed diagnosis and a concise implementation plan before editing. Correct the retry/replay behavior across order creation, the event journal and fulfillment recovery without changing the public API or breaking existing successful requests. Add focused tests for the failure you diagnosed and for concurrent retries. Validate the final tree and deliver a short change summary, remaining risks and exact test commands/results. Keep unrelated behavior unchanged. Work offline with the supplied sources. Read TASK.md, ACCEPTANCE.md and context/00-index.md. Deliver all artifacts specified there. The task materials are complete; make bounded documented assumptions instead of requesting additional input.",
-  "criteria": [
-    "One committed tenant/key identity and one delivery for concurrent duplicates.",
-    "Pre-commit failure does not count; post-commit timeout retains durable identity and retry repairs pending delivery.",
-    "Repeated recovery across restart does not duplicate effects; distinct keys make independent progress.",
-    "Existing API, error and tenant behavior remain compatible."
-  ]
+  'task':
+    'Investigate why retrying an order after a storage timeout can produce inconsistent ' +
+    'fulfillment and an incorrect successful-order count. Use the incident bundle and ' +
+    'current API/storage contracts to identify the causal sequence, distinguishing ' +
+    'observations from hypotheses. Write an evidence-backed diagnosis and a concise ' +
+    'implementation plan before editing. Correct the retry/replay behavior across order ' +
+    'creation, the event journal and fulfillment recovery without changing the public API or ' +
+    'breaking existing successful requests. Add focused tests for the failure you diagnosed ' +
+    'and for concurrent retries. Validate the final tree and deliver a short change summary, ' +
+    'remaining risks and exact test commands/results. Keep unrelated behavior unchanged. ' +
+    'Work offline with the supplied sources. Read TASK.md, ACCEPTANCE.md and ' +
+    'context/00-index.md. Deliver all artifacts specified there. The task materials are ' +
+    'complete; make bounded documented assumptions instead of requesting additional input.',
+  'criteria': [
+    'One committed tenant/key identity and one delivery for concurrent duplicates.',
+    'Pre-commit failure does not count; post-commit timeout retains durable identity and retry repairs pending delivery.',
+    'Repeated recovery across restart does not duplicate effects; distinct keys make independent progress.',
+    'Existing API, error and tenant behavior remain compatible.',
+  ],
 };

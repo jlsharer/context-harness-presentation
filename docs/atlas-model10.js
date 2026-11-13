@@ -1,32 +1,253 @@
 'use strict';
-const AtlasModel10={
- baseTokens:6000,
- packets:[{name:'Source tracing',tools:1800,skills:450},{name:'Contract analysis',tools:2400,skills:800},{name:'Verification',tools:3300,skills:1200}],
- baseDefinition:'Textual base harness/model-facing instructions: scenario allowance6000, not model parameters/training, repository guidance, tool schemas or skill contents. Hidden provider wrappers are unknown unless measured.',
- raise(layers){return layers.map(l=>l.id==='base'?{...l,tokens:this.baseTokens,label:'Base harness instructions',detail:this.baseDefinition}:{...l});},
- at(step,path='managed',profile='platform'){const d=AtlasReplay08.at(step,path,profile);d.layers=this.raise(d.layers);d.total=d.layers.reduce((n,l)=>n+l.tokens,0);return d;},
- diff(step,path='managed',profile='platform'){const now=this.at(step,path,profile),before=now.step?this.at(now.step-1,path,profile):null,a=new Map((before?.layers||[]).map(l=>[l.id,l])),b=new Map(now.layers.map(l=>[l.id,l]));return{now,before,net:now.total-(before?.total||0),rows:AtlasWorkload.data.layers.filter(l=>a.has(l.id)||b.has(l.id)).map(l=>{const x=a.get(l.id)?.tokens||0,y=b.get(l.id)?.tokens||0;return{...(b.get(l.id)||a.get(l.id)),previous:x,current:y,delta:y-x,change:x===y?'retained':!x?'added':!y?'removed':y>x?'extended':'reduced'};})};},
- scale(profile){return Math.max(...['managed','uncurated'].flatMap(p=>AtlasReplay08.events.map((_,i)=>this.at(i,p,profile).total)));},
- summary(step,path,profile){const d=AtlasReplay08.summary(step,path,profile);if(!d)return null;return{...d,inputTokens:d.inputTokens+2000,parentTokens:d.parentTokens+2000,parentAfter:d.parentAfter===null?null:d.parentAfter+2000};},
- workload(){return{...AtlasWorkload.data,version:10,layers:this.raise(AtlasWorkload.data.layers),workerPackets:this.packets,scope:AtlasWorkload.data.scope+' Round10 increases base allowance to6000 and scopes worker tool/skill packets. These are authored budgets, not native defaults.'};},
- attentionFor(state){
-  const keys={base:[.35,.2],tools:[.25,.85],guidance:[.5,.5],skills:[.65,.45],task:[1.2,.8],evidence:[1.1,.7],history:[.3,.8],checkpoint:[.85,.7]},scope='Illustrative one-key-per-row calculation. Invented2D vectors/positions and RoPE angle0.08. Not measured model attention, native token attention, authority or task accuracy.';
-  if(!state.layers.some(l=>l.id==='task'))return{rows:[],query:null,total:state.total,scope};
-  const rotate=(v,p)=>[v[0]*Math.cos(p*.08)-v[1]*Math.sin(p*.08),v[0]*Math.sin(p*.08)+v[1]*Math.cos(p*.08)],query={position:state.total/2000+.5,vector:state.turn>=2?[.65,1.1]:[1,.6]},Q=rotate(query.vector,query.position);let offset=0;
-  const rows=state.layers.map(l=>{const position=(offset+l.tokens/2)/2000;offset+=l.tokens;const key=keys[l.id],K=rotate(key,position),dot=Q[0]*K[0]+Q[1]*K[1];return{id:l.id,key,position,dot,score:dot/Math.sqrt(2),weight:0};});
-  const maxScore=Math.max(...rows.map(r=>r.score)),denominator=rows.reduce((n,r)=>n+Math.exp(r.score-maxScore),0);for(const r of rows)r.weight=Math.exp(r.score-maxScore)/denominator;
-  return{rows,query,total:state.total,maxScore,denominator,scope};
- },
- heat(step,path='managed',profile='platform'){const state=this.at(step,path,profile),now=this.attentionFor(state),previous=state.step?this.attentionFor(this.at(state.step-1,path,profile)):null;return{...now,rows:now.rows.map(r=>{const old=previous?.rows.find(p=>p.id===r.id);return{...r,delta:old?r.weight-old.weight:null};})};},
- delegation(step,workers,profile){
-  const d=AtlasModel09.delegation(step,workers,profile);d.workerPackets=this.packets.slice(0,d.workers);d.childBases=d.workerPackets.map(p=>6000+p.tools+4000+p.skills+900);delete d.childBase;
-  for(const mode of ['single','delegated']){const s=d[mode];s.layers=this.raise(s.layers);s.total=s.layers.reduce((n,l)=>n+l.tokens,0);s.calls=s.calls.map(c=>{if(c.parent)return{...c,tokens:c.tokens+2000};const i=Number(c.id.slice(1).split('/')[0])-1;return{...c,tokens:d.childBases[i]+c.sourceTokens+c.workTokens,packet:d.workerPackets[i]};});s.aggregate=s.calls.reduce((n,c)=>n+c.tokens,0);s.parentPeak=Math.max(...s.calls.filter(c=>c.parent).map(c=>c.tokens));s.requestPeak=Math.max(...s.calls.map(c=>c.tokens));}
-  d.workerWindows=d.workerWindows.map(w=>{const packet=d.workerPackets[w.index],layers=this.raise(w.layers).map(l=>({...l,tokens:l.id==='tools'?packet.tools:l.id==='skills'?packet.skills:l.tokens}));return{...w,packet,layers,total:layers.reduce((n,l)=>n+l.tokens,0)};});
-  d.single.currentAcrossSessions=d.single.total;d.delegated.currentAcrossSessions=d.delegated.total+d.workerWindows.reduce((n,w)=>n+w.total,0);d.workAssumption+=' Worker tool/skill scoping also changes; do not attribute differences solely to delegation or assume task acceptance.';return d;
- },
- nativeEvidence(harness){const shared={universalBaseTokens:null,unknown:'No comparable universal base-prompt total is established here; model, client version, enabled capabilities and configuration change the request. Scenario base6000 stays equal.'};const data={
-  opencode:{label:'OpenCode V2',summary:'Agent/provider base prompt plus configured guidance; measure the outgoing request after native assembly.',known:['Agent system can replace the provider base prompt; project guidance/skills/references are still added.','Permission changes alone are not proof that schemas disappeared. Worker packet amounts here are custom-harness assumptions.'],measure:'Inspect the selected agent/provider configuration and record the model request after session context assembly. Count the serialized instruction/tool fields for that exact version/model; record native usage separately.',example:'Define a scoped agent system/task packet and use supported native context/tool integration to expose only required contracts. Verify the resulting tool set and skill content.',sources:['opencode-instructions','opencode-agents']},
-  claude:{label:'Claude Code',summary:'Use an explicit subagent tools allowlist and selected skill preloads; inspect actual context with /context.',known:['Claude subagent tools/disallowedTools narrow available capabilities; skills preloads inject selected full bodies but do not prevent later discovery.','Official Claude API example: Opus/Sonnet/Haiku5.5 auto/none with at least one tool adds286 tool-use system tokens; any/tool406. This is not the Claude Code baseline and excludes its instructions and the tool schemas.'],measure:'Use /context for the actual configured session; record model, Claude Code version, tool set, invoked skills and returned usage. Do not substitute the API-only286-token fragment for the full harness prompt.',example:'---\nname: source-tracer\ndescription: Trace assigned source contracts and return a bounded evidence report.\ntools: Read, Grep, Glob\nskills:\n  - contract-reading\n---\nTrace only the assigned sources; return the bounded report.\n# Tools/skills shown are illustrative configuration, not installed or token-counted.',sources:['claude-subagents','claude-costs','claude-tool-overhead']},
-  codex:{label:'Codex',summary:'Base instructions depend on model catalog and client; custom agent guidance does not by itself prove a smaller tool schema set.',known:['Model catalogs supply base_instructions and tool defaults; upstream defaults can change even without a client version change.','A model_instructions_file replaces built-in instruction text. Source/skill scoping and visible tool-contract selection must be checked in the resulting request.'],measure:'Record exact model/client/catalog, active instructions, skill contents and tool definitions. Count the selected base_instructions text as a reference estimate; capture actual request usage separately. No model/catalog API call is made by this presentation.',example:'Use a bounded task with explicit source anchors and a selected skill packet; verify the effective custom-agent tools. The smaller worker schema/skill amounts are modeled custom-harness choices, not a claimed Codex native default.',sources:['codex-catalog','codex-config','codex-subagents']}
-  };return{...shared,...(data[harness]||data.opencode)};}
+const AtlasModel10 = {
+  baseTokens: 6000,
+  packets: [
+    { name: 'Source tracing', tools: 1800, skills: 450 },
+    { name: 'Contract analysis', tools: 2400, skills: 800 },
+    { name: 'Verification', tools: 3300, skills: 1200 },
+  ],
+  baseDefinition:
+    'Textual base harness/model-facing instructions: scenario allowance6000, not model ' +
+    'parameters/training, repository guidance, tool schemas or skill contents. Hidden ' +
+    'provider wrappers are unknown unless measured.',
+
+  raise(layers) {
+    return layers.map((l) =>
+      l.id === 'base'
+        ? {
+            ...l,
+            tokens: this.baseTokens,
+            label: 'Base harness instructions',
+            detail: this.baseDefinition,
+          }
+        : { ...l },
+    );
+  },
+
+  at(step, path = 'managed', profile = 'platform') {
+    const d = AtlasReplay08.at(step, path, profile);
+    d.layers = this.raise(d.layers);
+    d.total = d.layers.reduce((n, l) => n + l.tokens, 0);
+    return d;
+  },
+
+  diff(step, path = 'managed', profile = 'platform') {
+    const now = this.at(step, path, profile),
+      before = now.step ? this.at(now.step - 1, path, profile) : null,
+      a = new Map((before?.layers || []).map((l) => [l.id, l])),
+      b = new Map(now.layers.map((l) => [l.id, l]));
+    return {
+      now,
+      before,
+      net: now.total - (before?.total || 0),
+      rows: AtlasWorkload.data.layers
+        .filter((l) => a.has(l.id) || b.has(l.id))
+        .map((l) => {
+          const x = a.get(l.id)?.tokens || 0,
+            y = b.get(l.id)?.tokens || 0;
+          return {
+            ...(b.get(l.id) || a.get(l.id)),
+            previous: x,
+            current: y,
+            delta: y - x,
+            change:
+              x === y ? 'retained' : !x ? 'added' : !y ? 'removed' : y > x ? 'extended' : 'reduced',
+          };
+        }),
+    };
+  },
+
+  scale(profile) {
+    return Math.max(
+      ...['managed', 'uncurated'].flatMap((p) =>
+        AtlasReplay08.events.map((_, i) => this.at(i, p, profile).total),
+      ),
+    );
+  },
+
+  summary(step, path, profile) {
+    const d = AtlasReplay08.summary(step, path, profile);
+    if (!d) return null;
+    return {
+      ...d,
+      inputTokens: d.inputTokens + 2000,
+      parentTokens: d.parentTokens + 2000,
+      parentAfter: d.parentAfter === null ? null : d.parentAfter + 2000,
+    };
+  },
+
+  workload() {
+    return {
+      ...AtlasWorkload.data,
+      version: 10,
+      layers: this.raise(AtlasWorkload.data.layers),
+      workerPackets: this.packets,
+      scope:
+        AtlasWorkload.data.scope +
+        ' Round10 increases base allowance to6000 and scopes worker tool/skill packets. These are authored budgets, not native defaults.',
+    };
+  },
+
+  attentionFor(state) {
+    const keys = {
+        base: [0.35, 0.2],
+        tools: [0.25, 0.85],
+        guidance: [0.5, 0.5],
+        skills: [0.65, 0.45],
+        task: [1.2, 0.8],
+        evidence: [1.1, 0.7],
+        history: [0.3, 0.8],
+        checkpoint: [0.85, 0.7],
+      },
+      scope =
+        'Illustrative one-key-per-row calculation. Invented2D vectors/positions and RoPE ' +
+        'angle0.08. Not measured model attention, native token attention, authority or task accuracy.';
+    if (!state.layers.some((l) => l.id === 'task'))
+      return { rows: [], query: null, total: state.total, scope };
+
+    const rotate = (v, p) => [
+        v[0] * Math.cos(p * 0.08) - v[1] * Math.sin(p * 0.08),
+        v[0] * Math.sin(p * 0.08) + v[1] * Math.cos(p * 0.08),
+      ],
+      query = {
+        position: state.total / 2000 + 0.5,
+        vector: state.turn >= 2 ? [0.65, 1.1] : [1, 0.6],
+      },
+      Q = rotate(query.vector, query.position);
+
+    let offset = 0;
+    const rows = state.layers.map((l) => {
+      const position = (offset + l.tokens / 2) / 2000;
+      offset += l.tokens;
+      const key = keys[l.id],
+        K = rotate(key, position),
+        dot = Q[0] * K[0] + Q[1] * K[1];
+      return { id: l.id, key, position, dot, score: dot / Math.sqrt(2), weight: 0 };
+    });
+    const maxScore = Math.max(...rows.map((r) => r.score)),
+      denominator = rows.reduce((n, r) => n + Math.exp(r.score - maxScore), 0);
+    for (const r of rows) r.weight = Math.exp(r.score - maxScore) / denominator;
+    return { rows, query, total: state.total, maxScore, denominator, scope };
+  },
+
+  heat(step, path = 'managed', profile = 'platform') {
+    const state = this.at(step, path, profile),
+      now = this.attentionFor(state),
+      previous = state.step ? this.attentionFor(this.at(state.step - 1, path, profile)) : null;
+    return {
+      ...now,
+      rows: now.rows.map((r) => {
+        const old = previous?.rows.find((p) => p.id === r.id);
+        return { ...r, delta: old ? r.weight - old.weight : null };
+      }),
+    };
+  },
+
+  delegation(step, workers, profile) {
+    const d = AtlasModel09.delegation(step, workers, profile);
+    d.workerPackets = this.packets.slice(0, d.workers);
+    d.childBases = d.workerPackets.map((p) => 6000 + p.tools + 4000 + p.skills + 900);
+    delete d.childBase;
+    for (const mode of ['single', 'delegated']) {
+      const s = d[mode];
+      s.layers = this.raise(s.layers);
+      s.total = s.layers.reduce((n, l) => n + l.tokens, 0);
+      s.calls = s.calls.map((c) => {
+        if (c.parent) return { ...c, tokens: c.tokens + 2000 };
+        const i = Number(c.id.slice(1).split('/')[0]) - 1;
+        return {
+          ...c,
+          tokens: d.childBases[i] + c.sourceTokens + c.workTokens,
+          packet: d.workerPackets[i],
+        };
+      });
+      s.aggregate = s.calls.reduce((n, c) => n + c.tokens, 0);
+      s.parentPeak = Math.max(...s.calls.filter((c) => c.parent).map((c) => c.tokens));
+      s.requestPeak = Math.max(...s.calls.map((c) => c.tokens));
+    }
+    d.workerWindows = d.workerWindows.map((w) => {
+      const packet = d.workerPackets[w.index],
+        layers = this.raise(w.layers).map((l) => ({
+          ...l,
+          tokens: l.id === 'tools' ? packet.tools : l.id === 'skills' ? packet.skills : l.tokens,
+        }));
+      return { ...w, packet, layers, total: layers.reduce((n, l) => n + l.tokens, 0) };
+    });
+    d.single.currentAcrossSessions = d.single.total;
+    d.delegated.currentAcrossSessions =
+      d.delegated.total + d.workerWindows.reduce((n, w) => n + w.total, 0);
+    d.workAssumption +=
+      ' Worker tool/skill scoping also changes; do not attribute differences solely to delegation or assume task acceptance.';
+    return d;
+  },
+
+  nativeEvidence(harness) {
+    const shared = {
+      universalBaseTokens: null,
+      unknown:
+        'No comparable universal base-prompt total is established here; model, client version, ' +
+        'enabled capabilities and configuration change the request. Scenario base6000 stays equal.',
+    };
+    const data = {
+      opencode: {
+        label: 'OpenCode V2',
+        summary:
+          'Agent/provider base prompt plus configured guidance; measure the outgoing request after native assembly.',
+        known: [
+          'Agent system can replace the provider base prompt; project guidance/skills/references are still added.',
+          'Permission changes alone are not proof that schemas disappeared. Worker packet amounts here are custom-harness assumptions.',
+        ],
+        measure:
+          'Inspect the selected agent/provider configuration and record the model request after ' +
+          'session context assembly. Count the serialized instruction/tool fields for that exact ' +
+          'version/model; record native usage separately.',
+        example:
+          'Define a scoped agent system/task packet and use supported native context/tool ' +
+          'integration to expose only required contracts. Verify the resulting tool set and skill content.',
+        sources: ['opencode-instructions', 'opencode-agents'],
+      },
+      claude: {
+        label: 'Claude Code',
+        summary:
+          'Use an explicit subagent tools allowlist and selected skill preloads; inspect actual context with /context.',
+        known: [
+          'Claude subagent tools/disallowedTools narrow available capabilities; skills preloads ' +
+            'inject selected full bodies but do not prevent later discovery.',
+          'Official Claude API example: Opus/Sonnet/Haiku5.5 auto/none with at least one tool ' +
+            'adds286 tool-use system tokens; any/tool406. This is not the Claude Code baseline and ' +
+            'excludes its instructions and the tool schemas.',
+        ],
+        measure:
+          'Use /context for the actual configured session; record model, Claude Code version, tool ' +
+          'set, invoked skills and returned usage. Do not substitute the API-only286-token ' +
+          'fragment for the full harness prompt.',
+        example:
+          '---\nname: source-tracer\ndescription: Trace assigned source contracts and return a ' +
+          'bounded evidence report.\ntools: Read, Grep, Glob\nskills:\n  - contract-reading\n---\nTrace ' +
+          'only the assigned sources; return the bounded report.\n# Tools/skills shown are ' +
+          'illustrative configuration, not installed or token-counted.',
+        sources: ['claude-subagents', 'claude-costs', 'claude-tool-overhead'],
+      },
+      codex: {
+        label: 'Codex',
+        summary:
+          'Base instructions depend on model catalog and client; custom agent guidance does not by itself prove a smaller tool schema set.',
+        known: [
+          'Model catalogs supply base_instructions and tool defaults; upstream defaults can change even without a client version change.',
+          'A model_instructions_file replaces built-in instruction text. Source/skill scoping and ' +
+            'visible tool-contract selection must be checked in the resulting request.',
+        ],
+        measure:
+          'Record exact model/client/catalog, active instructions, skill contents and tool ' +
+          'definitions. Count the selected base_instructions text as a reference estimate; capture ' +
+          'actual request usage separately. No model/catalog API call is made by this presentation.',
+        example:
+          'Use a bounded task with explicit source anchors and a selected skill packet; verify the ' +
+          'effective custom-agent tools. The smaller worker schema/skill amounts are modeled ' +
+          'custom-harness choices, not a claimed Codex native default.',
+        sources: ['codex-catalog', 'codex-config', 'codex-subagents'],
+      },
+    };
+    return { ...shared, ...(data[harness] || data.opencode) };
+  },
 };

@@ -1,44 +1,348 @@
 'use strict';
-const AtlasModel09={
- attention(head=0,gap=0,content='base'){
-  const frames=[];for(let query=0;query<5;query++){
-   const rows=AtlasPlatform08.weights(query,head,gap,content),maxScore=Math.max(...rows.filter(r=>r.allowed).map(r=>r.score));
-   const denominator=rows.reduce((n,r)=>n+(r.allowed?Math.exp(r.score-maxScore):0),0);
-   frames.push({query,maxScore,denominator,rows:rows.map((r,i)=>({...r,dot:r.score*Math.sqrt(2),strength:r.allowed?Math.exp(r.score-maxScore):0,delta:r.allowed&&query>i?r.weight-frames[query-1].rows[i].weight:null}))});
-  }return frames;
- },
- delegation(step,workers,profile){
-  const d=AtlasReplay08.delegation(step,workers,profile),defs=AtlasWorkload.data.layers;
-  d.workerWindows=d.step?Array.from({length:d.workers},(_,i)=>{
-   const count=d.step===1?0:d.step===2?6000/d.workers:d.workPartitions[i],layers=[...defs.slice(0,4).map(l=>({...l,tokens:l.id==='skills'?2500:l.tokens})),{id:'task',role:'policy',label:'Scoped task + report contract',tokens:900},{id:'evidence',role:'evidence',label:'Assigned source partition',tokens:d.sourcePartitions[i]},...(count?[{id:'history',role:'stored',label:'Worker results retained',tokens:count}]:[])];
-   return{id:'W'+(i+1),index:i,status:d.step>=4?'returned':d.step===1?'scoped':'working',layers,total:layers.reduce((n,l)=>n+l.tokens,0)};
-  }):[];
-  d.single.currentAcrossSessions=d.single.total;d.delegated.currentAcrossSessions=d.delegated.total+d.workerWindows.reduce((n,w)=>n+w.total,0);return d;
- },
- assembly(harness){
-  const data={
-   opencode:{label:'OpenCode V2',kind:'Documented initial instruction order',entries:[["Agent / provider system prompt","Base guidance for the selected agent."],["Code Mode guidance (conditional)","Native tool-use guidance when enabled."],["MCP, references and skills","Integration/procedure guidance."],["Global/project AGENTS + configured instructions","Discovered guidance, then configured files."],["Date and environment","Built-in environment context."],["Session-specific API instructions","Additional instruction entries."]],notes:'This orders initial instruction sources, not every field in the provider request. Tools, discovered files and message/result pairing retain native contracts.',sources:['opencode-instructions']},
-   claude:{label:'Claude Code',kind:'Documented components + loading phases',entries:[['Built-in system guidance and output style','Apply alongside project configuration; not a published full wire-order specification.'],['Startup guidance','Ancestor CLAUDE.md; auto memory; MCP tool names; skill descriptions. Optional appended system text and selected settings can add more.'],['Task + conversation','User requests, responses and admitted tool results accumulate in history.'],['On-demand context','Nested guidance, path rules and skill bodies enter as used; full MCP definitions can be deferred.'],['After compaction','Root guidance and memory reload; nested/path guidance reloads on demand. SessionStart(source=compact) can restore context.']],notes:'Known inclusion phases only. CLAUDE.md loads root→working-directory ancestors at startup, then deeper guidance on use. AGENTS.md fallback/settings vary; this example repo contains CLAUDE.md. /context shows actual categories.',sources:['claude-context','claude-memory']},
-   codex:{label:'Codex',kind:'Documented guidance chain + context components',entries:[['Native model, tools and environment','Keep configured system/developer guidance and tool contracts; their complete serialization is not established by the AGENTS.md guide.'],['Global guidance','First nonempty ~/.codex/AGENTS.override.md or AGENTS.md.'],['Project guidance','Root→launch directory; one preferred override/AGENTS/fallback file per directory, concatenated in that order.'],['Task and selected context','Requests, selected files, skill instructions and returned tool evidence; CLI/IDE context sources differ.'],['Lifecycle additions','Supported hooks can add developer context; a PreModelRequest observer cannot rewrite the request.']],notes:'The documented guidance discovery chain is not a complete provider wire-order guarantee. Default project-document budget32KiB; a shell cd is not documented to rebuild startup guidance.',sources:['codex-guidance','codex-skills','codex-hooks']},
-   cursor:{label:'Cursor',kind:'Documented context inventory + scoped rule precedence',entries:[['Native context inventory','Built-in system prompt; tools; rules; skill descriptions; MCP instructions/catalog; subagent descriptions. These are categories, not a documented full serialization order.'],['Applicable rule sources','Team → Project → User: documented conflict precedence among rules, not provider-role authority. Applicable rules are merged.'],['Project rule activation','Always; intelligently from description; file-glob match; or manual @mention.'],['Directory guidance','Root and nested AGENTS.md; more specific guidance takes precedence for the relevant files.'],['Conversation state','Current messages and tool results plus summarized older turns. Context ring shows actual category usage.']],notes:'Rules documentation describes inclusion/precedence; it does not reveal hidden model weights or every serialized position. Use the native context breakdown to inspect the current request.',sources:['cursor-prompting','cursor-rules']}
-  };return data[harness]||data.opencode;
- },
- native(harness,id){
-  const c={
-   start:['SessionStart','Add startup developer context.','Load a short project contract and source anchors.','Trust the configured hook; inspect native context before relying on it.'],
-   prompt:['UserPromptSubmit','Add developer context alongside the user prompt.','Attach the current goal and acceptance checks.','Adding context is not replacing the user prompt.'],
-   dispatch:['PreModelRequest','Diagnostic observation of each request attempt.','Log model, turn and request attempt; compare actual usage.','Cannot change context or block a model request. Perform selection at an earlier supported boundary.'],
-   pretool:['PreToolUse','Block or rewrite supported tool input; add context.','Narrow a read/search request to relevant paths.','Tool coverage varies; code-mode nested calls have their own behavior.'],
-   posttool:['PostToolUse','Inspect results; supported block/continue:false paths replace model-visible result with feedback.','Retain a full artifact, then return relevant feedback through supported event fields.','Cannot undo execution. updatedMCPToolOutput is parsed but unsupported; code-mode block can reject the nested promise.'],
-   child:['SubagentStart','Add scoped developer context to the child.','State task boundaries, source anchors and report schema.','continue:false does not prevent the child from starting; fork/history configuration remains separate.'],
-   handoff:['SubagentStop + orchestrator validation','Inspect child completion and request a continuation when supported.','Validate the report before the orchestrator admits it to the parent.','JSON output required; last_assistant_message is available but not a Claude SubagentHandback tool contract.'],
-   precompact:['PreCompact','Observe or stop before compaction through supported JSON fields.','Persist a source-linked checkpoint externally before allowing compaction.','Plain stdout is ignored; no Claude-style summary-instruction injection is asserted.'],
-   postcompact:['PostCompact → SessionStart(source=compact)','PostCompact observes/stops; SessionStart(compact) adds developer context before the immediate continuation.','Restore the current goal and required source references through SessionStart(compact).','PostCompact plain stdout is ignored; restoration does not rewrite the completed summary.']
-  };
-  if(harness==='codex'){const x=c[id]||c.prompt;return{name:x[0],power:x[1],example:x[2],limit:x[3],sources:['codex-hooks']};}
-  const names={opencode:['session.created → orchestrator','session.hook("prompt")','session.hook("context")','tool.hook("execute.before")','tool.hook("execute.after")','Create child → apply policy → prompt','Orchestrator report validation','session.hook("compaction")','session.compaction.ended → next context hook'],claude:['SessionStart','UserPromptSubmit','Orchestrator / earlier supported boundary','PreToolUse','PostToolUse','SubagentStart','PreToolUse SubagentHandback','PreCompact','PostCompact → SessionStart(source=compact)']},ids=['start','prompt','dispatch','pretool','posttool','child','handoff','precompact','postcompact'],index=Math.max(0,ids.indexOf(id)),isClaude=harness==='claude';
-  const powers=isClaude?['Add startup context.','Add context alongside the prompt.','No identical general per-model-request context rewrite hook asserted.','Inspect/decide/update supported tool input.','updatedToolOutput replaces model-visible output with a schema-matched value.','Add scoped child-start context.','Validate message before tool delivery.','Stdout supplies compaction instructions.','Observe completed summary; restore through SessionStart(compact).']:['Observe session creation; initialize through orchestration.','Transform admitted input.','Transform outgoing agent-loop context.','Inspect/transform tool input.','Transform result; retain full artifacts.','Initialize scoped child explicitly before prompting.','Validate selected report before integrating into parent.','Influence the summary request.','Observe completed compaction; restore at the next context hook.'];
-  const limits=isClaude?['Startup addition is not a complete prompt replacement.','Cannot replace the user prompt.','Tool-driven continuations are not new user prompts.','A tool event is not a model invocation.','Preserve schema/errors; side effects and original telemetry remain.','Fresh and forked children have different inherited context.','Requires v2.1.271+ auto mode and actual Handback path. SubagentStop closing text may differ; installer does not enable auto mode.','Validate retained goal/anchors afterward.','PostCompact cannot edit the completed summary.']:['Observer event does not rewrite the first input.','Prompt admission is not each model call.','Outgoing changes do not rewrite stored history.','Retain native tool/input contracts.','Execution already happened; preserve retrievable evidence and errors.','Fork copies history; do not assume a fresh source packet for every native child.','Validate actual report, not a closing notification.','Compaction may still lose facts.','An event observer does not itself rewrite the checkpoint.'];
-  return{name:names[isClaude?'claude':'opencode'][index],power:powers[index],example:['Prepare task-entry policy.','Attach goal, constraints and selected anchors.','Select relevant input; record request telemetry.','Narrow the requested file/search scope.','Save complete output, return relevant bounded evidence.','Scope task, ownership, sources and report schema.','Validate structure and verify facts before admission.','Persist goal, decisions and open work.','Validate continuity; restore required sources.'][index],limit:limits[index],sources:[isClaude?'claude-hooks':'opencode-hooks']};
- }
+const AtlasModel09 = {
+  attention(head = 0, gap = 0, content = 'base') {
+    const frames = [];
+    for (let query = 0; query < 5; query++) {
+      const rows = AtlasPlatform08.weights(query, head, gap, content),
+        maxScore = Math.max(...rows.filter((r) => r.allowed).map((r) => r.score));
+      const denominator = rows.reduce(
+        (n, r) => n + (r.allowed ? Math.exp(r.score - maxScore) : 0),
+        0,
+      );
+      frames.push({
+        query,
+        maxScore,
+        denominator,
+        rows: rows.map((r, i) => ({
+          ...r,
+          dot: r.score * Math.sqrt(2),
+          strength: r.allowed ? Math.exp(r.score - maxScore) : 0,
+          delta: r.allowed && query > i ? r.weight - frames[query - 1].rows[i].weight : null,
+        })),
+      });
+    }
+    return frames;
+  },
+
+  delegation(step, workers, profile) {
+    const d = AtlasReplay08.delegation(step, workers, profile),
+      defs = AtlasWorkload.data.layers;
+    d.workerWindows = d.step
+      ? Array.from({ length: d.workers }, (_, i) => {
+          const count = d.step === 1 ? 0 : d.step === 2 ? 6000 / d.workers : d.workPartitions[i],
+            layers = [
+              ...defs
+                .slice(0, 4)
+                .map((l) => ({ ...l, tokens: l.id === 'skills' ? 2500 : l.tokens })),
+              { id: 'task', role: 'policy', label: 'Scoped task + report contract', tokens: 900 },
+              {
+                id: 'evidence',
+                role: 'evidence',
+                label: 'Assigned source partition',
+                tokens: d.sourcePartitions[i],
+              },
+              ...(count
+                ? [
+                    {
+                      id: 'history',
+                      role: 'stored',
+                      label: 'Worker results retained',
+                      tokens: count,
+                    },
+                  ]
+                : []),
+            ];
+          return {
+            id: 'W' + (i + 1),
+            index: i,
+            status: d.step >= 4 ? 'returned' : d.step === 1 ? 'scoped' : 'working',
+            layers,
+            total: layers.reduce((n, l) => n + l.tokens, 0),
+          };
+        })
+      : [];
+    d.single.currentAcrossSessions = d.single.total;
+    d.delegated.currentAcrossSessions =
+      d.delegated.total + d.workerWindows.reduce((n, w) => n + w.total, 0);
+    return d;
+  },
+
+  assembly(harness) {
+    const data = {
+      opencode: {
+        label: 'OpenCode V2',
+        kind: 'Documented initial instruction order',
+        entries: [
+          ['Agent / provider system prompt', 'Base guidance for the selected agent.'],
+          ['Code Mode guidance (conditional)', 'Native tool-use guidance when enabled.'],
+          ['MCP, references and skills', 'Integration/procedure guidance.'],
+          [
+            'Global/project AGENTS + configured instructions',
+            'Discovered guidance, then configured files.',
+          ],
+          ['Date and environment', 'Built-in environment context.'],
+          ['Session-specific API instructions', 'Additional instruction entries.'],
+        ],
+        notes:
+          'This orders initial instruction sources, not every field in the provider request. ' +
+          'Tools, discovered files and message/result pairing retain native contracts.',
+        sources: ['opencode-instructions'],
+      },
+      claude: {
+        label: 'Claude Code',
+        kind: 'Documented components + loading phases',
+        entries: [
+          [
+            'Built-in system guidance and output style',
+            'Apply alongside project configuration; not a published full wire-order specification.',
+          ],
+          [
+            'Startup guidance',
+            'Ancestor CLAUDE.md; auto memory; MCP tool names; skill descriptions. Optional appended system text and selected settings can add more.',
+          ],
+          [
+            'Task + conversation',
+            'User requests, responses and admitted tool results accumulate in history.',
+          ],
+          [
+            'On-demand context',
+            'Nested guidance, path rules and skill bodies enter as used; full MCP definitions can be deferred.',
+          ],
+          [
+            'After compaction',
+            'Root guidance and memory reload; nested/path guidance reloads on demand. SessionStart(source=compact) can restore context.',
+          ],
+        ],
+        notes:
+          'Known inclusion phases only. CLAUDE.md loads root→working-directory ancestors at ' +
+          'startup, then deeper guidance on use. AGENTS.md fallback/settings vary; this example ' +
+          'repo contains CLAUDE.md. /context shows actual categories.',
+        sources: ['claude-context', 'claude-memory'],
+      },
+      codex: {
+        label: 'Codex',
+        kind: 'Documented guidance chain + context components',
+        entries: [
+          [
+            'Native model, tools and environment',
+            'Keep configured system/developer guidance and tool contracts; their complete serialization is not established by the AGENTS.md guide.',
+          ],
+          ['Global guidance', 'First nonempty ~/.codex/AGENTS.override.md or AGENTS.md.'],
+          [
+            'Project guidance',
+            'Root→launch directory; one preferred override/AGENTS/fallback file per directory, concatenated in that order.',
+          ],
+          [
+            'Task and selected context',
+            'Requests, selected files, skill instructions and returned tool evidence; CLI/IDE context sources differ.',
+          ],
+          [
+            'Lifecycle additions',
+            'Supported hooks can add developer context; a PreModelRequest observer cannot rewrite the request.',
+          ],
+        ],
+        notes:
+          'The documented guidance discovery chain is not a complete provider wire-order ' +
+          'guarantee. Default project-document budget32KiB; a shell cd is not documented to ' +
+          'rebuild startup guidance.',
+        sources: ['codex-guidance', 'codex-skills', 'codex-hooks'],
+      },
+      cursor: {
+        label: 'Cursor',
+        kind: 'Documented context inventory + scoped rule precedence',
+        entries: [
+          [
+            'Native context inventory',
+            'Built-in system prompt; tools; rules; skill descriptions; MCP instructions/catalog; ' +
+              'subagent descriptions. These are categories, not a documented full serialization order.',
+          ],
+          [
+            'Applicable rule sources',
+            'Team → Project → User: documented conflict precedence among rules, not provider-role authority. Applicable rules are merged.',
+          ],
+          [
+            'Project rule activation',
+            'Always; intelligently from description; file-glob match; or manual @mention.',
+          ],
+          [
+            'Directory guidance',
+            'Root and nested AGENTS.md; more specific guidance takes precedence for the relevant files.',
+          ],
+          [
+            'Conversation state',
+            'Current messages and tool results plus summarized older turns. Context ring shows actual category usage.',
+          ],
+        ],
+        notes:
+          'Rules documentation describes inclusion/precedence; it does not reveal hidden model ' +
+          'weights or every serialized position. Use the native context breakdown to inspect the ' +
+          'current request.',
+        sources: ['cursor-prompting', 'cursor-rules'],
+      },
+    };
+    return data[harness] || data.opencode;
+  },
+
+  native(harness, id) {
+    const c = {
+      start: [
+        'SessionStart',
+        'Add startup developer context.',
+        'Load a short project contract and source anchors.',
+        'Trust the configured hook; inspect native context before relying on it.',
+      ],
+      prompt: [
+        'UserPromptSubmit',
+        'Add developer context alongside the user prompt.',
+        'Attach the current goal and acceptance checks.',
+        'Adding context is not replacing the user prompt.',
+      ],
+      dispatch: [
+        'PreModelRequest',
+        'Diagnostic observation of each request attempt.',
+        'Log model, turn and request attempt; compare actual usage.',
+        'Cannot change context or block a model request. Perform selection at an earlier supported boundary.',
+      ],
+      pretool: [
+        'PreToolUse',
+        'Block or rewrite supported tool input; add context.',
+        'Narrow a read/search request to relevant paths.',
+        'Tool coverage varies; code-mode nested calls have their own behavior.',
+      ],
+      posttool: [
+        'PostToolUse',
+        'Inspect results; supported block/continue:false paths replace model-visible result with feedback.',
+        'Retain a full artifact, then return relevant feedback through supported event fields.',
+        'Cannot undo execution. updatedMCPToolOutput is parsed but unsupported; code-mode block can reject the nested promise.',
+      ],
+      child: [
+        'SubagentStart',
+        'Add scoped developer context to the child.',
+        'State task boundaries, source anchors and report schema.',
+        'continue:false does not prevent the child from starting; fork/history configuration remains separate.',
+      ],
+      handoff: [
+        'SubagentStop + orchestrator validation',
+        'Inspect child completion and request a continuation when supported.',
+        'Validate the report before the orchestrator admits it to the parent.',
+        'JSON output required; last_assistant_message is available but not a Claude SubagentHandback tool contract.',
+      ],
+      precompact: [
+        'PreCompact',
+        'Observe or stop before compaction through supported JSON fields.',
+        'Persist a source-linked checkpoint externally before allowing compaction.',
+        'Plain stdout is ignored; no Claude-style summary-instruction injection is asserted.',
+      ],
+      postcompact: [
+        'PostCompact → SessionStart(source=compact)',
+        'PostCompact observes/stops; SessionStart(compact) adds developer context before the immediate continuation.',
+        'Restore the current goal and required source references through SessionStart(compact).',
+        'PostCompact plain stdout is ignored; restoration does not rewrite the completed summary.',
+      ],
+    };
+    if (harness === 'codex') {
+      const x = c[id] || c.prompt;
+      return { name: x[0], power: x[1], example: x[2], limit: x[3], sources: ['codex-hooks'] };
+    }
+    const names = {
+        opencode: [
+          'session.created → orchestrator',
+          'session.hook("prompt")',
+          'session.hook("context")',
+          'tool.hook("execute.before")',
+          'tool.hook("execute.after")',
+          'Create child → apply policy → prompt',
+          'Orchestrator report validation',
+          'session.hook("compaction")',
+          'session.compaction.ended → next context hook',
+        ],
+        claude: [
+          'SessionStart',
+          'UserPromptSubmit',
+          'Orchestrator / earlier supported boundary',
+          'PreToolUse',
+          'PostToolUse',
+          'SubagentStart',
+          'PreToolUse SubagentHandback',
+          'PreCompact',
+          'PostCompact → SessionStart(source=compact)',
+        ],
+      },
+      ids = [
+        'start',
+        'prompt',
+        'dispatch',
+        'pretool',
+        'posttool',
+        'child',
+        'handoff',
+        'precompact',
+        'postcompact',
+      ],
+      index = Math.max(0, ids.indexOf(id)),
+      isClaude = harness === 'claude';
+    const powers = isClaude
+      ? [
+          'Add startup context.',
+          'Add context alongside the prompt.',
+          'No identical general per-model-request context rewrite hook asserted.',
+          'Inspect/decide/update supported tool input.',
+          'updatedToolOutput replaces model-visible output with a schema-matched value.',
+          'Add scoped child-start context.',
+          'Validate message before tool delivery.',
+          'Stdout supplies compaction instructions.',
+          'Observe completed summary; restore through SessionStart(compact).',
+        ]
+      : [
+          'Observe session creation; initialize through orchestration.',
+          'Transform admitted input.',
+          'Transform outgoing agent-loop context.',
+          'Inspect/transform tool input.',
+          'Transform result; retain full artifacts.',
+          'Initialize scoped child explicitly before prompting.',
+          'Validate selected report before integrating into parent.',
+          'Influence the summary request.',
+          'Observe completed compaction; restore at the next context hook.',
+        ];
+    const limits = isClaude
+      ? [
+          'Startup addition is not a complete prompt replacement.',
+          'Cannot replace the user prompt.',
+          'Tool-driven continuations are not new user prompts.',
+          'A tool event is not a model invocation.',
+          'Preserve schema/errors; side effects and original telemetry remain.',
+          'Fresh and forked children have different inherited context.',
+          'Requires v2.1.271+ auto mode and actual Handback path. SubagentStop closing text may differ; installer does not enable auto mode.',
+          'Validate retained goal/anchors afterward.',
+          'PostCompact cannot edit the completed summary.',
+        ]
+      : [
+          'Observer event does not rewrite the first input.',
+          'Prompt admission is not each model call.',
+          'Outgoing changes do not rewrite stored history.',
+          'Retain native tool/input contracts.',
+          'Execution already happened; preserve retrievable evidence and errors.',
+          'Fork copies history; do not assume a fresh source packet for every native child.',
+          'Validate actual report, not a closing notification.',
+          'Compaction may still lose facts.',
+          'An event observer does not itself rewrite the checkpoint.',
+        ];
+    return {
+      name: names[isClaude ? 'claude' : 'opencode'][index],
+      power: powers[index],
+      example: [
+        'Prepare task-entry policy.',
+        'Attach goal, constraints and selected anchors.',
+        'Select relevant input; record request telemetry.',
+        'Narrow the requested file/search scope.',
+        'Save complete output, return relevant bounded evidence.',
+        'Scope task, ownership, sources and report schema.',
+        'Validate structure and verify facts before admission.',
+        'Persist goal, decisions and open work.',
+        'Validate continuity; restore required sources.',
+      ][index],
+      limit: limits[index],
+      sources: [isClaude ? 'claude-hooks' : 'opencode-hooks'],
+    };
+  },
 };

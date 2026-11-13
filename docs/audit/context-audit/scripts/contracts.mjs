@@ -1,1 +1,35 @@
-export function checkContract(kind,value){if(!value||typeof value!=='object'||Array.isArray(value))throw Error('Expected object');const fields=kind==='report'?['task_id','summary','source_anchors','findings','checks','open_questions']:kind==='checkpoint'?['goal','constraints','source_anchors','decisions','open_work','checks']:null;if(!fields)throw Error('Choose checkpoint or report');if(Object.keys(value).some(k=>!fields.includes(k))||fields.some(k=>!(k in value)))throw Error('Use exactly the documented '+kind+' fields');for(const k of fields){if(['goal','task_id','summary'].includes(k)){if(typeof value[k]!=='string'||!value[k].trim())throw Error(k+' must be nonempty text');}else if(!Array.isArray(value[k]))throw Error(k+' must be an array');else if(k!=='checks'&&value[k].some(x=>typeof x!=='string'))throw Error(k+' must contain text');}for(const c of value.checks){if(!c||Object.keys(c).some(k=>!['command','status','artifact'].includes(k))||typeof c.command!=='string'||!['passed','failed','not-run'].includes(c.status)||!('artifact'in c)||!(c.artifact===null||typeof c.artifact==='string'))throw Error('Checks need command, passed/failed/not-run status and artifact');if(c.status!=='not-run'&&(!c.artifact||!c.artifact.trim()))throw Error('Executed checks require a traceable evidence artifact');}if(JSON.stringify(value).length>12000)throw Error('Contract exceeds12,000 characters');return value;}
+export function checkContract(kind, value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) throw Error('Expected object');
+  const fields =
+    kind === 'report'
+      ? ['task_id', 'summary', 'source_anchors', 'findings', 'checks', 'open_questions']
+      : kind === 'checkpoint'
+        ? ['goal', 'constraints', 'source_anchors', 'decisions', 'open_work', 'checks']
+        : null;
+  if (!fields) throw Error('Choose checkpoint or report');
+  if (Object.keys(value).some((k) => !fields.includes(k)) || fields.some((k) => !(k in value)))
+    throw Error('Use exactly the documented ' + kind + ' fields');
+  for (const k of fields) {
+    if (['goal', 'task_id', 'summary'].includes(k)) {
+      if (typeof value[k] !== 'string' || !value[k].trim())
+        throw Error(k + ' must be nonempty text');
+    } else if (!Array.isArray(value[k])) throw Error(k + ' must be an array');
+    else if (k !== 'checks' && value[k].some((x) => typeof x !== 'string'))
+      throw Error(k + ' must contain text');
+  }
+  for (const c of value.checks) {
+    if (
+      !c ||
+      Object.keys(c).some((k) => !['command', 'status', 'artifact'].includes(k)) ||
+      typeof c.command !== 'string' ||
+      !['passed', 'failed', 'not-run'].includes(c.status) ||
+      !('artifact' in c) ||
+      !(c.artifact === null || typeof c.artifact === 'string')
+    )
+      throw Error('Checks need command, passed/failed/not-run status and artifact');
+    if (c.status !== 'not-run' && (!c.artifact || !c.artifact.trim()))
+      throw Error('Executed checks require a traceable evidence artifact');
+  }
+  if (JSON.stringify(value).length > 12000) throw Error('Contract exceeds12,000 characters');
+  return value;
+}

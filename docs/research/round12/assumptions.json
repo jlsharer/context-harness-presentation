@@ -2,84 +2,21 @@
   "scope": "Synthetic usage and context packets; official dated API prices are stored separately. No native model calls, measured compliance/attention or performance-equivalent routing claim.",
   "checkedOn": "2026-11-12",
   "callsPerEndpoint": {
-    "single": [
-      1,
-      3,
-      3,
-      2,
-      1
-    ],
-    "parent": [
-      1,
-      2,
-      1
-    ],
-    "worker": [
-      1,
-      2,
-      2
-    ]
+    "single": [1, 3, 3, 2, 1],
+    "parent": [1, 2, 1],
+    "worker": [1, 2, 2]
   },
   "inputGrowth": "Linear integer interpolation between consecutive per-agent endpoint input snapshots, ending exactly at the existing R11 snapshot. Initial worker has no result history.",
   "prefix": "Per-agent base+tools+guidance+skills; first call writes it, later calls read it. Other input fresh; short TTL, eligible explicit stable boundary assumed. No cross-agent/provider cache sharing.",
   "outputBudgets": {
-    "single": [
-      [
-        900
-      ],
-      [
-        500,
-        700,
-        900
-      ],
-      [
-        900,
-        900,
-        900
-      ],
-      [
-        700,
-        700
-      ],
-      [
-        1000
-      ]
-    ],
-    "parent": [
-      [
-        900
-      ],
-      [
-        650,
-        800
-      ],
-      [
-        1000
-      ]
-    ],
-    "worker": [
-      [
-        450
-      ],
-      [
-        350,
-        450
-      ],
-      [
-        400,
-        "per-worker report budget900/650/1150"
-      ]
-    ]
+    "single": [[900], [500, 700, 900], [900, 900, 900], [700, 700], [1000]],
+    "parent": [[900], [650, 800], [1000]],
+    "worker": [[450], [350, 450], [400, "per-worker report budget900/650/1150"]]
   },
   "cacheChart": {
     "input": 20000,
     "output": 1000,
-    "models": [
-      "fable",
-      "haiku",
-      "astra",
-      "luna"
-    ],
+    "models": ["fable", "haiku", "astra", "luna"],
     "scale": "One linear USD scale across all16 bars; model rates held fixed for the checked date."
   },
   "componentExamples": "Assigned full-packet budgets sum to the category. Displayed excerpts are not tokenized full packets. Shared relevant skill budgets stay1200+600; uncurated adds4200 unrelated body tokens.",

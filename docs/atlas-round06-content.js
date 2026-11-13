@@ -1,47 +1,583 @@
 'use strict';
-const Round06Content={
- count(n){return n.toLocaleString();},
- blockRole(id){return id==='instructions'||id==='summary-instructions'?'policy':['history','checkpoint','parent-transcript'].includes(id)?'stored':'evidence';},
- stack(record,id,label){
-  const r=record||{tokens:0,layers:[]};
-  return '<section class="token-window"><h3>'+label+'</h3><strong class="stack-total">'+this.count(r.tokens)+' <small>tokens</small></strong><div class="stack-frame" data-token-stack="'+id+'" data-scale="'+atlasTokens.scale+'" aria-label="'+label+' in serialized load order, first at top">'+r.layers.map((l,i)=>'<button class="token-layer role-'+this.blockRole(l.id)+'" data-layer="'+l.id+'" data-tokens="'+l.tokens+'" style="height:'+l.tokens/atlasTokens.scale*100+'%" title="'+(i+1)+'. '+l.label+' · '+l.tokens+' reference tokens" aria-label="Inspect '+l.label+' · '+l.tokens+' reference tokens"></button>').join('')+'</div><span class="stack-direction">'+(id==='before'?'o200k_base · native counts differ':'Fixed scale: '+this.count(atlasTokens.scale)+' tokens · not capacity')+'</span></section>';
- },
- boundary(s){
-  const i=s.step;
-  if(i===6||i===7)return ['Parent P2','Select task + 3 source bodies','Child C1 · own input','Return a bounded handoff'];
-  if(i===8||i===9)return ['Child C1 · separate window','Keep source-linked conclusion','Append handoff to parent','Reassemble parent P3'];
-  if(i===10||i===11)return ['Parent working state','S1 · separate summary request','Checkpoint replaces sources/history','Validate → restore → parent P4'];
-  return ['Stored sources + session history','Policy selects + orders text','Assemble one model input','Result → selection → next input'];
- },
- timeline(s){return Round05Content.timeline.call(this,s)+'<div class="live-event-track" aria-label="Lifecycle events">'+AtlasSession.events.map((e,i)=>'<button data-step="'+i+'" '+(i===s.step?'aria-current="step"':'')+' title="'+e.label+'">'+['Init','Task','P1','Tool ↓','Result','P2','Child','C1','Return','P3','S1 prep','S1 done','Turn 2','P4'][i]+'</button>').join('')+'</div>';},
- system(s){
-  const d=AtlasSession.comparisonAt(s.step,s.sourcePolicy),e=d.current,r=atlasTokens.requests[s.sourcePolicy+':'+e.step],old=d.reference?atlasTokens.requests[s.sourcePolicy+':'+d.reference.step]:null,q=AtlasSession.summaryRequestAt(e.step,s.sourcePolicy),prior=new Map((old?.layers||[]).map(l=>[l.id,l])),current=new Map(r.layers.map(l=>[l.id,l]));
-  const ordered=[...r.layers,...(old?.layers||[]).filter(l=>!current.has(l.id))];
-  const layers=ordered.map((l,i)=>{const a=prior.get(l.id)?.tokens||0,b=current.get(l.id)?.tokens||0,retained=d.retained.some(x=>x.id===l.id),added=d.added.some(x=>x.id===l.id),removed=d.removed.some(x=>x.id===l.id),kind=added?(retained?'Extended':'Added'):removed?'Removed':'Retained';return '<li class="role-'+this.blockRole(l.id)+'"'+(!current.has(l.id)?' data-removed-layer':'')+'><span class="load-rank">'+(current.has(l.id)?r.layers.findIndex(x=>x.id===l.id)+1:'−')+'</span><span><button class="ledger-layer-label" data-ledger-layer="'+l.id+'">'+l.label+'</button><small>'+kind+(retained&&added?' · prior text kept':'')+'</small></span><span class="layer-count">'+this.count(a)+' → <b>'+this.count(b)+'</b></span></li>';}).join('');
-  const net=r.tokens-(old?.tokens||0),summary=q?atlasTokens.summaries[s.sourcePolicy]:null;
-  return '<div class="system06">'+this.timeline(s)+'<div class="stack-heading"><div><h2>'+ (e.session==='child'?'Child':'Parent')+' · '+e.label+'</h2><p id="comparisonReference">User turn '+e.turn+' · '+(e.session==='child'?'child':'parent')+' call '+e.call+' · compared with '+AtlasContent.esc(d.referenceLabel)+'</p></div><button id="inspectContext"><strong id="contextSize" data-tokens="'+r.tokens+'" data-bytes="'+r.bytes+'">'+this.count(r.tokens)+'</strong> reference tokens ↗</button></div><div class="context-workbench" data-system-graphic><div class="paired-stacks">'+this.stack(old,'before','Before')+'<div class="net-change"><strong>'+(net>=0?'+':'−')+this.count(Math.abs(net))+'</strong><span>net tokens</span><b>→</b></div>'+this.stack(r,'current','Now')+'</div><section class="layer-ledger"><div class="ledger-heading"><h3>Load order · first to last</h3><span>Before → now · tokens</span></div><ol>'+layers+((old?.layers||[]).filter(l=>!current.has(l.id)).length>1?'<li class="role-stored removed-layer-group"><span class="load-rank">−</span><span><button class="ledger-layer-label" data-inspect-change="removed">Removed layers ↗</button><small>Sources + selected history</small></span><span class="layer-count">'+this.count(old.layers.filter(l=>!current.has(l.id)).reduce((n,l)=>n+l.tokens,0))+' → <b>0</b></span></li>':'')+'</ol><div class="change-actions">'+['added','retained','removed'].map(k=>'<button data-context-change="'+k+'" data-inspect-change="'+k+'">'+k[0].toUpperCase()+k.slice(1)+' text ↗</button>').join('')+'</div></section></div><div id="boundaryTransform" class="boundary-flow">'+this.boundary(s).map((x,i)=>'<div class="role-'+(i===1?'policy':i===2?'evidence':'execution')+'"><small>'+(i+1)+'</small><strong>'+x+'</strong></div>').join('')+'</div><div class="replay-detail-row"><p>'+(q?'S1 input: <strong>'+this.count(summary.tokens)+' tokens</strong> in a separate request; '+(q.output?'checkpoint output: '+summary.outputTokens+' tokens.':'checkpoint not yet generated.'):e.session==='child'?'A fresh scoped child is illustrated here. Forked sessions may inherit history.':'All 15 source files and full artifacts remain retrievable outside this active input.')+'</p><button id="inspectHook">Policy at this boundary ↗</button>'+(q?'<button id="inspectSummary">Inspect S1 ↗</button>':'')+'</div><p class="token-scope">Teaching replay · exact o200k_base text counts, not provider-native usage. Same scale throughout: '+this.count(atlasTokens.scale)+' tokens; this is not a capacity limit. Layer allocation includes headings/separators. Output allowance is separate.</p></div>';
- },
- contextPlot(groups,conditions,y){return this.barPlot(groups,conditions,{y,unit:y.includes('F1')?'F1 points':'percent'}).replace('X · Model / reported configuration','X · Input context amount (reported token bands / tiers)').replace(' by model',' by input context amount');},
- attention(s){
-  if(s.study==='signal')return Round05Content.attention.call(this,s).replace('<div class="policy-chain role-policy">',this.evidenceFlow('checkpoint')+'<div class="policy-chain role-policy">');
-  const position=s.study==='position',p=atlasResearch06,c=atlasResearch05.position,m=position?c.models[Number(s.positionModel)||0]:p.models.find(m=>m.id===s.researchModel)||p.models[1],filler=s.filler||'questions';
-  const chart=position?this.contextPlot(c.tiers.map(t=>({label:t,values:m[filler][t]})),c.conditions,'Task accuracy (%)'):this.contextPlot(p.bands.map((b,i)=>({label:b,values:[m.values[i]]})),['Mean BFS F1'],'Mean BFS set-F1 (%)');
-  const scope=position?'Input tiers: 8K / 32K / 64K · '+c.fillers[filler]+' filler · 50 questions per condition.':'Input bands: ≤128K versus 256K–1M tokens · separate problem sets; no measured exact onset.';
-  const explanation=position?'<h2>Task position</h2><div class="position-picture"><span>Middle task</span><div><i>Filler</i><b class="role-evidence">Task</b><i>Filler</i></div><span>End task</span><div><i>Filler</i><i>Filler</i><b class="role-evidence">Task</b></div></div><p>Grade-school math questions among other material. The task moves; this is not evidence placement.</p><button id="showPositionTerms">Task + reasoning terms ↗</button>':'<h2>BFS · breadth-first search</h2><p>Follow graph edges one level at a time.</p><div id="bfsExample" class="bfs-example"><div class="dependency-picture"><span class="role-evidence">API</span><b>→</b><span class="role-evidence">Service</span><b>→</b><div><span class="role-evidence">Journal</span><span class="role-evidence">Delivery</span></div></div><p><strong>Exactly 2 edges from API?</strong><br>Journal + Delivery.</p></div><p>Software analogy: map dependencies before selecting regression tests.</p><button id="showBfsTerms">F1 + task limits ↗</button>';
-  const key=position?'placement':'dependency',policy=this.policyInfo(key),caption=position?'CRE 2026 v1 · '+(filler==='worked'?'Table 1; middle reconstructed.':'Table 16.')+' Task accuracy, not internal attention; no universal middle penalty.':'Google DeepMind · October 2026. Broad-band means; no exact degradation threshold or coding score.';
-  return '<div class="research06"><div class="research-toolbar"><label>Study<select id="researchStudy"><option value="frontier" '+(!position?'selected':'')+'>Input amount · frontier providers</option><option value="position" '+(position?'selected':'')+'>Task position × input amount</option><option value="signal">Required facts × input retention</option></select></label><label>Model<select id="'+(position?'positionModel':'researchModel')+'">'+(position?c.models.map((x,i)=>'<option value="'+i+'" '+(x===m?'selected':'')+'>'+x.model+'</option>'):p.models.map(x=>'<option value="'+x.id+'" '+(x===m?'selected':'')+'>'+x.model+'</option>')).join('')+'</select></label>'+(position?'<label>Filler<select id="fillerKind"><option value="questions" '+(filler==='questions'?'selected':'')+'>Unanswered questions</option><option value="worked" '+(filler==='worked'?'selected':'')+'>Worked solutions</option></select></label>':'')+'<button id="showMechanism">Attention mechanism ↗</button></div><p id="contextScope" class="context-scope">'+scope+'</p><div class="research-main05"><section class="task-explanation role-evidence">'+explanation+'</section><section class="result-panel">'+chart+'<p id="researchCaption" class="study-caption">'+caption+' <button id="showResearchData">All models + data ↗</button></p></section></div>'+this.evidenceFlow(key)+'<div class="policy-chain role-policy"><div><strong>Test a policy on your tasks</strong><p>'+policy.rule+'</p></div><button id="openStudyPolicy" data-study-policy="'+key+'">See hook + transformation ↗</button></div></div>';
- },
- evidenceFlow(key){const labels={dependency:['Larger input bands → lower reported F1','Before dispatch · context hook','Build a dependency-scoped evidence packet','Retest facts + coding acceptance'],placement:['Position gaps depend on context tier','Prompt / next dispatch','Reorder labeled task + checks','Compare same tasks at several loads'],checkpoint:['Blind trimming can delete required facts','Compaction → next dispatch','Preserve checkpoint + restore facts','Retest retention + task acceptance']}[key];return '<div class="evidence-flow">'+labels.map((x,i)=>'<div class="role-'+(['execution','policy','evidence','execution'][i])+'"><small>'+['OBSERVED','SUPPORTED BOUNDARY','CANDIDATE TRANSFORMATION','LOCAL VALIDATION'][i]+'</small><strong>'+x+'</strong></div>').join('')+'</div>';},
- hooks(s){
-  const key=s.recipe||'dependency',p=this.policyInfo(key),h=atlasResearch.hooks.entries.find(x=>x.id===(s.hook||AtlasSession.at(s.step,s.sourcePolicy).hook))||atlasResearch.hooks.entries[2];
-  return '<div class="hooks06"><div class="hook-toolbar"><label>Boundary<select id="hookPolicy">'+atlasResearch.hooks.entries.map(x=>'<option value="'+x.id+'" '+(h.id===x.id?'selected':'')+'>'+x.label+'</option>').join('')+'</select></label><label>Candidate policy<select id="recipePolicy">'+['dependency','placement','checkpoint'].map(x=>'<option value="'+x+'" '+(x===key?'selected':'')+'>'+this.policyInfo(x).title+'</option>').join('')+'</select></label></div><div id="researchPolicyLink" class="research-policy-link"><strong>'+p.title+'</strong><span>'+p.finding+'</span></div><div id="hookTransformation">'+this.evidenceFlow(key)+'</div><div class="hook-grid05"><section class="session-panel role-execution"><h2>At this boundary</h2><h3>'+h.label+'</h3><p>'+h.purpose+'</p><button id="inspectHookDetails">Supported APIs + limits ↗</button></section><section class="session-panel role-policy"><h2>Transform the next input</h2><p class="key-takeaway">'+p.rule+'</p><button id="inspectPolicy">Expand the policy code ↗</button><button id="openAssemblyPolicy">'+(key==='checkpoint'?'Follow checkpoint → parent input':'Follow source → request')+' ↗</button></section><section class="session-panel role-evidence"><h2>Verify the result</h2><p>'+p.check+'</p><button data-open="recipes">Adapt the portable recipe ↗</button></section></div><p class="scope-note">'+h.limit+' '+p.limit+'</p></div>';
- },
- assembly(s){
-  const source=AtlasSession.anchors().find(x=>x.anchor===s.anchor),before=AtlasSession.candidate(s.sourcePolicy,'evidence-first'),after=AtlasSession.candidate(s.sourcePolicy,s.layoutPolicy);
-  const cards=(packet,layout,title,id)=>{const r=atlasTokens.candidates[s.sourcePolicy+':'+layout];return '<section id="'+id+'" class="assembly-packet"><h2>'+title+'</h2><strong class="packet-total">'+this.count(r.tokens)+' tokens</strong><ol>'+r.layers.map((x,i)=>'<li class="role-evidence" data-section="'+x.id+'"><span class="load-rank">'+(i+1)+'</span><span><strong>'+x.label+'</strong><small>'+ (x.id==='evidence'?source.anchor+' · '+packet.sourceFiles.length+' complete source bodies':x.id==='task'?'Original task and constraints':'Original acceptance requirements')+'</small></span><b>'+this.count(x.tokens)+'</b></li>').join('')+'</ol></section>';};
-  const excerpt=source.text.split('\n').filter(x=>x.trim()&&!x.startsWith('#')).slice(0,2).join('\n');
-  return '<div class="assembly06"><div class="assembly-controls"><label>Source inclusion<select id="sourcePolicy"><option value="incident" '+(s.sourcePolicy==='incident'?'selected':'')+'>8 incident-relevant documents</option><option value="all" '+(s.sourcePolicy==='all'?'selected':'')+'>All 15 context documents</option></select></label><label>Candidate order<select id="layoutPolicy">'+[['task-first','Task → evidence → checks'],['evidence-first','Evidence → task → checks'],['task-last','Evidence → checks → task']].map(([v,t])=>'<option value="'+v+'" '+(s.layoutPolicy===v?'selected':'')+'>'+t+'</option>').join('')+'</select></label><button id="inspectNative">Native instructions + roles ↗</button></div><div class="assembly-map"><section class="source-card role-evidence"><h2>Source of truth</h2><div class="anchors">'+AtlasSession.anchors().map(x=>'<button data-anchor="'+x.anchor+'" aria-pressed="'+(source.anchor===x.anchor)+'">'+x.anchor+'</button>').join('')+'</div><p id="sourceExcerpt">'+AtlasContent.esc(excerpt)+'</p><button id="inspectSource">Full source excerpt ↗</button><p>Both requests include the same complete selected source bodies.</p><span class="path-label">'+source.name+'</span></section>'+cards(before,'evidence-first','Baseline · evidence first','candidateBefore')+cards(after,s.layoutPolicy,'Candidate · your order','candidateAfter')+'</div><div class="assembly-message role-policy"><strong>Selection changes what is available. Order changes where it is encountered.</strong><p>These are candidate teaching payloads. Compare task outcomes before choosing a default; no gain is measured here.</p><button id="inspectManifest">Inspect both complete requests ↗</button></div><p class="token-scope">o200k_base reference text tokens; native roles, tools and provider wrappers are outside these counts. Small count differences can arise from boundary tokenization. Output allowance is separate from input.</p></div>';
- },
- recipes(s){return Round05Content.recipes.call(this,s).replace(/<pre>[\s\S]*?<\/pre>/,'<p class="key-takeaway">Select the policy inputs → build the packet → validate required facts.</p><button id="inspectPolicy">Expand the portable policy code ↗</button>');}
+const Round06Content = {
+  count(n) {
+    return n.toLocaleString();
+  },
+
+  blockRole(id) {
+    return id === 'instructions' || id === 'summary-instructions'
+      ? 'policy'
+      : ['history', 'checkpoint', 'parent-transcript'].includes(id)
+        ? 'stored'
+        : 'evidence';
+  },
+
+  stack(record, id, label) {
+    const r = record || { tokens: 0, layers: [] };
+    return (
+      '<section class="token-window"><h3>' +
+      label +
+      '</h3><strong class="stack-total">' +
+      this.count(r.tokens) +
+      ' <small>tokens</small></strong><div class="stack-frame" data-token-stack="' +
+      id +
+      '" data-scale="' +
+      atlasTokens.scale +
+      '" aria-label="' +
+      label +
+      ' in serialized load order, first at top">' +
+      r.layers
+        .map(
+          (l, i) =>
+            '<button class="token-layer role-' +
+            this.blockRole(l.id) +
+            '" data-layer="' +
+            l.id +
+            '" data-tokens="' +
+            l.tokens +
+            '" style="height:' +
+            (l.tokens / atlasTokens.scale) * 100 +
+            '%" title="' +
+            (i + 1) +
+            '. ' +
+            l.label +
+            ' · ' +
+            l.tokens +
+            ' reference tokens" aria-label="Inspect ' +
+            l.label +
+            ' · ' +
+            l.tokens +
+            ' reference tokens"></button>',
+        )
+        .join('') +
+      '</div><span class="stack-direction">' +
+      (id === 'before'
+        ? 'o200k_base · native counts differ'
+        : 'Fixed scale: ' + this.count(atlasTokens.scale) + ' tokens · not capacity') +
+      '</span></section>'
+    );
+  },
+
+  boundary(s) {
+    const i = s.step;
+    if (i === 6 || i === 7)
+      return [
+        'Parent P2',
+        'Select task + 3 source bodies',
+        'Child C1 · own input',
+        'Return a bounded handoff',
+      ];
+    if (i === 8 || i === 9)
+      return [
+        'Child C1 · separate window',
+        'Keep source-linked conclusion',
+        'Append handoff to parent',
+        'Reassemble parent P3',
+      ];
+    if (i === 10 || i === 11)
+      return [
+        'Parent working state',
+        'S1 · separate summary request',
+        'Checkpoint replaces sources/history',
+        'Validate → restore → parent P4',
+      ];
+    return [
+      'Stored sources + session history',
+      'Policy selects + orders text',
+      'Assemble one model input',
+      'Result → selection → next input',
+    ];
+  },
+
+  timeline(s) {
+    return (
+      Round05Content.timeline.call(this, s) +
+      '<div class="live-event-track" aria-label="Lifecycle events">' +
+      AtlasSession.events
+        .map(
+          (e, i) =>
+            '<button data-step="' +
+            i +
+            '" ' +
+            (i === s.step ? 'aria-current="step"' : '') +
+            ' title="' +
+            e.label +
+            '">' +
+            [
+              'Init',
+              'Task',
+              'P1',
+              'Tool ↓',
+              'Result',
+              'P2',
+              'Child',
+              'C1',
+              'Return',
+              'P3',
+              'S1 prep',
+              'S1 done',
+              'Turn 2',
+              'P4',
+            ][i] +
+            '</button>',
+        )
+        .join('') +
+      '</div>'
+    );
+  },
+
+  system(s) {
+    const d = AtlasSession.comparisonAt(s.step, s.sourcePolicy),
+      e = d.current,
+      r = atlasTokens.requests[s.sourcePolicy + ':' + e.step],
+      old = d.reference ? atlasTokens.requests[s.sourcePolicy + ':' + d.reference.step] : null,
+      q = AtlasSession.summaryRequestAt(e.step, s.sourcePolicy),
+      prior = new Map((old?.layers || []).map((l) => [l.id, l])),
+      current = new Map(r.layers.map((l) => [l.id, l]));
+    const ordered = [...r.layers, ...(old?.layers || []).filter((l) => !current.has(l.id))];
+    const layers = ordered
+      .map((l, i) => {
+        const a = prior.get(l.id)?.tokens || 0,
+          b = current.get(l.id)?.tokens || 0,
+          retained = d.retained.some((x) => x.id === l.id),
+          added = d.added.some((x) => x.id === l.id),
+          removed = d.removed.some((x) => x.id === l.id),
+          kind = added ? (retained ? 'Extended' : 'Added') : removed ? 'Removed' : 'Retained';
+        return (
+          '<li class="role-' +
+          this.blockRole(l.id) +
+          '"' +
+          (!current.has(l.id) ? ' data-removed-layer' : '') +
+          '><span class="load-rank">' +
+          (current.has(l.id) ? r.layers.findIndex((x) => x.id === l.id) + 1 : '−') +
+          '</span><span><button class="ledger-layer-label" data-ledger-layer="' +
+          l.id +
+          '">' +
+          l.label +
+          '</button><small>' +
+          kind +
+          (retained && added ? ' · prior text kept' : '') +
+          '</small></span><span class="layer-count">' +
+          this.count(a) +
+          ' → <b>' +
+          this.count(b) +
+          '</b></span></li>'
+        );
+      })
+      .join('');
+    const net = r.tokens - (old?.tokens || 0),
+      summary = q ? atlasTokens.summaries[s.sourcePolicy] : null;
+    return (
+      '<div class="system06">' +
+      this.timeline(s) +
+      '<div class="stack-heading"><div><h2>' +
+      (e.session === 'child' ? 'Child' : 'Parent') +
+      ' · ' +
+      e.label +
+      '</h2><p id="comparisonReference">User turn ' +
+      e.turn +
+      ' · ' +
+      (e.session === 'child' ? 'child' : 'parent') +
+      ' call ' +
+      e.call +
+      ' · compared with ' +
+      AtlasContent.esc(d.referenceLabel) +
+      '</p></div><button id="inspectContext"><strong id="contextSize" data-tokens="' +
+      r.tokens +
+      '" data-bytes="' +
+      r.bytes +
+      '">' +
+      this.count(r.tokens) +
+      '</strong> reference tokens ↗</button></div><div class="context-workbench" data-system-graphic><div class="paired-stacks">' +
+      this.stack(old, 'before', 'Before') +
+      '<div class="net-change"><strong>' +
+      (net >= 0 ? '+' : '−') +
+      this.count(Math.abs(net)) +
+      '</strong><span>net tokens</span><b>→</b></div>' +
+      this.stack(r, 'current', 'Now') +
+      ('</div><section class="layer-ledger"><div class="ledger-heading">' +
+        '<h3>Load order · first to last</h3><span>Before → now · tokens</span></div><ol>') +
+      layers +
+      ((old?.layers || []).filter((l) => !current.has(l.id)).length > 1
+        ? '<li class="role-stored removed-layer-group"><span class="load-rank">−</span><span>' +
+          '<button class="ledger-layer-label" data-inspect-change="removed">Removed layers ' +
+          '↗</button><small>Sources + selected history</small></span><span class="layer-count">' +
+          this.count(
+            old.layers.filter((l) => !current.has(l.id)).reduce((n, l) => n + l.tokens, 0),
+          ) +
+          ' → <b>0</b></span></li>'
+        : '') +
+      '</ol><div class="change-actions">' +
+      ['added', 'retained', 'removed']
+        .map(
+          (k) =>
+            '<button data-context-change="' +
+            k +
+            '" data-inspect-change="' +
+            k +
+            '">' +
+            k[0].toUpperCase() +
+            k.slice(1) +
+            ' text ↗</button>',
+        )
+        .join('') +
+      '</div></section></div><div id="boundaryTransform" class="boundary-flow">' +
+      this.boundary(s)
+        .map(
+          (x, i) =>
+            '<div class="role-' +
+            (i === 1 ? 'policy' : i === 2 ? 'evidence' : 'execution') +
+            '"><small>' +
+            (i + 1) +
+            '</small><strong>' +
+            x +
+            '</strong></div>',
+        )
+        .join('') +
+      '</div><div class="replay-detail-row"><p>' +
+      (q
+        ? 'S1 input: <strong>' +
+          this.count(summary.tokens) +
+          ' tokens</strong> in a separate request; ' +
+          (q.output
+            ? 'checkpoint output: ' + summary.outputTokens + ' tokens.'
+            : 'checkpoint not yet generated.')
+        : e.session === 'child'
+          ? 'A fresh scoped child is illustrated here. Forked sessions may inherit history.'
+          : 'All 15 source files and full artifacts remain retrievable outside this active input.') +
+      '</p><button id="inspectHook">Policy at this boundary ↗</button>' +
+      (q ? '<button id="inspectSummary">Inspect S1 ↗</button>' : '') +
+      '</div><p class="token-scope">Teaching replay · exact o200k_base text counts, not provider-native usage. Same scale throughout: ' +
+      this.count(atlasTokens.scale) +
+      ' tokens; this is not a capacity limit. Layer allocation includes headings/separators. Output allowance is separate.</p></div>'
+    );
+  },
+
+  contextPlot(groups, conditions, y) {
+    return this.barPlot(groups, conditions, { y, unit: y.includes('F1') ? 'F1 points' : 'percent' })
+      .replace(
+        'X · Model / reported configuration',
+        'X · Input context amount (reported token bands / tiers)',
+      )
+      .replace(' by model', ' by input context amount');
+  },
+
+  attention(s) {
+    if (s.study === 'signal')
+      return Round05Content.attention
+        .call(this, s)
+        .replace(
+          '<div class="policy-chain role-policy">',
+          this.evidenceFlow('checkpoint') + '<div class="policy-chain role-policy">',
+        );
+    const position = s.study === 'position',
+      p = atlasResearch06,
+      c = atlasResearch05.position,
+      m = position
+        ? c.models[Number(s.positionModel) || 0]
+        : p.models.find((m) => m.id === s.researchModel) || p.models[1],
+      filler = s.filler || 'questions';
+    const chart = position
+      ? this.contextPlot(
+          c.tiers.map((t) => ({ label: t, values: m[filler][t] })),
+          c.conditions,
+          'Task accuracy (%)',
+        )
+      : this.contextPlot(
+          p.bands.map((b, i) => ({ label: b, values: [m.values[i]] })),
+          ['Mean BFS F1'],
+          'Mean BFS set-F1 (%)',
+        );
+    const scope = position
+      ? 'Input tiers: 8K / 32K / 64K · ' +
+        c.fillers[filler] +
+        ' filler · 50 questions per condition.'
+      : 'Input bands: ≤128K versus 256K–1M tokens · separate problem sets; no measured exact onset.';
+    const explanation = position
+      ? '<h2>Task position</h2><div class="position-picture"><span>Middle task</span><div>' +
+        '<i>Filler</i><b class="role-evidence">Task</b><i>Filler</i></div><span>End task</span>' +
+        '<div><i>Filler</i><i>Filler</i><b class="role-evidence">Task</b></div></div>' +
+        '<p>Grade-school math questions among other material. The task moves; this is not ' +
+        'evidence placement.</p><button id="showPositionTerms">Task + reasoning terms ↗</button>'
+      : '<h2>BFS · breadth-first search</h2><p>Follow graph edges one level at a time.</p>' +
+        '<div id="bfsExample" class="bfs-example"><div class="dependency-picture">' +
+        '<span class="role-evidence">API</span><b>→</b>' +
+        '<span class="role-evidence">Service</span><b>→</b><div>' +
+        '<span class="role-evidence">Journal</span><span class="role-evidence">Delivery</span>' +
+        '</div></div><p><strong>Exactly 2 edges from API?</strong><br>Journal + Delivery.</p>' +
+        '</div><p>Software analogy: map dependencies before selecting regression tests.</p>' +
+        '<button id="showBfsTerms">F1 + task limits ↗</button>';
+    const key = position ? 'placement' : 'dependency',
+      policy = this.policyInfo(key),
+      caption = position
+        ? 'CRE 2026 v1 · ' +
+          (filler === 'worked' ? 'Table 1; middle reconstructed.' : 'Table 16.') +
+          ' Task accuracy, not internal attention; no universal middle penalty.'
+        : 'Google DeepMind · October 2026. Broad-band means; no exact degradation threshold or coding score.';
+    return (
+      '<div class="research06"><div class="research-toolbar"><label>Study<select id="researchStudy"><option value="frontier" ' +
+      (!position ? 'selected' : '') +
+      '>Input amount · frontier providers</option><option value="position" ' +
+      (position ? 'selected' : '') +
+      ('>Task position × input amount</option>' +
+        '<option value="signal">Required facts × input retention</option></select></label>' +
+        '<label>Model<select id="') +
+      (position ? 'positionModel' : 'researchModel') +
+      '">' +
+      (position
+        ? c.models.map(
+            (x, i) =>
+              '<option value="' +
+              i +
+              '" ' +
+              (x === m ? 'selected' : '') +
+              '>' +
+              x.model +
+              '</option>',
+          )
+        : p.models.map(
+            (x) =>
+              '<option value="' +
+              x.id +
+              '" ' +
+              (x === m ? 'selected' : '') +
+              '>' +
+              x.model +
+              '</option>',
+          )
+      ).join('') +
+      '</select></label>' +
+      (position
+        ? '<label>Filler<select id="fillerKind"><option value="questions" ' +
+          (filler === 'questions' ? 'selected' : '') +
+          '>Unanswered questions</option><option value="worked" ' +
+          (filler === 'worked' ? 'selected' : '') +
+          '>Worked solutions</option></select></label>'
+        : '') +
+      '<button id="showMechanism">Attention mechanism ↗</button></div><p id="contextScope" class="context-scope">' +
+      scope +
+      '</p><div class="research-main05"><section class="task-explanation role-evidence">' +
+      explanation +
+      '</section><section class="result-panel">' +
+      chart +
+      '<p id="researchCaption" class="study-caption">' +
+      caption +
+      ' <button id="showResearchData">All models + data ↗</button></p></section></div>' +
+      this.evidenceFlow(key) +
+      '<div class="policy-chain role-policy"><div><strong>Test a policy on your tasks</strong><p>' +
+      policy.rule +
+      '</p></div><button id="openStudyPolicy" data-study-policy="' +
+      key +
+      '">See hook + transformation ↗</button></div></div>'
+    );
+  },
+
+  evidenceFlow(key) {
+    const labels = {
+      dependency: [
+        'Larger input bands → lower reported F1',
+        'Before dispatch · context hook',
+        'Build a dependency-scoped evidence packet',
+        'Retest facts + coding acceptance',
+      ],
+      placement: [
+        'Position gaps depend on context tier',
+        'Prompt / next dispatch',
+        'Reorder labeled task + checks',
+        'Compare same tasks at several loads',
+      ],
+      checkpoint: [
+        'Blind trimming can delete required facts',
+        'Compaction → next dispatch',
+        'Preserve checkpoint + restore facts',
+        'Retest retention + task acceptance',
+      ],
+    }[key];
+    return (
+      '<div class="evidence-flow">' +
+      labels
+        .map(
+          (x, i) =>
+            '<div class="role-' +
+            ['execution', 'policy', 'evidence', 'execution'][i] +
+            '"><small>' +
+            ['OBSERVED', 'SUPPORTED BOUNDARY', 'CANDIDATE TRANSFORMATION', 'LOCAL VALIDATION'][i] +
+            '</small><strong>' +
+            x +
+            '</strong></div>',
+        )
+        .join('') +
+      '</div>'
+    );
+  },
+
+  hooks(s) {
+    const key = s.recipe || 'dependency',
+      p = this.policyInfo(key),
+      h =
+        atlasResearch.hooks.entries.find(
+          (x) => x.id === (s.hook || AtlasSession.at(s.step, s.sourcePolicy).hook),
+        ) || atlasResearch.hooks.entries[2];
+    return (
+      '<div class="hooks06"><div class="hook-toolbar"><label>Boundary<select id="hookPolicy">' +
+      atlasResearch.hooks.entries
+        .map(
+          (x) =>
+            '<option value="' +
+            x.id +
+            '" ' +
+            (h.id === x.id ? 'selected' : '') +
+            '>' +
+            x.label +
+            '</option>',
+        )
+        .join('') +
+      '</select></label><label>Candidate policy<select id="recipePolicy">' +
+      ['dependency', 'placement', 'checkpoint']
+        .map(
+          (x) =>
+            '<option value="' +
+            x +
+            '" ' +
+            (x === key ? 'selected' : '') +
+            '>' +
+            this.policyInfo(x).title +
+            '</option>',
+        )
+        .join('') +
+      '</select></label></div><div id="researchPolicyLink" class="research-policy-link"><strong>' +
+      p.title +
+      '</strong><span>' +
+      p.finding +
+      '</span></div><div id="hookTransformation">' +
+      this.evidenceFlow(key) +
+      '</div><div class="hook-grid05"><section class="session-panel role-execution"><h2>At this boundary</h2><h3>' +
+      h.label +
+      '</h3><p>' +
+      h.purpose +
+      ('</p><button id="inspectHookDetails">Supported APIs + limits ↗</button></section>' +
+        '<section class="session-panel role-policy"><h2>Transform the next input</h2><p class="key-takeaway">') +
+      p.rule +
+      '</p><button id="inspectPolicy">Expand the policy code ↗</button><button id="openAssemblyPolicy">' +
+      (key === 'checkpoint' ? 'Follow checkpoint → parent input' : 'Follow source → request') +
+      ' ↗</button></section><section class="session-panel role-evidence"><h2>Verify the result</h2><p>' +
+      p.check +
+      '</p><button data-open="recipes">Adapt the portable recipe ↗</button></section></div><p class="scope-note">' +
+      h.limit +
+      ' ' +
+      p.limit +
+      '</p></div>'
+    );
+  },
+
+  assembly(s) {
+    const source = AtlasSession.anchors().find((x) => x.anchor === s.anchor),
+      before = AtlasSession.candidate(s.sourcePolicy, 'evidence-first'),
+      after = AtlasSession.candidate(s.sourcePolicy, s.layoutPolicy);
+
+    const cards = (packet, layout, title, id) => {
+      const r = atlasTokens.candidates[s.sourcePolicy + ':' + layout];
+      return (
+        '<section id="' +
+        id +
+        '" class="assembly-packet"><h2>' +
+        title +
+        '</h2><strong class="packet-total">' +
+        this.count(r.tokens) +
+        ' tokens</strong><ol>' +
+        r.layers
+          .map(
+            (x, i) =>
+              '<li class="role-evidence" data-section="' +
+              x.id +
+              '"><span class="load-rank">' +
+              (i + 1) +
+              '</span><span><strong>' +
+              x.label +
+              '</strong><small>' +
+              (x.id === 'evidence'
+                ? source.anchor + ' · ' + packet.sourceFiles.length + ' complete source bodies'
+                : x.id === 'task'
+                  ? 'Original task and constraints'
+                  : 'Original acceptance requirements') +
+              '</small></span><b>' +
+              this.count(x.tokens) +
+              '</b></li>',
+          )
+          .join('') +
+        '</ol></section>'
+      );
+    };
+
+    const excerpt = source.text
+      .split('\n')
+      .filter((x) => x.trim() && !x.startsWith('#'))
+      .slice(0, 2)
+      .join('\n');
+    return (
+      '<div class="assembly06"><div class="assembly-controls"><label>Source inclusion<select id="sourcePolicy"><option value="incident" ' +
+      (s.sourcePolicy === 'incident' ? 'selected' : '') +
+      '>8 incident-relevant documents</option><option value="all" ' +
+      (s.sourcePolicy === 'all' ? 'selected' : '') +
+      '>All 15 context documents</option></select></label><label>Candidate order<select id="layoutPolicy">' +
+      [
+        ['task-first', 'Task → evidence → checks'],
+        ['evidence-first', 'Evidence → task → checks'],
+        ['task-last', 'Evidence → checks → task'],
+      ]
+        .map(
+          ([v, t]) =>
+            '<option value="' +
+            v +
+            '" ' +
+            (s.layoutPolicy === v ? 'selected' : '') +
+            '>' +
+            t +
+            '</option>',
+        )
+        .join('') +
+      ('</select></label><button id="inspectNative">Native instructions + roles ↗</button>' +
+        '</div><div class="assembly-map"><section class="source-card role-evidence">' +
+        '<h2>Source of truth</h2><div class="anchors">') +
+      AtlasSession.anchors()
+        .map(
+          (x) =>
+            '<button data-anchor="' +
+            x.anchor +
+            '" aria-pressed="' +
+            (source.anchor === x.anchor) +
+            '">' +
+            x.anchor +
+            '</button>',
+        )
+        .join('') +
+      '</div><p id="sourceExcerpt">' +
+      AtlasContent.esc(excerpt) +
+      ('</p><button id="inspectSource">Full source excerpt ↗</button>' +
+        '<p>Both requests include the same complete selected source bodies.</p><span class="path-label">') +
+      source.name +
+      '</span></section>' +
+      cards(before, 'evidence-first', 'Baseline · evidence first', 'candidateBefore') +
+      cards(after, s.layoutPolicy, 'Candidate · your order', 'candidateAfter') +
+      ('</div><div class="assembly-message role-policy">' +
+        '<strong>Selection changes what is available. Order changes where it is ' +
+        'encountered.</strong><p>These are candidate teaching payloads. Compare task outcomes ' +
+        'before choosing a default; no gain is measured here.</p>' +
+        '<button id="inspectManifest">Inspect both complete requests ↗</button></div>' +
+        '<p class="token-scope">o200k_base reference text tokens; native roles, tools and ' +
+        'provider wrappers are outside these counts. Small count differences can arise from ' +
+        'boundary tokenization. Output allowance is separate from input.</p></div>')
+    );
+  },
+
+  recipes(s) {
+    return Round05Content.recipes
+      .call(this, s)
+      .replace(
+        /<pre>[\s\S]*?<\/pre>/,
+        '<p class="key-takeaway">Select the policy inputs → build the packet → validate required ' +
+          'facts.</p><button id="inspectPolicy">Expand the portable policy code ↗</button>',
+      );
+  },
 };
-Object.assign(AtlasContent,Round06Content);
+Object.assign(AtlasContent, Round06Content);

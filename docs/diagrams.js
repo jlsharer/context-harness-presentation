@@ -1,6 +1,6 @@
 // Native diagrams share one worked example and token ledger.
 const diagrams = {
-intro: `
+  intro: `
 <div class="eyebrow">CONTEXT & HARNESS ENGINEERING</div>
 <h1>Engineer the work around the prompt.</h1>
 <p class="lead">Prompt engineering shapes the instruction.<br>Context engineering supplies the evidence. Harness engineering runs the process.</p>
@@ -34,7 +34,7 @@ intro: `
 </section>
 </div>
 <p class="takeaway">Evaluate the complete task through quality, cost and time to a validated result.</p>`,
-assembly: `
+  assembly: `
 <div class="eyebrow">ASSEMBLY · EACH PARENT OR CHILD CALL</div>
 <h1>How the harness assembles a model request</h1>
 <p class="intro">A common packaging pattern. Role fields, tool placement and loading order vary by provider and harness.</p>
@@ -112,7 +112,7 @@ diagrams.calls = `
 <div class="example-prompt">“${example.prompt}”</div>
 <div class="trace-head"><span>Model call</span><span>Input / 1M window</span><span>Model generates · 2K each</span><span>Harness executes after the call</span></div>
 <div class="trace-rows">
-${example.calls.map((call,i)=>`<div class="trace-row"><div class="trace-call"><b>${i+1}</b><span>${call.label}</span></div><div><div class="capacity-track" role="img" aria-label="${call.inputK} thousand input tokens of one million"><span style="width:${call.inputK/10}%"></span></div><strong>${call.inputK}K · ${call.inputK/10}%</strong><small>${i===0?'40K setup + 10K task':example.calls[i-1].inputK+'K + 2K + '+example.calls[i-1].toolK+'K'}</small></div><div class="model-output">${call.generates}</div><div class="tool-output"><b>${call.executions ? call.executions+' tool '+(call.executions===1?'execution':'executions') : 'No tool execution'}</b><span>${call.tool}</span><small>${call.toolK?'+'+call.toolK+'K results → next input':'Deliver the answer; session can persist.'}</small></div></div>`).join('')}
+${example.calls.map((call, i) => `<div class="trace-row"><div class="trace-call"><b>${i + 1}</b><span>${call.label}</span></div><div><div class="capacity-track" role="img" aria-label="${call.inputK} thousand input tokens of one million"><span style="width:${call.inputK / 10}%"></span></div><strong>${call.inputK}K · ${call.inputK / 10}%</strong><small>${i === 0 ? '40K setup + 10K task' : example.calls[i - 1].inputK + 'K + 2K + ' + example.calls[i - 1].toolK + 'K'}</small></div><div class="model-output">${call.generates}</div><div class="tool-output"><b>${call.executions ? call.executions + ' tool ' + (call.executions === 1 ? 'execution' : 'executions') : 'No tool execution'}</b><span>${call.tool}</span><small>${call.toolK ? '+' + call.toolK + 'K results → next input' : 'Deliver the answer; session can persist.'}</small></div></div>`).join('')}
 </div>
 <div class="trace-totals"><span><b>2,550K input</b> summed across calls</span><span><b>12K output</b> generated</span><span><b>850K peak</b> one-call input</span><button class="detail-button" data-detail="events" aria-haspopup="dialog">Explore the 16 events</button></div>
 <p class="fine">Call = invocation. Tool counts follow harness request boundaries; one CLI script may run several commands. Full retention assumed; 1M is illustrative. Prior input + 2K output + new tool results forms the next input.</p>`;
@@ -123,7 +123,7 @@ diagrams.performance = `
 <p class="intro">The API rule arrives in the first tool batch. Later code and logs surround it as input grows from 150K to 850K.</p>
 <div class="performance-body">
 <section class="position-map"><h2>Where is the rule?</h2><p>“The same idempotency key must return the existing order.”</p>
-${[1,3,5].map(i => `<div class="evidence-line"><b>Call ${i+1} · ${example.calls[i].inputK}K</b><div class="evidence-track"><span class="accrued" style="width:${example.calls[i].inputK/10}%"></span><span class="fact-marker" style="left:8%"></span></div><small>Fixed 1M scale · rule at illustrative token 80K</small></div>`).join('')}
+${[1, 3, 5].map((i) => `<div class="evidence-line"><b>Call ${i + 1} · ${example.calls[i].inputK}K</b><div class="evidence-track"><span class="accrued" style="width:${example.calls[i].inputK / 10}%"></span><span class="fact-marker" style="left:8%"></span></div><small>Fixed 1M scale · rule at illustrative token 80K</small></div>`).join('')}
 <p class="fine">Gold marker = relevant evidence. Teal = occupied input. Position is hypothetical.</p></section>
 <section class="performance-checks"><h2>What changes?</h2><div><b>More competing material</b><p>Extra logs may distract from the API rule. Older evidence shifts in relative position.</p></div><div><b>Potentially more processing time</b><p>Longer uncached input can add latency. Model, cache hits and load affect the result.</p></div><div><b>Measure evidence-use success</b><p>Across repeated runs, count correct duplicate-order behavior at 150K, 500K and 850K. Also test early, middle and late placement.</p></div></section>
 </div>
@@ -136,9 +136,9 @@ diagrams.economics = `
 <p class="intro">Cache the identical 40K setup once. Five later calls read it within the refreshed five-minute lifetime.</p>
 <div class="billing-terms"><span><b>U</b> uncached · $2/M<small>Input processed at the ordinary rate</small></span><span><b>W</b> cache write · $2.50/M<small>Input stored for reuse</small></span><span><b>R</b> cache read · $0.10/M<small>Input reused from a cache hit</small></span><span><b>O</b> output · $10/M<small>Tokens generated by the model</small></span></div>
 <table class="ledger"><thead><tr><th>Call</th><th>Input K</th><th>U K</th><th>W K</th><th>R K</th><th>O K</th><th>Cost</th></tr></thead><tbody>
-${cacheLedger.map((row,i) => `<tr><th>${i+1}</th><td>${row.inputK}</td><td>${row.uncachedK}</td><td>${row.writeK}</td><td>${row.readK}</td><td>${row.outputK}</td><td>${money(row.cost,3)}</td></tr>`).join('')}
-<tr class="total"><th>Σ</th><td>${singleInputK}</td><td>${sum(cacheLedger.map(r=>r.uncachedK))}</td><td>40</td><td>200</td><td>${singleOutputK}</td><td>${money(sum(cacheLedger.map(r=>r.cost)))}</td></tr></tbody></table>
-<div class="billing-summary"><div><b>With caching · $4.86</b><span>$4.62 uncached + $0.10 write + $0.02 reads + $0.12 output</span></div><div><b>Without caching · ${money(uncachedCost(singleInputK,singleOutputK))}</b><span>2.55M input × $2 + 0.012M output × $10</span></div></div>
+${cacheLedger.map((row, i) => `<tr><th>${i + 1}</th><td>${row.inputK}</td><td>${row.uncachedK}</td><td>${row.writeK}</td><td>${row.readK}</td><td>${row.outputK}</td><td>${money(row.cost, 3)}</td></tr>`).join('')}
+<tr class="total"><th>Σ</th><td>${singleInputK}</td><td>${sum(cacheLedger.map((r) => r.uncachedK))}</td><td>40</td><td>200</td><td>${singleOutputK}</td><td>${money(sum(cacheLedger.map((r) => r.cost)))}</td></tr></tbody></table>
+<div class="billing-summary"><div><b>With caching · $4.86</b><span>$4.62 uncached + $0.10 write + $0.02 reads + $0.12 output</span></div><div><b>Without caching · ${money(uncachedCost(singleInputK, singleOutputK))}</b><span>2.55M input × $2 + 0.012M output × $10</span></div></div>
 <p class="fine">C = Σ(U × Pᵤ + W × P𝓌 + R × Pᵣ + O × Pₒ) / 1M + other fees. P = USD per million. Input = U + W + R. K = 1,000. Cached tokens occupy context. No other fees or failed calls assumed. Rates verified 4 Nov 2026.</p>`;
 
 diagrams.workers = `
@@ -149,9 +149,15 @@ diagrams.workers = `
 <div class="coordinator"><b>Orchestrator</b><span>Call A 50K → dispatch stages → Call B 60K</span><strong>110K cumulative input · 4K output</strong></div>
 <div class="delegate-label">3 delegations · one assignment per worker · Research → Implement → Validate · 3 completion reports</div>
 <div class="worker-grid">
-${example.sessions.slice(1).map(session=>`<section><h2>${session.name}</h2><p>${session.role}</p><div class="worker-call-chain">${session.inputsK.map((n,i)=>`<div><b>Call ${i+1}</b><span>${n}K in</span><small>2K out</small><div class="mini-track"><span style="width:${n/10}%"></span></div></div>`).join('')}</div><strong>${sum(session.inputsK)}K cumulative input</strong><small>${session.inputsK.length*example.outputK}K output · peak ${Math.max(...session.inputsK)}K</small></section>`).join('')}
+${example.sessions
+  .slice(1)
+  .map(
+    (session) =>
+      `<section><h2>${session.name}</h2><p>${session.role}</p><div class="worker-call-chain">${session.inputsK.map((n, i) => `<div><b>Call ${i + 1}</b><span>${n}K in</span><small>2K out</small><div class="mini-track"><span style="width:${n / 10}%"></span></div></div>`).join('')}</div><strong>${sum(session.inputsK)}K cumulative input</strong><small>${session.inputsK.length * example.outputK}K output · peak ${Math.max(...session.inputsK)}K</small></section>`,
+  )
+  .join('')}
 </div>
-<div class="billing-summary"><div><b>Orchestrated · ${workerCalls} calls · ${workerInputK}K in + ${workerOutputK}K out</b><span>Each 50K start includes 40K setup + 10K assigned work.</span></div><div><b>No-cache cost · ${money(uncachedCost(workerInputK,workerOutputK))} vs $5.22 single</b><span>Same prefix-cache policy · $3.144 vs $4.860 single.</span></div></div>
+<div class="billing-summary"><div><b>Orchestrated · ${workerCalls} calls · ${workerInputK}K in + ${workerOutputK}K out</b><span>Each 50K start includes 40K setup + 10K assigned work.</span></div><div><b>No-cache cost · ${money(uncachedCost(workerInputK, workerOutputK))} vs $5.22 single</b><span>Same prefix-cache policy · $3.144 vs $4.860 single.</span></div></div>
 <p class="fine">One delegation is one worker run, not necessarily one inference. It is one model call only if the worker makes one generation request. Count child requests in traces. Mini bars: 1M scale. Costs are hypothetical; quality and latency need testing.</p>`;
 
 diagrams.scope = `

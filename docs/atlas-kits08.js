@@ -1,2 +1,66 @@
 'use strict';
-const atlasKits08=[{"id": "focus", "name": "Focused kickoff", "purpose": "Select the task\u2019s contracts and evidence before the first call.", "metric": "Included input, required-fact coverage", "contents": "Packet builder, task contract, focused-context protocol", "claude": "Portable packet helper + project protocol", "opencode": "Portable packet helper + project protocol", "codex": "Portable packet helper + project protocol"}, {"id": "results", "name": "Bounded tool returns", "purpose": "Keep full artifacts on disk; return a bounded preview and retrieval path.", "metric": "Tool-result input size, missing-fact errors", "contents": "Executable result wrapper + artifact writer", "claude": "PostToolUse Bash adapter: \u22648000-character stdout preview + full artifact; preserve errors and other output shapes", "opencode": "Owned wrapper; native result adaptation requires tool integration", "codex": "Owned wrapper / manual tool protocol"}, {"id": "continuity", "name": "Goal + checkpoint continuity", "purpose": "Re-anchor the current goal; preserve constraints, anchors and open work through compaction.", "metric": "Task acceptance, wrong-goal answers, checkpoint retention", "contents": "Checkpoint validator + native reminder hooks + protocol", "claude": "UserPromptSubmit + PreCompact reminder hooks", "opencode": "V2 context + compaction reminder hooks", "codex": "Portable protocol + validator in this bundle; documented native hooks are shown in Lifecycle map"}, {"id": "handoff", "name": "Scoped delegation", "purpose": "Scope child work and validate a bounded, structured report before integration.", "metric": "Parent peak input, aggregate input, handoff correctness", "contents": "Handoff validator + scoped-worker protocol + supported native hooks", "claude": "SubagentStart reminder; automatic report gate requires v2.1.271+ auto mode with SubagentHandback. Otherwise run the helper before delivery.", "opencode": "Portable validator and orchestration protocol", "codex": "Portable validator and orchestration protocol", "nativeGate": {"harness": "claude", "minVersion": "2.1.271", "mode": "auto", "tool": "SubagentHandback", "fallback": "Run node .context-kit/run.mjs handoff report.json before parent delivery. Installer does not change permission mode."}}, {"id": "cache", "name": "Cache reuse audit", "purpose": "Keep reusable prefixes stable and inspect actual read/write usage without confusing reuse with removal.", "metric": "Read/write/fresh input, total cost and latency", "contents": "Prefix fingerprint + provider-aware usage audit", "claude": "Portable audit; native/API caching configuration is separate", "opencode": "Portable audit; selected provider controls cache behavior", "codex": "Portable audit; selected provider controls cache behavior"}];
+const atlasKits08 = [
+  {
+    'id': 'focus',
+    'name': 'Focused kickoff',
+    'purpose': 'Select the task\u2019s contracts and evidence before the first call.',
+    'metric': 'Included input, required-fact coverage',
+    'contents': 'Packet builder, task contract, focused-context protocol',
+    'claude': 'Portable packet helper + project protocol',
+    'opencode': 'Portable packet helper + project protocol',
+    'codex': 'Portable packet helper + project protocol',
+  },
+  {
+    'id': 'results',
+    'name': 'Bounded tool returns',
+    'purpose': 'Keep full artifacts on disk; return a bounded preview and retrieval path.',
+    'metric': 'Tool-result input size, missing-fact errors',
+    'contents': 'Executable result wrapper + artifact writer',
+    'claude':
+      'PostToolUse Bash adapter: \u22648000-character stdout preview + full artifact; preserve errors and other output shapes',
+    'opencode': 'Owned wrapper; native result adaptation requires tool integration',
+    'codex': 'Owned wrapper / manual tool protocol',
+  },
+  {
+    'id': 'continuity',
+    'name': 'Goal + checkpoint continuity',
+    'purpose':
+      'Re-anchor the current goal; preserve constraints, anchors and open work through compaction.',
+    'metric': 'Task acceptance, wrong-goal answers, checkpoint retention',
+    'contents': 'Checkpoint validator + native reminder hooks + protocol',
+    'claude': 'UserPromptSubmit + PreCompact reminder hooks',
+    'opencode': 'V2 context + compaction reminder hooks',
+    'codex':
+      'Portable protocol + validator in this bundle; documented native hooks are shown in Lifecycle map',
+  },
+  {
+    'id': 'handoff',
+    'name': 'Scoped delegation',
+    'purpose': 'Scope child work and validate a bounded, structured report before integration.',
+    'metric': 'Parent peak input, aggregate input, handoff correctness',
+    'contents': 'Handoff validator + scoped-worker protocol + supported native hooks',
+    'claude':
+      'SubagentStart reminder; automatic report gate requires v2.1.271+ auto mode with SubagentHandback. Otherwise run the helper before delivery.',
+    'opencode': 'Portable validator and orchestration protocol',
+    'codex': 'Portable validator and orchestration protocol',
+    'nativeGate': {
+      'harness': 'claude',
+      'minVersion': '2.1.271',
+      'mode': 'auto',
+      'tool': 'SubagentHandback',
+      'fallback':
+        'Run node .context-kit/run.mjs handoff report.json before parent delivery. Installer does not change permission mode.',
+    },
+  },
+  {
+    'id': 'cache',
+    'name': 'Cache reuse audit',
+    'purpose':
+      'Keep reusable prefixes stable and inspect actual read/write usage without confusing reuse with removal.',
+    'metric': 'Read/write/fresh input, total cost and latency',
+    'contents': 'Prefix fingerprint + provider-aware usage audit',
+    'claude': 'Portable audit; native/API caching configuration is separate',
+    'opencode': 'Portable audit; selected provider controls cache behavior',
+    'codex': 'Portable audit; selected provider controls cache behavior',
+  },
+];

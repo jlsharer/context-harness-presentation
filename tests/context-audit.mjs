@@ -1,20 +1,284 @@
-import assert from 'node:assert/strict';import fs from 'node:fs';import os from 'node:os';import path from 'node:path';import {analyze} from '../docs/audit/context-audit/scripts/analyze.mjs';import {planInstall,applyPlan,rollback} from '../docs/audit/context-audit/scripts/install.mjs';import {handleHook} from '../docs/audit/context-audit/scripts/hooks.mjs';import {checkContract} from '../docs/audit/context-audit/scripts/contracts.mjs';
-const temp=fs.mkdtempSync(path.join(os.tmpdir(),'context-audit-')),home=path.join(temp,'claude'),project=path.join(temp,'repo');fs.mkdirSync(home);fs.mkdirSync(project);const write=(file,data)=>fs.writeFileSync(file,data),jsonl=(file,rows)=>write(file,rows.map(x=>JSON.stringify(x)).join('\n'));
-try{
- const native=path.join(temp,'session.jsonl');jsonl(native,[{type:'assistant',uuid:'a',sessionId:'s',message:{id:'m1',model:'opus',usage:{input_tokens:100,cache_read_input_tokens:1000,cache_creation_input_tokens:200,output_tokens:20}}},{type:'assistant',uuid:'b',sessionId:'s',message:{id:'m1',model:'opus',usage:{input_tokens:100,cache_read_input_tokens:1000,cache_creation_input_tokens:200,output_tokens:40}}},{type:'assistant',uuid:'c',sessionId:'s',message:{id:'m2',model:'opus',usage:{input_tokens:200,output_tokens:30}}},{type:'system',subtype:'compact_boundary',sessionId:'s'}]);
- let r=await analyze({claudeHome:home,files:[native]});assert.equal(r.metrics.requests,2);assert.equal(r.metrics.knownInputSubtotal,1500);assert.equal(r.metrics.totalInput,null);assert.equal(r.metrics.peakInput,1300);assert.equal(r.metrics.compactions,1);assert.equal(r.metrics.outputTokens,70);assert.equal(r.metrics.totalCost,null);assert.equal(r.coverage.deduplicated,1);assert.equal(r.requests[1].read,null);assert.ok(r.requests[0].source.line);assert.ok(!JSON.stringify(r).includes('content":'));
- const events=path.join(temp,'events.jsonl');jsonl(events,[{name:'claude_code.api_request',attributes:{request_id:'r1',session_id:'s',model:'opus',input_tokens:100,cache_read_tokens:1000,cache_creation_tokens:200,output_tokens:40,cost_usd:0.04}},{name:'claude_code.api_request',attributes:{request_id:'r2',session_id:'s',model:'opus',input_tokens:200,output_tokens:30}},{name:'claude_code.subagent_completed',attributes:{total_tokens:500}}]);r=await analyze({claudeHome:home,files:[native],events});assert.equal(r.metrics.requests,2);assert.equal(r.metrics.knownCost,.04);assert.equal(r.metrics.totalCost,null);assert.equal(r.coverage.usageSource,'otel');assert.equal(r.coverage.excludedNativeRequests,2);assert.equal(r.metrics.compactions,1);assert.equal(r.metrics.totalInput,null);assert.match(r.coverage.limits.join(' '),/final|subagent/i);
- r=await analyze({claudeHome:home});assert.equal(r.metrics.requests,0);assert.equal(r.metrics.compactions,null);assert.equal(r.metrics.totalInput,null);assert.ok(r.findings.some(f=>f.package==='measurement'));
- const overflow=path.join(temp,'oversize.jsonl');write(overflow,'x'.repeat(2200000)+'\n'+JSON.stringify({type:'system',subtype:'compact_boundary'})+'\n');r=await analyze({claudeHome:home,files:[overflow]});assert.equal(r.coverage.oversizedLines,1);assert.equal(r.metrics.compactions,1);
- const failedTrace=path.join(temp,'failed.jsonl');jsonl(failedTrace,[{type:'user',message:{content:[{type:'tool_result',is_error:true,content:'traceback'.repeat(4000)}]}},{type:'system',subtype:'compact_boundary',sessionId:'s'}]);r=await analyze({claudeHome:home,files:[failedTrace],events});assert.ok(!r.findings.some(f=>f.package==='results'),'error-only output cannot benefit from success-only trim');assert.equal(r.findings.find(f=>f.package==='continuity').evidence[0].line,2);assert.equal(r.findings.find(f=>f.package==='continuity').evidence[0].file,failedTrace);assert.equal(r.metrics.sessions,null,'unjoined streams do not establish actual session count');
- const odd=path.join(temp,'odd.jsonl');write(odd,'null\n42\nnot-json\n');r=await analyze({claudeHome:home,files:[odd]});assert.equal(r.coverage.malformedLines,3);
- const invalid=path.join(temp,'invalid.jsonl');jsonl(invalid,[{name:'claude_code.api_request',attributes:{request_id:'bad',input_tokens:'',cache_read_tokens:true,cache_creation_tokens:0,output_tokens:1,cost_usd:''}}]);r=await analyze({claudeHome:home,events:invalid});assert.equal(r.requests[0].fresh,null);assert.equal(r.requests[0].read,null);assert.equal(r.metrics.totalCost,null);
- const config={permissions:{allow:['Read']},hooks:{PostToolUse:[{matcher:'Write',hooks:[{type:'command',command:'formatter'}]}]}};write(path.join(home,'settings.json'),JSON.stringify(config));
- const first=planInstall({claudeHome:home,selected:['continuity','evidence']});assert.ok(first.files.some(f=>f.relative==='skills/context-audit/SKILL.md'));assert.equal(fs.existsSync(path.join(home,'skills')),false,'preview has no writes');assert.ok(!first.selected.includes('results'));const m=applyPlan(first);assert.ok(fs.existsSync(m.path));let installed=JSON.parse(fs.readFileSync(path.join(home,'settings.json')));assert.deepEqual(installed.permissions,config.permissions);assert.equal(installed.hooks.PostToolUse[0].hooks[0].command,'formatter');assert.equal(installed.hooks.PostToolUse.length,2);applyPlan(planInstall({claudeHome:home,selected:['continuity','evidence']}));installed=JSON.parse(fs.readFileSync(path.join(home,'settings.json')));assert.equal(installed.hooks.PostToolUse.length,2,'repeat idempotent');assert.throws(()=>planInstall({claudeHome:home,selected:['unknown']}));
- const changed=planInstall({claudeHome:home,selected:['results']});write(path.join(home,'settings.json'),JSON.stringify({...installed,extra:true}));assert.throws(()=>applyPlan(changed),/changed/);write(path.join(home,'settings.json'),JSON.stringify(installed,null,2)+'\n');const added=applyPlan(planInstall({claudeHome:home,selected:['results']}));assert.ok(JSON.parse(fs.readFileSync(path.join(home,'settings.json'))).hooks.PostToolUse.length===3);rollback(added.path);assert.equal(JSON.parse(fs.readFileSync(path.join(home,'settings.json'))).hooks.PostToolUse.length,2);write(path.join(home,'settings.json'),'{}');assert.throws(()=>rollback(m.path),/changed|refus/i);
- const linkHome=path.join(temp,'linkhome');fs.mkdirSync(linkHome);fs.symlinkSync(project,path.join(linkHome,'skills'));assert.throws(()=>planInstall({claudeHome:linkHome,selected:[]}),/symbolic|symlink/i);
- const error={stdout:'a'.repeat(18000),stderr:'diagnostic',interrupted:false,isImage:false,exit_code:1};let output=handleHook('results',{hook_event_name:'PostToolUse',cwd:project,session_id:'s',tool_name:'Bash',tool_response:error});assert.equal(output,null,'failure remains unchanged');const success={stdout:'a'.repeat(18000),stderr:'',interrupted:false,isImage:false};output=handleHook('results',{hook_event_name:'PostToolUse',cwd:project,session_id:'s',tool_name:'Bash',tool_response:success});assert.ok(output.hookSpecificOutput.updatedToolOutput.stdout.length<=8000);assert.ok(fs.existsSync(path.join(project,'.context-audit/artifacts')));assert.equal(output.hookSpecificOutput.updatedToolOutput.stderr,'');
- fs.mkdirSync(path.join(project,'.context-kit'));write(path.join(project,'.context-kit/selection.json'),JSON.stringify({byHarness:{claude:['results','continuity']}}));fs.mkdirSync(path.join(project,'.claude'));write(path.join(project,'.claude/settings.json'),JSON.stringify({hooks:{PostToolUse:[{hooks:[{command:'node .context-kit/hook.mjs results'}]}],PreCompact:[{hooks:[{command:'node .context-kit/hook.mjs continuity'}]}]}}));assert.equal(handleHook('results',{cwd:project,tool_name:'Bash',tool_response:success,session_id:'s'}),null,'project kit adapter wins');assert.equal(handleHook('continuity',{cwd:project,hook_event_name:'PreCompact',session_id:'s'}),null);
- assert.throws(()=>checkContract('checkpoint',{goal:'x',checks:[{command:'npm test',status:'passed'}]}));const report={task_id:'t',summary:'x',source_anchors:['file:12'],findings:['f'],checks:[{command:'npm test',status:'not-run',artifact:null}],open_questions:[]};assert.equal(checkContract('report',report).task_id,'t');assert.throws(()=>checkContract('report',{...report,checks:[{command:'npm test',status:'passed',artifact:null}]}));assert.throws(()=>checkContract('report',{...report,extra:1}));
- console.log('PASS context-audit: partial usage, native/OTel dedup, unknowns, bounded input, selected additive install, idempotence, concurrent edits, rollback, hook fidelity/coexistence, evidence contracts.');
-}finally{fs.rmSync(temp,{recursive:true,force:true});}
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { analyze } from '../docs/audit/context-audit/scripts/analyze.mjs';
+import { planInstall, applyPlan, rollback } from '../docs/audit/context-audit/scripts/install.mjs';
+import { handleHook } from '../docs/audit/context-audit/scripts/hooks.mjs';
+import { checkContract } from '../docs/audit/context-audit/scripts/contracts.mjs';
+const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'context-audit-')),
+  home = path.join(temp, 'claude'),
+  project = path.join(temp, 'repo');
+fs.mkdirSync(home);
+fs.mkdirSync(project);
+
+const write = (file, data) => fs.writeFileSync(file, data),
+  jsonl = (file, rows) => write(file, rows.map((x) => JSON.stringify(x)).join('\n'));
+
+try {
+  const native = path.join(temp, 'session.jsonl');
+  jsonl(native, [
+    {
+      type: 'assistant',
+      uuid: 'a',
+      sessionId: 's',
+      message: {
+        id: 'm1',
+        model: 'opus',
+        usage: {
+          input_tokens: 100,
+          cache_read_input_tokens: 1000,
+          cache_creation_input_tokens: 200,
+          output_tokens: 20,
+        },
+      },
+    },
+    {
+      type: 'assistant',
+      uuid: 'b',
+      sessionId: 's',
+      message: {
+        id: 'm1',
+        model: 'opus',
+        usage: {
+          input_tokens: 100,
+          cache_read_input_tokens: 1000,
+          cache_creation_input_tokens: 200,
+          output_tokens: 40,
+        },
+      },
+    },
+    {
+      type: 'assistant',
+      uuid: 'c',
+      sessionId: 's',
+      message: { id: 'm2', model: 'opus', usage: { input_tokens: 200, output_tokens: 30 } },
+    },
+    { type: 'system', subtype: 'compact_boundary', sessionId: 's' },
+  ]);
+  let r = await analyze({ claudeHome: home, files: [native] });
+  assert.equal(r.metrics.requests, 2);
+  assert.equal(r.metrics.knownInputSubtotal, 1500);
+  assert.equal(r.metrics.totalInput, null);
+  assert.equal(r.metrics.peakInput, 1300);
+  assert.equal(r.metrics.compactions, 1);
+  assert.equal(r.metrics.outputTokens, 70);
+  assert.equal(r.metrics.totalCost, null);
+  assert.equal(r.coverage.deduplicated, 1);
+  assert.equal(r.requests[1].read, null);
+  assert.ok(r.requests[0].source.line);
+  assert.ok(!JSON.stringify(r).includes('content":'));
+  const events = path.join(temp, 'events.jsonl');
+  jsonl(events, [
+    {
+      name: 'claude_code.api_request',
+      attributes: {
+        request_id: 'r1',
+        session_id: 's',
+        model: 'opus',
+        input_tokens: 100,
+        cache_read_tokens: 1000,
+        cache_creation_tokens: 200,
+        output_tokens: 40,
+        cost_usd: 0.04,
+      },
+    },
+    {
+      name: 'claude_code.api_request',
+      attributes: {
+        request_id: 'r2',
+        session_id: 's',
+        model: 'opus',
+        input_tokens: 200,
+        output_tokens: 30,
+      },
+    },
+    { name: 'claude_code.subagent_completed', attributes: { total_tokens: 500 } },
+  ]);
+  r = await analyze({ claudeHome: home, files: [native], events });
+  assert.equal(r.metrics.requests, 2);
+  assert.equal(r.metrics.knownCost, 0.04);
+  assert.equal(r.metrics.totalCost, null);
+  assert.equal(r.coverage.usageSource, 'otel');
+  assert.equal(r.coverage.excludedNativeRequests, 2);
+  assert.equal(r.metrics.compactions, 1);
+  assert.equal(r.metrics.totalInput, null);
+  assert.match(r.coverage.limits.join(' '), /final|subagent/i);
+  r = await analyze({ claudeHome: home });
+  assert.equal(r.metrics.requests, 0);
+  assert.equal(r.metrics.compactions, null);
+  assert.equal(r.metrics.totalInput, null);
+  assert.ok(r.findings.some((f) => f.package === 'measurement'));
+  const overflow = path.join(temp, 'oversize.jsonl');
+  write(
+    overflow,
+    'x'.repeat(2200000) +
+      '\n' +
+      JSON.stringify({ type: 'system', subtype: 'compact_boundary' }) +
+      '\n',
+  );
+  r = await analyze({ claudeHome: home, files: [overflow] });
+  assert.equal(r.coverage.oversizedLines, 1);
+  assert.equal(r.metrics.compactions, 1);
+  const failedTrace = path.join(temp, 'failed.jsonl');
+  jsonl(failedTrace, [
+    {
+      type: 'user',
+      message: {
+        content: [{ type: 'tool_result', is_error: true, content: 'traceback'.repeat(4000) }],
+      },
+    },
+    { type: 'system', subtype: 'compact_boundary', sessionId: 's' },
+  ]);
+  r = await analyze({ claudeHome: home, files: [failedTrace], events });
+  assert.ok(
+    !r.findings.some((f) => f.package === 'results'),
+    'error-only output cannot benefit from success-only trim',
+  );
+  assert.equal(r.findings.find((f) => f.package === 'continuity').evidence[0].line, 2);
+  assert.equal(r.findings.find((f) => f.package === 'continuity').evidence[0].file, failedTrace);
+  assert.equal(r.metrics.sessions, null, 'unjoined streams do not establish actual session count');
+  const odd = path.join(temp, 'odd.jsonl');
+  write(odd, 'null\n42\nnot-json\n');
+  r = await analyze({ claudeHome: home, files: [odd] });
+  assert.equal(r.coverage.malformedLines, 3);
+  const invalid = path.join(temp, 'invalid.jsonl');
+  jsonl(invalid, [
+    {
+      name: 'claude_code.api_request',
+      attributes: {
+        request_id: 'bad',
+        input_tokens: '',
+        cache_read_tokens: true,
+        cache_creation_tokens: 0,
+        output_tokens: 1,
+        cost_usd: '',
+      },
+    },
+  ]);
+  r = await analyze({ claudeHome: home, events: invalid });
+  assert.equal(r.requests[0].fresh, null);
+  assert.equal(r.requests[0].read, null);
+  assert.equal(r.metrics.totalCost, null);
+  const config = {
+    permissions: { allow: ['Read'] },
+    hooks: {
+      PostToolUse: [{ matcher: 'Write', hooks: [{ type: 'command', command: 'formatter' }] }],
+    },
+  };
+  write(path.join(home, 'settings.json'), JSON.stringify(config));
+  const first = planInstall({ claudeHome: home, selected: ['continuity', 'evidence'] });
+  assert.ok(first.files.some((f) => f.relative === 'skills/context-audit/SKILL.md'));
+  assert.equal(fs.existsSync(path.join(home, 'skills')), false, 'preview has no writes');
+  assert.ok(!first.selected.includes('results'));
+  const m = applyPlan(first);
+  assert.ok(fs.existsSync(m.path));
+  let installed = JSON.parse(fs.readFileSync(path.join(home, 'settings.json')));
+  assert.deepEqual(installed.permissions, config.permissions);
+  assert.equal(installed.hooks.PostToolUse[0].hooks[0].command, 'formatter');
+  assert.equal(installed.hooks.PostToolUse.length, 2);
+  applyPlan(planInstall({ claudeHome: home, selected: ['continuity', 'evidence'] }));
+  installed = JSON.parse(fs.readFileSync(path.join(home, 'settings.json')));
+  assert.equal(installed.hooks.PostToolUse.length, 2, 'repeat idempotent');
+  assert.throws(() => planInstall({ claudeHome: home, selected: ['unknown'] }));
+  const changed = planInstall({ claudeHome: home, selected: ['results'] });
+  write(path.join(home, 'settings.json'), JSON.stringify({ ...installed, extra: true }));
+  assert.throws(() => applyPlan(changed), /changed/);
+  write(path.join(home, 'settings.json'), JSON.stringify(installed, null, 2) + '\n');
+  const added = applyPlan(planInstall({ claudeHome: home, selected: ['results'] }));
+  assert.ok(
+    JSON.parse(fs.readFileSync(path.join(home, 'settings.json'))).hooks.PostToolUse.length === 3,
+  );
+  rollback(added.path);
+  assert.equal(
+    JSON.parse(fs.readFileSync(path.join(home, 'settings.json'))).hooks.PostToolUse.length,
+    2,
+  );
+  write(path.join(home, 'settings.json'), '{}');
+  assert.throws(() => rollback(m.path), /changed|refus/i);
+  const linkHome = path.join(temp, 'linkhome');
+  fs.mkdirSync(linkHome);
+  fs.symlinkSync(project, path.join(linkHome, 'skills'));
+  assert.throws(() => planInstall({ claudeHome: linkHome, selected: [] }), /symbolic|symlink/i);
+  const error = {
+    stdout: 'a'.repeat(18000),
+    stderr: 'diagnostic',
+    interrupted: false,
+    isImage: false,
+    exit_code: 1,
+  };
+  let output = handleHook('results', {
+    hook_event_name: 'PostToolUse',
+    cwd: project,
+    session_id: 's',
+    tool_name: 'Bash',
+    tool_response: error,
+  });
+  assert.equal(output, null, 'failure remains unchanged');
+  const success = { stdout: 'a'.repeat(18000), stderr: '', interrupted: false, isImage: false };
+  output = handleHook('results', {
+    hook_event_name: 'PostToolUse',
+    cwd: project,
+    session_id: 's',
+    tool_name: 'Bash',
+    tool_response: success,
+  });
+  assert.ok(output.hookSpecificOutput.updatedToolOutput.stdout.length <= 8000);
+  assert.ok(fs.existsSync(path.join(project, '.context-audit/artifacts')));
+  assert.equal(output.hookSpecificOutput.updatedToolOutput.stderr, '');
+  fs.mkdirSync(path.join(project, '.context-kit'));
+  write(
+    path.join(project, '.context-kit/selection.json'),
+    JSON.stringify({ byHarness: { claude: ['results', 'continuity'] } }),
+  );
+  fs.mkdirSync(path.join(project, '.claude'));
+  write(
+    path.join(project, '.claude/settings.json'),
+    JSON.stringify({
+      hooks: {
+        PostToolUse: [{ hooks: [{ command: 'node .context-kit/hook.mjs results' }] }],
+        PreCompact: [{ hooks: [{ command: 'node .context-kit/hook.mjs continuity' }] }],
+      },
+    }),
+  );
+  assert.equal(
+    handleHook('results', {
+      cwd: project,
+      tool_name: 'Bash',
+      tool_response: success,
+      session_id: 's',
+    }),
+    null,
+    'project kit adapter wins',
+  );
+  assert.equal(
+    handleHook('continuity', { cwd: project, hook_event_name: 'PreCompact', session_id: 's' }),
+    null,
+  );
+  assert.throws(() =>
+    checkContract('checkpoint', { goal: 'x', checks: [{ command: 'npm test', status: 'passed' }] }),
+  );
+  const report = {
+    task_id: 't',
+    summary: 'x',
+    source_anchors: ['file:12'],
+    findings: ['f'],
+    checks: [{ command: 'npm test', status: 'not-run', artifact: null }],
+    open_questions: [],
+  };
+  assert.equal(checkContract('report', report).task_id, 't');
+  assert.throws(() =>
+    checkContract('report', {
+      ...report,
+      checks: [{ command: 'npm test', status: 'passed', artifact: null }],
+    }),
+  );
+  assert.throws(() => checkContract('report', { ...report, extra: 1 }));
+  console.log(
+    'PASS context-audit: partial usage, native/OTel dedup, unknowns, bounded input, selected ' +
+      'additive install, idempotence, concurrent edits, rollback, hook fidelity/coexistence, ' +
+      'evidence contracts.',
+  );
+} finally {
+  fs.rmSync(temp, { recursive: true, force: true });
+}

@@ -1,85 +1,601 @@
 'use strict';
-const Round05Content={
- roleKey(){return '<div class="semantic-key"><span class="role-evidence">Task / evidence</span><span class="role-policy">Your policy</span><span class="role-execution">Execution / results</span><span class="role-stored">Stored / history</span></div>';},
- policyInfo(key){
-  return {
-   dependency:{title:'Build a dependency-scoped packet',finding:'GraphWalks tests whether required relationships can be recovered from a large input.',rule:'Select the files and contracts needed for the current dependency question; keep the originals retrievable.',hook:'Before dispatch · OpenCode V2 context hook',check:'Score required-fact coverage and regression acceptance; record input usage, latency and cost.',code:'const scope = scopeDependencies(edges, \"API\", 2);\n// exact: Journal + Delivery; within also includes API + Service.\nconst packet = buildPacket(selectedFiles, task, checks, \"task-first\");\nrequireAnchors(packet.text, requiredAnchors);',limit:'Dependency analysis is a software analogy. These graph scores do not predict coding success.'},
-   placement:{title:'Make the current task explicit',finding:'CRE 2026 varies task position, filler and context tier; the gap depends on their combination.',rule:'Build a labeled evidence/task/checks packet. Compare layouts on the same task before choosing a default.',hook:'Prompt preparation; before dispatch for later calls',check:'Hold selected facts fixed; vary layout and context load. Score task acceptance and wrong-task answers.',code:'const before = buildPacket(files, task, checks, \"evidence-first\");\nconst after  = buildPacket(files, task, checks, \"task-last\");\n// Same selected source bodies; different user-content order.\n// Evaluate both. No universal best ordering is asserted.',limit:'The study moves math questions. It is not a direct software-task or native-role experiment.'},
-   checkpoint:{title:'Protect required facts during compaction',finding:'Blind trimming can delete the answer. The study’s answer-preserving method uses known ground truth.',rule:'Name required facts and source anchors before compaction; validate the checkpoint and restore missing evidence before the next call.',hook:'Completed-compaction observation → next dispatch for restoration',check:'Check missing facts and behavior. Anchor-label presence alone cannot prove semantic retention.',code:'const required = [\"API-2\", \"STORAGE-2\", \"INCIDENT-2\"];\n// After observing the completed checkpoint:\nrequireAnchors(checkpointText, required);\n// Also validate the facts/constraints, not only their labels.\n// Restore needed source text before the next dispatch.',limit:'Oracle preservation is not available automatically. A 75% reduction is not a safe production default.'}
-  }[key||'dependency'];
- },
- timeline(s){
-  const e=AtlasSession.at(s.step,s.sourcePolicy);
-  const lanes=[
-   ['parent','Parent session',[0,1,2,3,4,5,8,9,12,13]],
-   ['child','Child session',[6,7]],
-   ['summary','Summary request',[10,11]]
-  ],names=['Init','Task','P1','Tool','Result','P2','Init','C1','Return','P3','S1 prep','S1 done','Task','P4'];
-  return '<div class="time-journey" data-session-timeline><div class="time-controls"><button id="stepBack" aria-label="Previous lifecycle event">←</button><input id="sessionStep" type="range" min="0" max="13" value="'+e.step+'" aria-label="Session lifecycle event"><button id="stepForward" aria-label="Next lifecycle event">→</button><div id="sessionCounters"><strong>'+(e.session==='child'?'Child context':'Parent context')+'</strong><span>User turn '+e.turn+' · '+e.label+'</span></div></div><div class="turn-band"><span class="lane-label">User turns</span><span style="grid-column:2">Setup</span><span style="grid-column:3 / span 11">User turn 1 · several model requests</span><span style="grid-column:14 / span 2">Turn 2</span></div>'+lanes.map(([id,label,steps])=>'<div class="time-lane" data-session-lane="'+id+'"><span class="lane-label">'+label+'</span>'+steps.map(i=>'<button data-step="'+i+'" style="grid-column:'+(i+2)+'" '+(i===e.step?'aria-current="step"':'')+' title="'+AtlasSession.events[i].label+'" class="'+([1,12].includes(i)?'role-evidence':'role-execution')+'">'+names[i]+'</button>').join('')+'</div>').join('')+'</div>';
- },
- changeItem(items,kind){
-  if(!items.length)return null;
-  if(kind==='retained')return items.find(x=>x.id==='checks')||items[0];
-  return items.find(b=>b.text.includes('Child handoff'))||items.find(b=>b.text.includes('Read durable events'))||items.find(b=>b.id==='checkpoint')||items.find(b=>b.id==='task')||items[0];
- },
- changePreview(items,kind){
-  if(!items.length)return kind==='retained'?'No previous context to retain.':'None.';
-  if(kind==='retained'){const b=items.find(x=>x.id==='checks')||items[0];const text=b.text.split('\n')[0];return text.slice(0,155)+(text.length>155?'…':'');}
-  const handoff=items.find(b=>b.text.includes('Child handoff'));
-  const tool=items.find(b=>b.text.includes('Read durable events'));
-  const chosen=handoff||tool||items.find(b=>b.id==='checkpoint')||items.find(b=>b.id==='task')||items[0];
-  let text=chosen.text;
-  if(handoff)text=text.slice(text.indexOf('Child handoff'));
-  else if(tool)text=text.slice(text.indexOf('Read durable events'));
-  return text.slice(0,155)+(text.length>155?'…':'');
- },
- system(s){
-  const d=AtlasSession.comparisonAt(s.step,s.sourcePolicy),e=d.current,summary=AtlasSession.summaryRequestAt(s.step,s.sourcePolicy),hook=atlasResearch.hooks.entries.find(h=>h.id===e.hook);
-  const diff=['added','retained','removed'].map(kind=>'<section class="change-column '+kind+'" data-context-change="'+kind+'"><div class="change-heading"><h3>'+kind[0].toUpperCase()+kind.slice(1)+'</h3><span>'+d[kind].length+' '+(d[kind].length===1?'group':'groups')+'</span></div>'+('<p>'+AtlasContent.esc(this.changePreview(d[kind],kind))+'</p>')+'<div class="group-tags">'+[this.changeItem(d[kind],kind)].filter(Boolean).map(b=>'<span class="role-'+this.blockRole(b.id)+'">'+b.label+'</span>').join('')+'</div><button data-inspect-change="'+kind+'">Exact text ↗</button></section>').join('');
-  return '<div class="system05">'+this.timeline(s)+'<div class="session-grid05" data-system-graphic><section class="session-panel state-panel" data-node="assembler"><div class="state-heading"><h2>'+(e.session==='child'?'Child working input':'Parent working state')+'</h2><button id="inspectContext"><strong id="contextSize" data-bytes="'+e.bytes+'">'+e.bytes.toLocaleString()+'</strong> UTF-8 bytes ↗</button></div><p id="comparisonReference">Compared with: <strong>'+AtlasContent.esc(d.referenceLabel)+'</strong></p><div id="activeContext" class="diff-grid">'+diff+'</div><div class="state-tools"><span>Text snapshots are illustrative; these are not native token counts.</span>'+(summary?'<button id="inspectSummary">Inspect S1 input + output ↗</button>':'')+'</div><div class="output-allowance" data-output-allowance>Output allowance is separate from included input.</div></section><div class="session-side05"><section class="session-panel role-policy"><h2>Your policy at this boundary</h2><p>'+hook.label+'</p><button id="inspectHook">Inspect the hook policy ↗</button></section><section class="session-panel role-execution"><h2>'+ (summary?'Auxiliary model request S1':e.label.startsWith('Call')?'Current model request '+(e.session==='child'?'C':'P')+e.call:'Between model requests')+'</h2><p>'+(summary?'Summary generation is distinct from parent P3 and child C1.':e.session==='child'?'The child has its own context and request counter.':'One user turn can contain multiple model calls and intervening tools.')+'</p><div class="outside-store role-stored">Outside active input: all 15 source documents remain retrievable.</div></section></div></div><div class="loop-caption"><strong>'+e.label+'</strong><span>Tool / child result → selected evidence → next assembled request</span></div></div>';
- },
- blockRole(id){return ['instructions','checkpoint'].includes(id)?'policy':id==='history'?'stored':'evidence';},
- barPlot(groups,conditions,options){
-  const min=options.min??0,max=options.max??100,range=max-min,zero=(max-0)/range*100,ticks=options.ticks||[0,25,50,75,100];
-  const bars=groups.map(g=>'<div class="bar-group"><div class="bar-slots">'+g.values.map((v,i)=>{const top=(max-Math.max(0,v))/range*100,height=Math.abs(v)/range*100;return '<div class="bar-slot"><button class="metric-bar '+(i?'condition-hatch':'condition-solid')+'" style="top:'+top+'%;height:'+height+'%" data-score="'+v+'" aria-label="'+AtlasContent.esc(g.label)+', '+conditions[i]+': '+v+' '+options.unit+'" title="'+AtlasContent.esc(g.label)+' · '+conditions[i]+' · '+v+' '+options.unit+'"><span class="'+(v<0?'negative-value':'')+'">'+v.toFixed(1)+'</span></button></div>';}).join('')+'</div><div class="bar-label">'+AtlasContent.esc(g.label)+'</div></div>').join('');
-  return '<div id="researchChart" class="bar-plot" role="group" aria-label="'+options.y+' by model"><div class="axis-title" data-axis="y">Y · '+options.y+'</div><div class="bar-field"><div class="y-ticks">'+ticks.map(t=>'<span style="top:'+((max-t)/range*100)+'%">'+t+'</span>').join('')+'</div><div class="bar-area">'+ticks.map(t=>'<div class="bar-gridline" style="top:'+((max-t)/range*100)+'%"></div>').join('')+'<div class="zero-line" style="top:'+zero+'%"></div><div class="bar-groups">'+bars+'</div></div></div><div class="axis-title x-title" data-axis="x">X · Model / reported configuration</div>'+(conditions.length>1?'<div class="condition-key">'+conditions.map((c,i)=>'<span><i class="'+(i?'condition-hatch':'condition-solid')+'"></i>'+c+'</span>').join('')+'</div>':'')+'</div>';
- },
- bfsExample(){return '<div id="bfsExample" class="bfs-example"><h2>What is a BFS problem?</h2><p>Breadth-first search follows edges one level at a time.</p><div class="dependency-picture"><span class="role-evidence">API</span><b>→</b><span class="role-evidence">Service</span><b>→</b><div><span class="role-evidence">Journal</span><span class="role-evidence">Delivery</span></div></div><p><strong>Exactly 2 edges from API?</strong><br>Journal + Delivery.</p><p>Software analogy: follow dependencies before selecting regression tests. The benchmark uses graph IDs, not code.</p><p class="study-limit">A missing node lowers recall; an extra wrong node lowers precision. F1 balances both, rather than counting tasks passed.</p></div>';},
- attention(s){
-  const kind=s.study==='position'?'position':s.study==='signal'?'signal':'frontier',p=atlasResearch.provider,c=atlasResearch05.position,t=atlasResearch05.signal;
-  let chart,explanation,caption,scope,key;
-  if(kind==='frontier'){
-   chart=this.barPlot(p.series.map(m=>({label:m.model,values:[m.value]})),['Reported mean F1'],{y:'Mean BFS set-F1 (%)',unit:'F1 points'});
-   explanation=this.bfsExample();scope='Reported input band: 256K–1M tokens per problem · 200 problems. One aggregate bar per model; per-size scores and session-growth traces are not provided by this table.';
-   caption='Google DeepMind, October 2026 cohort. All GraphWalks comparisons self-computed; high/max available thinking. This is graph-task performance, not coding acceptance.';key='dependency';
-  }else if(kind==='position'){
-   const tier=s.tier||'64K',filler=s.filler||'questions';
-   chart=this.barPlot(c.models.map(m=>({label:m.model,values:m[filler][tier]})),c.conditions,{y:'Task accuracy (%)',unit:'percent'});
-   explanation='<h2>Move the task, keep the experiment explicit.</h2><div class="position-picture"><span>Middle task</span><div><i>Filler</i><b class="role-evidence">Task</b><i>Filler</i></div><span>End task</span><div><i>Filler</i><i>Filler</i><b class="role-evidence">Task</b></div></div><p>GSM8K grade-school math questions embedded among other material. This changes the task’s position, not an answer document’s position.</p><p class="study-limit">Provider default reasoning differs. A model can be stable or improve in the middle; there is no universal middle penalty.</p>';
-   scope='Reported context tier: '+tier+' · '+c.fillers[filler]+' filler · 50 questions per condition. Tier labels are not exact provider-token counts for every prompt.';
-   caption='CRE 2026 v1 · '+(filler==='worked'?'Table 1; middle = end + reported difference.':'Table 16; end and middle directly reported.')+' Task accuracy on math questions; no coding-task result.';key='placement';
-  }else{
-   chart=this.barPlot(t.models.map(m=>({label:m.model,values:[m.naive,m.aware]})),t.conditions,{min:-70,max:20,ticks:[20,0,-20,-40,-60,-70],y:'Question-answering accuracy change (percentage points)',unit:'percentage points'});
-   explanation='<h2>Removing text is not enough.</h2><div class="signal-picture"><div class="role-evidence">Required facts + other material</div><b>↓ retain 25% of each input</b><div class="role-policy">Blind trim or answer-preserving selection?</div></div><p>The answer-preserving condition uses dataset ground truth: an oracle, not an automatically available retriever.</p><p class="study-limit">Sonnet’s positive aware change is significant; Opus and GPT changes are statistically neutral. Anchor labels alone cannot establish that facts survive.</p>';
-   scope='BABILong · questions over supporting facts · 240 paired samples per model / protocol · 100% → 25% input retention. Filler splits 0K/2K/8K/32K; reported realized median input ≈7K tokens, not 1M.';
-   caption='Distractor-Aware Truncation, August 2026 v1 · Table 1. Each bar is paired change from its protocol’s own full input. Oracle selection; no 75%-safe-trimming guarantee. Paired 95% CIs in Data + scope.';key='checkpoint';
-  }
-  const policy=this.policyInfo(key);
-  return '<div class="research05"><div class="research-toolbar"><label>Study<select id="researchStudy"><option value="frontier" '+(kind==='frontier'?'selected':'')+'>Provider graph-task comparison · 2026</option><option value="position" '+(kind==='position'?'selected':'')+'>Task position · 2026</option><option value="signal" '+(kind==='signal'?'selected':'')+'>Preserve required facts · 2026</option></select></label>'+(kind==='position'?'<label>Context tier<select id="contextTier">'+c.tiers.map(x=>'<option '+((s.tier||'64K')===x?'selected':'')+'>'+x+'</option>').join('')+'</select></label><label>Filler<select id="fillerKind"><option value="questions" '+((s.filler||'questions')==='questions'?'selected':'')+'>Unanswered questions</option><option value="worked" '+(s.filler==='worked'?'selected':'')+'>Worked solutions</option></select></label>':'')+'<button id="showMechanism">Attention details ↗</button></div><p id="contextScope" class="context-scope">'+scope+'</p><div class="research-main05"><section class="task-explanation role-evidence">'+explanation+'</section><section class="result-panel">'+chart+'<p id="researchCaption" class="study-caption">'+caption+' <button id="showResearchData">Data + scope ↗</button></p></section></div><div class="policy-chain role-policy"><div><strong>Research → your policy</strong><p>'+policy.rule+'</p></div><button id="openStudyPolicy" data-study-policy="'+key+'">See hook + verification ↗</button></div></div>';
- },
- hooks(s){
-  const key=s.recipe||'dependency',policy=this.policyInfo(key),selected=s.hook||AtlasSession.at(s.step,s.sourcePolicy).hook,h=atlasResearch.hooks.entries.find(x=>x.id===selected)||atlasResearch.hooks.entries[2];
-  return '<div class="hooks05"><div class="hook-toolbar"><label>Boundary<select id="hookPolicy">'+atlasResearch.hooks.entries.map(x=>'<option value="'+x.id+'" '+(h.id===x.id?'selected':'')+'>'+x.label+'</option>').join('')+'</select></label><label>Candidate policy<select id="recipePolicy">'+['dependency','placement','checkpoint'].map(x=>'<option value="'+x+'" '+(x===key?'selected':'')+'>'+this.policyInfo(x).title+'</option>').join('')+'</select></label></div><div id="researchPolicyLink" class="research-policy-link"><strong>'+policy.title+'</strong><span>'+policy.finding+'</span></div><div id="hookDetail" class="hook-grid05"><section class="session-panel role-execution"><h2>1 · Supported boundary</h2><h3>'+h.label+'</h3><p>'+h.purpose+'</p><h3>OpenCode V2</h3><code>'+AtlasContent.esc(h.opencode)+'</code><h3>Claude Code</h3><code>'+AtlasContent.esc(h.claude)+'</code><button id="inspectHookDetails">Capabilities + limits ↗</button></section><section class="session-panel role-policy"><h2>2 · Repeatable policy</h2><pre>'+AtlasContent.esc(policy.code)+'</pre><p>'+policy.limit+'</p><button id="openAssemblyPolicy">Follow source → request ↗</button></section><section class="session-panel role-evidence"><h2>3 · Verify the outcome</h2><p>'+policy.check+'</p><div class="hook-limit">'+h.limit+'</div><p>Hook effects depend on the event. Observation, input transformation and completed state are separate operations.</p><button data-open="recipes">Adapt the portable recipe ↗</button></section></div></div>';
- },
- assembly(s){
-  let html=Round04Content.assembly(s).replace(/<section data-section="(task|evidence|checks)">/g,'<section data-section="$1" class="role-evidence">').replace('Same selected material; independently adjustable order. These are user-content teaching payloads, not captured native requests. Counts include the shown teaching text, not provider schemas or hidden instructions.','Teaching user content: same selected sources, different order. Native instructions, roles and tools remain separate.').replace('Original sources → candidate sections','Same anchor → same source excerpt');
-  html=html.replace('</select></label><button id="inspectNative">','<option value="task-last" '+(s.layoutPolicy==='task-last'?'selected':'')+'>Evidence → checks → task</option></select></label><button id="inspectNative">');
-  if(s.layoutPolicy==='task-last')html=html.replace('AFTER · EVIDENCE FIRST','AFTER · TASK LAST');
-  return html;
- },
- recipes(s){
-  const key=s.recipe||'dependency',p=this.policyInfo(key);
-  return '<div class="recipes05"><div class="recipe-heading"><label>Recipe<select id="recipePolicy">'+['dependency','placement','checkpoint'].map(k=>'<option value="'+k+'" '+(k===key?'selected':'')+'>'+this.policyInfo(k).title+'</option>').join('')+'</select></label><a class="download-button" href="policies/workshop.zip" download>Download offline workshop ↓</a></div><div class="recipe-grid"><section class="session-panel role-evidence"><h2>Inputs → useful packet</h2><p>'+p.rule+'</p><div class="recipe-source-anchors">'+AtlasContent.anchors+'</div><p>Frozen task, source files and acceptance checks are bundled. Replace the dependency/source mapping for your repository.</p><p class="study-limit">No API keys or model calls. Run the included example with Node.js.</p></section><section class="session-panel role-policy"><h2>Portable helper · tested offline</h2><pre>'+AtlasContent.esc(p.code)+'</pre><p>Run: <code>node example.mjs</code></p><a href="policies/context-policy.mjs" download>Download the helper module ↓</a></section><section class="session-panel role-execution"><h2>Native integration boundary</h2><p>'+p.hook+'</p><p>Bind this policy to the documented native API while preserving role/tool contracts. Match your installed version.</p><button id="showNativeAdapter">Inspect OpenCode V2 adapter ↗</button><p class="study-limit">Portable functions are verified offline. The native adapter is source-matched teaching code, not runtime-verified on your harness.</p><p>'+p.check+'</p></section></div></div>';
- }
+const Round05Content = {
+  roleKey() {
+    return (
+      '<div class="semantic-key"><span class="role-evidence">Task / evidence</span>' +
+      '<span class="role-policy">Your policy</span>' +
+      '<span class="role-execution">Execution / results</span>' +
+      '<span class="role-stored">Stored / history</span></div>'
+    );
+  },
+
+  policyInfo(key) {
+    return {
+      dependency: {
+        title: 'Build a dependency-scoped packet',
+        finding:
+          'GraphWalks tests whether required relationships can be recovered from a large input.',
+        rule: 'Select the files and contracts needed for the current dependency question; keep the originals retrievable.',
+        hook: 'Before dispatch · OpenCode V2 context hook',
+        check:
+          'Score required-fact coverage and regression acceptance; record input usage, latency and cost.',
+        code:
+          'const scope = scopeDependencies(edges, "API", 2);\n// exact: Journal + Delivery; within ' +
+          'also includes API + Service.\nconst packet = buildPacket(selectedFiles, task, checks, ' +
+          '"task-first");\nrequireAnchors(packet.text, requiredAnchors);',
+        limit:
+          'Dependency analysis is a software analogy. These graph scores do not predict coding success.',
+      },
+      placement: {
+        title: 'Make the current task explicit',
+        finding:
+          'CRE 2026 varies task position, filler and context tier; the gap depends on their combination.',
+        rule: 'Build a labeled evidence/task/checks packet. Compare layouts on the same task before choosing a default.',
+        hook: 'Prompt preparation; before dispatch for later calls',
+        check:
+          'Hold selected facts fixed; vary layout and context load. Score task acceptance and wrong-task answers.',
+        code:
+          'const before = buildPacket(files, task, checks, "evidence-first");\nconst after  = ' +
+          'buildPacket(files, task, checks, "task-last");\n// Same selected source bodies; ' +
+          'different user-content order.\n// Evaluate both. No universal best ordering is asserted.',
+        limit:
+          'The study moves math questions. It is not a direct software-task or native-role experiment.',
+      },
+      checkpoint: {
+        title: 'Protect required facts during compaction',
+        finding:
+          'Blind trimming can delete the answer. The study’s answer-preserving method uses known ground truth.',
+        rule: 'Name required facts and source anchors before compaction; validate the checkpoint and restore missing evidence before the next call.',
+        hook: 'Completed-compaction observation → next dispatch for restoration',
+        check:
+          'Check missing facts and behavior. Anchor-label presence alone cannot prove semantic retention.',
+        code:
+          'const required = ["API-2", "STORAGE-2", "INCIDENT-2"];\n// After observing the completed ' +
+          'checkpoint:\nrequireAnchors(checkpointText, required);\n// Also validate the ' +
+          'facts/constraints, not only their labels.\n// Restore needed source text before the next dispatch.',
+        limit:
+          'Oracle preservation is not available automatically. A 75% reduction is not a safe production default.',
+      },
+    }[key || 'dependency'];
+  },
+
+  timeline(s) {
+    const e = AtlasSession.at(s.step, s.sourcePolicy);
+    const lanes = [
+        ['parent', 'Parent session', [0, 1, 2, 3, 4, 5, 8, 9, 12, 13]],
+        ['child', 'Child session', [6, 7]],
+        ['summary', 'Summary request', [10, 11]],
+      ],
+      names = [
+        'Init',
+        'Task',
+        'P1',
+        'Tool',
+        'Result',
+        'P2',
+        'Init',
+        'C1',
+        'Return',
+        'P3',
+        'S1 prep',
+        'S1 done',
+        'Task',
+        'P4',
+      ];
+    return (
+      '<div class="time-journey" data-session-timeline><div class="time-controls">' +
+      '<button id="stepBack" aria-label="Previous lifecycle event">←</button>' +
+      '<input id="sessionStep" type="range" min="0" max="13" value="' +
+      e.step +
+      ('" aria-label="Session lifecycle event">' +
+        '<button id="stepForward" aria-label="Next lifecycle event">→</button>' +
+        '<div id="sessionCounters"><strong>') +
+      (e.session === 'child' ? 'Child context' : 'Parent context') +
+      '</strong><span>User turn ' +
+      e.turn +
+      ' · ' +
+      e.label +
+      ('</span></div></div><div class="turn-band"><span class="lane-label">User turns</span>' +
+        '<span style="grid-column:2">Setup</span>' +
+        '<span style="grid-column:3 / span 11">User turn 1 · several model requests</span>' +
+        '<span style="grid-column:14 / span 2">Turn 2</span></div>') +
+      lanes
+        .map(
+          ([id, label, steps]) =>
+            '<div class="time-lane" data-session-lane="' +
+            id +
+            '"><span class="lane-label">' +
+            label +
+            '</span>' +
+            steps
+              .map(
+                (i) =>
+                  '<button data-step="' +
+                  i +
+                  '" style="grid-column:' +
+                  (i + 2) +
+                  '" ' +
+                  (i === e.step ? 'aria-current="step"' : '') +
+                  ' title="' +
+                  AtlasSession.events[i].label +
+                  '" class="' +
+                  ([1, 12].includes(i) ? 'role-evidence' : 'role-execution') +
+                  '">' +
+                  names[i] +
+                  '</button>',
+              )
+              .join('') +
+            '</div>',
+        )
+        .join('') +
+      '</div>'
+    );
+  },
+
+  changeItem(items, kind) {
+    if (!items.length) return null;
+    if (kind === 'retained') return items.find((x) => x.id === 'checks') || items[0];
+    return (
+      items.find((b) => b.text.includes('Child handoff')) ||
+      items.find((b) => b.text.includes('Read durable events')) ||
+      items.find((b) => b.id === 'checkpoint') ||
+      items.find((b) => b.id === 'task') ||
+      items[0]
+    );
+  },
+
+  changePreview(items, kind) {
+    if (!items.length) return kind === 'retained' ? 'No previous context to retain.' : 'None.';
+    if (kind === 'retained') {
+      const b = items.find((x) => x.id === 'checks') || items[0];
+      const text = b.text.split('\n')[0];
+      return text.slice(0, 155) + (text.length > 155 ? '…' : '');
+    }
+    const handoff = items.find((b) => b.text.includes('Child handoff'));
+    const tool = items.find((b) => b.text.includes('Read durable events'));
+    const chosen =
+      handoff ||
+      tool ||
+      items.find((b) => b.id === 'checkpoint') ||
+      items.find((b) => b.id === 'task') ||
+      items[0];
+    let text = chosen.text;
+    if (handoff) text = text.slice(text.indexOf('Child handoff'));
+    else if (tool) text = text.slice(text.indexOf('Read durable events'));
+    return text.slice(0, 155) + (text.length > 155 ? '…' : '');
+  },
+
+  system(s) {
+    const d = AtlasSession.comparisonAt(s.step, s.sourcePolicy),
+      e = d.current,
+      summary = AtlasSession.summaryRequestAt(s.step, s.sourcePolicy),
+      hook = atlasResearch.hooks.entries.find((h) => h.id === e.hook);
+    const diff = ['added', 'retained', 'removed']
+      .map(
+        (kind) =>
+          '<section class="change-column ' +
+          kind +
+          '" data-context-change="' +
+          kind +
+          '"><div class="change-heading"><h3>' +
+          kind[0].toUpperCase() +
+          kind.slice(1) +
+          '</h3><span>' +
+          d[kind].length +
+          ' ' +
+          (d[kind].length === 1 ? 'group' : 'groups') +
+          '</span></div>' +
+          ('<p>' + AtlasContent.esc(this.changePreview(d[kind], kind)) + '</p>') +
+          '<div class="group-tags">' +
+          [this.changeItem(d[kind], kind)]
+            .filter(Boolean)
+            .map((b) => '<span class="role-' + this.blockRole(b.id) + '">' + b.label + '</span>')
+            .join('') +
+          '</div><button data-inspect-change="' +
+          kind +
+          '">Exact text ↗</button></section>',
+      )
+      .join('');
+    return (
+      '<div class="system05">' +
+      this.timeline(s) +
+      ('<div class="session-grid05" data-system-graphic>' +
+        '<section class="session-panel state-panel" data-node="assembler"><div class="state-heading"><h2>') +
+      (e.session === 'child' ? 'Child working input' : 'Parent working state') +
+      '</h2><button id="inspectContext"><strong id="contextSize" data-bytes="' +
+      e.bytes +
+      '">' +
+      e.bytes.toLocaleString() +
+      '</strong> UTF-8 bytes ↗</button></div><p id="comparisonReference">Compared with: <strong>' +
+      AtlasContent.esc(d.referenceLabel) +
+      '</strong></p><div id="activeContext" class="diff-grid">' +
+      diff +
+      '</div><div class="state-tools"><span>Text snapshots are illustrative; these are not native token counts.</span>' +
+      (summary ? '<button id="inspectSummary">Inspect S1 input + output ↗</button>' : '') +
+      ('</div><div class="output-allowance" data-output-allowance>Output allowance is separate ' +
+        'from included input.</div></section><div class="session-side05">' +
+        '<section class="session-panel role-policy"><h2>Your policy at this boundary</h2><p>') +
+      hook.label +
+      '</p><button id="inspectHook">Inspect the hook policy ↗</button></section><section class="session-panel role-execution"><h2>' +
+      (summary
+        ? 'Auxiliary model request S1'
+        : e.label.startsWith('Call')
+          ? 'Current model request ' + (e.session === 'child' ? 'C' : 'P') + e.call
+          : 'Between model requests') +
+      '</h2><p>' +
+      (summary
+        ? 'Summary generation is distinct from parent P3 and child C1.'
+        : e.session === 'child'
+          ? 'The child has its own context and request counter.'
+          : 'One user turn can contain multiple model calls and intervening tools.') +
+      ('</p><div class="outside-store role-stored">Outside active input: all 15 source ' +
+        'documents remain retrievable.</div></section></div></div><div class="loop-caption"><strong>') +
+      e.label +
+      '</strong><span>Tool / child result → selected evidence → next assembled request</span></div></div>'
+    );
+  },
+
+  blockRole(id) {
+    return ['instructions', 'checkpoint'].includes(id)
+      ? 'policy'
+      : id === 'history'
+        ? 'stored'
+        : 'evidence';
+  },
+
+  barPlot(groups, conditions, options) {
+    const min = options.min ?? 0,
+      max = options.max ?? 100,
+      range = max - min,
+      zero = ((max - 0) / range) * 100,
+      ticks = options.ticks || [0, 25, 50, 75, 100];
+    const bars = groups
+      .map(
+        (g) =>
+          '<div class="bar-group"><div class="bar-slots">' +
+          g.values
+            .map((v, i) => {
+              const top = ((max - Math.max(0, v)) / range) * 100,
+                height = (Math.abs(v) / range) * 100;
+              return (
+                '<div class="bar-slot"><button class="metric-bar ' +
+                (i ? 'condition-hatch' : 'condition-solid') +
+                '" style="top:' +
+                top +
+                '%;height:' +
+                height +
+                '%" data-score="' +
+                v +
+                '" aria-label="' +
+                AtlasContent.esc(g.label) +
+                ', ' +
+                conditions[i] +
+                ': ' +
+                v +
+                ' ' +
+                options.unit +
+                '" title="' +
+                AtlasContent.esc(g.label) +
+                ' · ' +
+                conditions[i] +
+                ' · ' +
+                v +
+                ' ' +
+                options.unit +
+                '"><span class="' +
+                (v < 0 ? 'negative-value' : '') +
+                '">' +
+                v.toFixed(1) +
+                '</span></button></div>'
+              );
+            })
+            .join('') +
+          '</div><div class="bar-label">' +
+          AtlasContent.esc(g.label) +
+          '</div></div>',
+      )
+      .join('');
+    return (
+      '<div id="researchChart" class="bar-plot" role="group" aria-label="' +
+      options.y +
+      ' by model"><div class="axis-title" data-axis="y">Y · ' +
+      options.y +
+      '</div><div class="bar-field"><div class="y-ticks">' +
+      ticks
+        .map((t) => '<span style="top:' + ((max - t) / range) * 100 + '%">' + t + '</span>')
+        .join('') +
+      '</div><div class="bar-area">' +
+      ticks
+        .map(
+          (t) => '<div class="bar-gridline" style="top:' + ((max - t) / range) * 100 + '%"></div>',
+        )
+        .join('') +
+      '<div class="zero-line" style="top:' +
+      zero +
+      '%"></div><div class="bar-groups">' +
+      bars +
+      '</div></div></div><div class="axis-title x-title" data-axis="x">X · Model / reported configuration</div>' +
+      (conditions.length > 1
+        ? '<div class="condition-key">' +
+          conditions
+            .map(
+              (c, i) =>
+                '<span><i class="' +
+                (i ? 'condition-hatch' : 'condition-solid') +
+                '"></i>' +
+                c +
+                '</span>',
+            )
+            .join('') +
+          '</div>'
+        : '') +
+      '</div>'
+    );
+  },
+
+  bfsExample() {
+    return (
+      '<div id="bfsExample" class="bfs-example"><h2>What is a BFS problem?</h2>' +
+      '<p>Breadth-first search follows edges one level at a time.</p>' +
+      '<div class="dependency-picture"><span class="role-evidence">API</span><b>→</b>' +
+      '<span class="role-evidence">Service</span><b>→</b><div>' +
+      '<span class="role-evidence">Journal</span><span class="role-evidence">Delivery</span>' +
+      '</div></div><p><strong>Exactly 2 edges from API?</strong><br>Journal + Delivery.</p>' +
+      '<p>Software analogy: follow dependencies before selecting regression tests. The ' +
+      'benchmark uses graph IDs, not code.</p>' +
+      '<p class="study-limit">A missing node lowers recall; an extra wrong node lowers ' +
+      'precision. F1 balances both, rather than counting tasks passed.</p></div>'
+    );
+  },
+
+  attention(s) {
+    const kind = s.study === 'position' ? 'position' : s.study === 'signal' ? 'signal' : 'frontier',
+      p = atlasResearch.provider,
+      c = atlasResearch05.position,
+      t = atlasResearch05.signal;
+    let chart, explanation, caption, scope, key;
+    if (kind === 'frontier') {
+      chart = this.barPlot(
+        p.series.map((m) => ({ label: m.model, values: [m.value] })),
+        ['Reported mean F1'],
+        { y: 'Mean BFS set-F1 (%)', unit: 'F1 points' },
+      );
+      explanation = this.bfsExample();
+      scope =
+        'Reported input band: 256K–1M tokens per problem · 200 problems. One aggregate bar per ' +
+        'model; per-size scores and session-growth traces are not provided by this table.';
+      caption =
+        'Google DeepMind, October 2026 cohort. All GraphWalks comparisons self-computed; ' +
+        'high/max available thinking. This is graph-task performance, not coding acceptance.';
+      key = 'dependency';
+    } else if (kind === 'position') {
+      const tier = s.tier || '64K',
+        filler = s.filler || 'questions';
+      chart = this.barPlot(
+        c.models.map((m) => ({ label: m.model, values: m[filler][tier] })),
+        c.conditions,
+        { y: 'Task accuracy (%)', unit: 'percent' },
+      );
+      explanation =
+        '<h2>Move the task, keep the experiment explicit.</h2><div class="position-picture">' +
+        '<span>Middle task</span><div><i>Filler</i><b class="role-evidence">Task</b>' +
+        '<i>Filler</i></div><span>End task</span><div><i>Filler</i><i>Filler</i>' +
+        '<b class="role-evidence">Task</b></div></div>' +
+        '<p>GSM8K grade-school math questions embedded among other material. This changes the ' +
+        'task’s position, not an answer document’s position.</p>' +
+        '<p class="study-limit">Provider default reasoning differs. A model can be stable or ' +
+        'improve in the middle; there is no universal middle penalty.</p>';
+      scope =
+        'Reported context tier: ' +
+        tier +
+        ' · ' +
+        c.fillers[filler] +
+        ' filler · 50 questions per condition. Tier labels are not exact provider-token counts for every prompt.';
+      caption =
+        'CRE 2026 v1 · ' +
+        (filler === 'worked'
+          ? 'Table 1; middle = end + reported difference.'
+          : 'Table 16; end and middle directly reported.') +
+        ' Task accuracy on math questions; no coding-task result.';
+      key = 'placement';
+    } else {
+      chart = this.barPlot(
+        t.models.map((m) => ({ label: m.model, values: [m.naive, m.aware] })),
+        t.conditions,
+        {
+          min: -70,
+          max: 20,
+          ticks: [20, 0, -20, -40, -60, -70],
+          y: 'Question-answering accuracy change (percentage points)',
+          unit: 'percentage points',
+        },
+      );
+      explanation =
+        '<h2>Removing text is not enough.</h2><div class="signal-picture">' +
+        '<div class="role-evidence">Required facts + other material</div>' +
+        '<b>↓ retain 25% of each input</b>' +
+        '<div class="role-policy">Blind trim or answer-preserving selection?</div></div>' +
+        '<p>The answer-preserving condition uses dataset ground truth: an oracle, not an ' +
+        'automatically available retriever.</p>' +
+        '<p class="study-limit">Sonnet’s positive aware change is significant; Opus and GPT ' +
+        'changes are statistically neutral. Anchor labels alone cannot establish that facts survive.</p>';
+      scope =
+        'BABILong · questions over supporting facts · 240 paired samples per model / protocol · ' +
+        '100% → 25% input retention. Filler splits 0K/2K/8K/32K; reported realized median input ' +
+        '≈7K tokens, not 1M.';
+      caption =
+        'Distractor-Aware Truncation, August 2026 v1 · Table 1. Each bar is paired change from ' +
+        'its protocol’s own full input. Oracle selection; no 75%-safe-trimming guarantee. Paired ' +
+        '95% CIs in Data + scope.';
+      key = 'checkpoint';
+    }
+    const policy = this.policyInfo(key);
+    return (
+      '<div class="research05"><div class="research-toolbar"><label>Study<select id="researchStudy"><option value="frontier" ' +
+      (kind === 'frontier' ? 'selected' : '') +
+      '>Provider graph-task comparison · 2026</option><option value="position" ' +
+      (kind === 'position' ? 'selected' : '') +
+      '>Task position · 2026</option><option value="signal" ' +
+      (kind === 'signal' ? 'selected' : '') +
+      '>Preserve required facts · 2026</option></select></label>' +
+      (kind === 'position'
+        ? '<label>Context tier<select id="contextTier">' +
+          c.tiers
+            .map(
+              (x) =>
+                '<option ' + ((s.tier || '64K') === x ? 'selected' : '') + '>' + x + '</option>',
+            )
+            .join('') +
+          '</select></label><label>Filler<select id="fillerKind"><option value="questions" ' +
+          ((s.filler || 'questions') === 'questions' ? 'selected' : '') +
+          '>Unanswered questions</option><option value="worked" ' +
+          (s.filler === 'worked' ? 'selected' : '') +
+          '>Worked solutions</option></select></label>'
+        : '') +
+      '<button id="showMechanism">Attention details ↗</button></div><p id="contextScope" class="context-scope">' +
+      scope +
+      '</p><div class="research-main05"><section class="task-explanation role-evidence">' +
+      explanation +
+      '</section><section class="result-panel">' +
+      chart +
+      '<p id="researchCaption" class="study-caption">' +
+      caption +
+      (' <button id="showResearchData">Data + scope ↗</button></p></section></div>' +
+        '<div class="policy-chain role-policy"><div><strong>Research → your policy</strong><p>') +
+      policy.rule +
+      '</p></div><button id="openStudyPolicy" data-study-policy="' +
+      key +
+      '">See hook + verification ↗</button></div></div>'
+    );
+  },
+
+  hooks(s) {
+    const key = s.recipe || 'dependency',
+      policy = this.policyInfo(key),
+      selected = s.hook || AtlasSession.at(s.step, s.sourcePolicy).hook,
+      h =
+        atlasResearch.hooks.entries.find((x) => x.id === selected) ||
+        atlasResearch.hooks.entries[2];
+    return (
+      '<div class="hooks05"><div class="hook-toolbar"><label>Boundary<select id="hookPolicy">' +
+      atlasResearch.hooks.entries
+        .map(
+          (x) =>
+            '<option value="' +
+            x.id +
+            '" ' +
+            (h.id === x.id ? 'selected' : '') +
+            '>' +
+            x.label +
+            '</option>',
+        )
+        .join('') +
+      '</select></label><label>Candidate policy<select id="recipePolicy">' +
+      ['dependency', 'placement', 'checkpoint']
+        .map(
+          (x) =>
+            '<option value="' +
+            x +
+            '" ' +
+            (x === key ? 'selected' : '') +
+            '>' +
+            this.policyInfo(x).title +
+            '</option>',
+        )
+        .join('') +
+      '</select></label></div><div id="researchPolicyLink" class="research-policy-link"><strong>' +
+      policy.title +
+      '</strong><span>' +
+      policy.finding +
+      '</span></div><div id="hookDetail" class="hook-grid05"><section class="session-panel role-execution"><h2>1 · Supported boundary</h2><h3>' +
+      h.label +
+      '</h3><p>' +
+      h.purpose +
+      '</p><h3>OpenCode V2</h3><code>' +
+      AtlasContent.esc(h.opencode) +
+      '</code><h3>Claude Code</h3><code>' +
+      AtlasContent.esc(h.claude) +
+      ('</code><button id="inspectHookDetails">Capabilities + limits ↗</button></section>' +
+        '<section class="session-panel role-policy"><h2>2 · Repeatable policy</h2><pre>') +
+      AtlasContent.esc(policy.code) +
+      '</pre><p>' +
+      policy.limit +
+      ('</p><button id="openAssemblyPolicy">Follow source → request ↗</button></section>' +
+        '<section class="session-panel role-evidence"><h2>3 · Verify the outcome</h2><p>') +
+      policy.check +
+      '</p><div class="hook-limit">' +
+      h.limit +
+      ('</div><p>Hook effects depend on the event. Observation, input transformation and ' +
+        'completed state are separate operations.</p>' +
+        '<button data-open="recipes">Adapt the portable recipe ↗</button></section></div></div>')
+    );
+  },
+
+  assembly(s) {
+    let html = Round04Content.assembly(s)
+      .replace(
+        /<section data-section="(task|evidence|checks)">/g,
+        '<section data-section="$1" class="role-evidence">',
+      )
+      .replace(
+        'Same selected material; independently adjustable order. These are user-content teaching ' +
+          'payloads, not captured native requests. Counts include the shown teaching text, not ' +
+          'provider schemas or hidden instructions.',
+        'Teaching user content: same selected sources, different order. Native instructions, roles and tools remain separate.',
+      )
+      .replace('Original sources → candidate sections', 'Same anchor → same source excerpt');
+    html = html.replace(
+      '</select></label><button id="inspectNative">',
+      '<option value="task-last" ' +
+        (s.layoutPolicy === 'task-last' ? 'selected' : '') +
+        '>Evidence → checks → task</option></select></label><button id="inspectNative">',
+    );
+    if (s.layoutPolicy === 'task-last')
+      html = html.replace('AFTER · EVIDENCE FIRST', 'AFTER · TASK LAST');
+    return html;
+  },
+
+  recipes(s) {
+    const key = s.recipe || 'dependency',
+      p = this.policyInfo(key);
+    return (
+      '<div class="recipes05"><div class="recipe-heading"><label>Recipe<select id="recipePolicy">' +
+      ['dependency', 'placement', 'checkpoint']
+        .map(
+          (k) =>
+            '<option value="' +
+            k +
+            '" ' +
+            (k === key ? 'selected' : '') +
+            '>' +
+            this.policyInfo(k).title +
+            '</option>',
+        )
+        .join('') +
+      ('</select></label><a class="download-button" href="policies/workshop.zip" ' +
+        'download>Download offline workshop ↓</a></div><div class="recipe-grid">' +
+        '<section class="session-panel role-evidence"><h2>Inputs → useful packet</h2><p>') +
+      p.rule +
+      '</p><div class="recipe-source-anchors">' +
+      AtlasContent.anchors +
+      ('</div><p>Frozen task, source files and acceptance checks are bundled. Replace the ' +
+        'dependency/source mapping for your repository.</p>' +
+        '<p class="study-limit">No API keys or model calls. Run the included example with ' +
+        'Node.js.</p></section><section class="session-panel role-policy">' +
+        '<h2>Portable helper · tested offline</h2><pre>') +
+      AtlasContent.esc(p.code) +
+      ('</pre><p>Run: <code>node example.mjs</code></p>' +
+        '<a href="policies/context-policy.mjs" download>Download the helper module ↓</a>' +
+        '</section><section class="session-panel role-execution"><h2>Native integration boundary</h2><p>') +
+      p.hook +
+      ('</p><p>Bind this policy to the documented native API while preserving role/tool ' +
+        'contracts. Match your installed version.</p>' +
+        '<button id="showNativeAdapter">Inspect OpenCode V2 adapter ↗</button>' +
+        '<p class="study-limit">Portable functions are verified offline. The native adapter is ' +
+        'source-matched teaching code, not runtime-verified on your harness.</p><p>') +
+      p.check +
+      '</p></section></div></div>'
+    );
+  },
 };
-Object.assign(AtlasContent,Round05Content);
+Object.assign(AtlasContent, Round05Content);

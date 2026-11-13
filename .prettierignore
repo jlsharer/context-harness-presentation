@@ -1,0 +1,11 @@
+node_modules/
+.venv-format/
+.git/
+.superpowers/
+deliverables/
+assets/
+rendered_slides/
+*.jsonl
+
+# Experiment records include provenance hashes over their original bytes.
+docs/benchmark-data/*.json

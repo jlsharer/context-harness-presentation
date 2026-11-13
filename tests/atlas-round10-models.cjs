@@ -1,8 +1,140 @@
-const a=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');const root=path.resolve(__dirname,'../docs');a.ok(fs.existsSync(root+'/atlas-model10.js'),'Integrated attention and scoped-worker model required');const c=vm.createContext({TextEncoder});for(const f of ['atlas-evidence.js','atlas-session.js','atlas-workload.js','atlas-replay08.js','atlas-platform08.js','atlas-model09.js','atlas-model10.js'])vm.runInContext(fs.readFileSync(root+'/'+f,'utf8'),c);const read=s=>JSON.parse(vm.runInContext('JSON.stringify('+s+')',c));
-for(const profile of ['service','platform','org'])for(let step=0;step<12;step++)for(const mode of ['managed','uncurated']){const x=read(`AtlasModel10.diff(${step},'${mode}','${profile}')`),h=read(`AtlasModel10.heat(${step},'${mode}','${profile}')`);a.equal(x.now.total,x.now.layers.reduce((n,l)=>n+l.tokens,0));a.equal(x.now.layers.find(l=>l.id==='base').tokens,6000);a.equal(x.net,x.now.total-(x.before?.total||0));a.equal(x.now.measured,false);if(!step){a.equal(h.rows.length,0);a.equal(h.query,null);}else{a.ok(Math.abs(h.rows.reduce((n,r)=>n+r.weight,0)-1)<1e-12);a.deepEqual(h.rows.map(r=>r.id),x.now.layers.map(l=>l.id));for(const r of h.rows){a.ok(Number.isFinite(r.dot));a.ok(Math.abs(r.score-r.dot/Math.sqrt(2))<1e-12);a.ok(r.position<h.query.position);const expected=Math.exp(r.score-h.maxScore)/h.denominator;a.ok(Math.abs(r.weight-expected)<1e-12);if(step>1){const prev=read(`AtlasModel10.heat(${step-1},'${mode}','${profile}')`).rows.find(p=>p.id===r.id);a.equal(r.delta,prev?r.weight-prev.weight:null);}}}}
-a.notDeepEqual(read("AtlasModel10.heat(4,'uncurated','platform').rows.map(r=>r.weight)"),read("AtlasModel10.heat(6,'uncurated','platform').rows.map(r=>r.weight)"),'Accruing context updates the toy calculation');a.ok(!read("AtlasModel10.heat(9,'managed','platform').rows.map(r=>r.id)").includes('history'),'Removed history has no current heat');
-for(const profile of ['service','platform','org'])for(let n=1;n<=3;n++)for(let step=0;step<7;step++){const d=read(`AtlasModel10.delegation(${step},${n},'${profile}')`);for(const k of ['single','delegated']){a.equal(d[k].aggregate,d[k].calls.reduce((t,r)=>t+r.tokens,0));a.equal(d[k].total,d[k].layers.reduce((t,l)=>t+l.tokens,0));a.equal(d[k].parentPeak,Math.max(...d[k].calls.filter(r=>r.parent).map(r=>r.tokens)));}a.equal(d.delegated.currentAcrossSessions,d.delegated.total+d.workerWindows.reduce((t,w)=>t+w.total,0));a.equal(d.workerWindows.length,step?n:0);const parent=d.delegated.layers;for(const w of d.workerWindows){a.equal(w.total,w.layers.reduce((t,l)=>t+l.tokens,0));a.equal(w.layers.find(l=>l.id==='base').tokens,6000);for(const id of ['tools','skills'])a.ok(w.layers.find(l=>l.id===id).tokens<parent.find(l=>l.id===id).tokens);for(const call of d.delegated.calls.filter(r=>r.id.startsWith(w.id+'/')))a.equal(call.tokens,d.childBases[w.index]+call.sourceTokens+call.workTokens);}if(step&&n>1)for(const id of ['tools','skills'])a.equal(new Set(d.workerWindows.map(w=>w.layers.find(l=>l.id===id).tokens)).size,n);a.equal(d.workTokens,12000);a.deepEqual([...new Set(d.workerWorkIDs.flat())].sort(),d.uniqueWorkIDs.slice().sort());a.deepEqual([...new Set(d.workerSourceIDs.flat())].sort(),d.uniqueSourceIDs.slice().sort());}
-for(const step of [8,9])for(const mode of ['managed','uncurated']){const s=read(`AtlasModel10.summary(${step},'${mode}','platform')`);a.equal(s.inputTokens,s.parentTokens+s.summaryInstructionTokens);if(step===9)a.equal(s.parentAfter,read(`AtlasModel10.at(9,'${mode}','platform').total`));}
-for(const h of ['opencode','claude','codex']){const x=read(`AtlasModel10.nativeEvidence('${h}')`);a.ok(x.summary.length>20);a.ok(x.sources.length);a.equal(x.universalBaseTokens,null);a.match(x.unknown,/model|version|configuration/i);}a.equal(read('AtlasModel10.workload().layers[0].tokens'),6000);a.match(read("AtlasModel10.nativeEvidence('claude')").known.join(' '),/286/);a.match(read("AtlasModel10.nativeEvidence('claude')").known.join(' '),/not.*Claude Code|excludes.*Claude Code/i);
-a.match(read("AtlasModel10.nativeEvidence('claude')").example,/\nname: source-tracer\ndescription: .+/,'Native subagent frontmatter describes when to invoke it');
-console.log('PASS integrated toy heat/softmax/causality;6000 base;distinct scoped worker packets and all-call accounting;native evidence limits');
+const a = require('node:assert/strict'),
+  fs = require('node:fs'),
+  vm = require('node:vm'),
+  path = require('node:path');
+const root = path.resolve(__dirname, '../docs');
+a.ok(
+  fs.existsSync(root + '/atlas-model10.js'),
+  'Integrated attention and scoped-worker model required',
+);
+const c = vm.createContext({ TextEncoder });
+for (const f of [
+  'atlas-evidence.js',
+  'atlas-session.js',
+  'atlas-workload.js',
+  'atlas-replay08.js',
+  'atlas-platform08.js',
+  'atlas-model09.js',
+  'atlas-model10.js',
+])
+  vm.runInContext(fs.readFileSync(root + '/' + f, 'utf8'), c);
+
+const read = (s) => JSON.parse(vm.runInContext('JSON.stringify(' + s + ')', c));
+
+for (const profile of ['service', 'platform', 'org'])
+  for (let step = 0; step < 12; step++)
+    for (const mode of ['managed', 'uncurated']) {
+      const x = read(`AtlasModel10.diff(${step},'${mode}','${profile}')`),
+        h = read(`AtlasModel10.heat(${step},'${mode}','${profile}')`);
+      a.equal(
+        x.now.total,
+        x.now.layers.reduce((n, l) => n + l.tokens, 0),
+      );
+      a.equal(x.now.layers.find((l) => l.id === 'base').tokens, 6000);
+      a.equal(x.net, x.now.total - (x.before?.total || 0));
+      a.equal(x.now.measured, false);
+      if (!step) {
+        a.equal(h.rows.length, 0);
+        a.equal(h.query, null);
+      } else {
+        a.ok(Math.abs(h.rows.reduce((n, r) => n + r.weight, 0) - 1) < 1e-12);
+        a.deepEqual(
+          h.rows.map((r) => r.id),
+          x.now.layers.map((l) => l.id),
+        );
+        for (const r of h.rows) {
+          a.ok(Number.isFinite(r.dot));
+          a.ok(Math.abs(r.score - r.dot / Math.sqrt(2)) < 1e-12);
+          a.ok(r.position < h.query.position);
+          const expected = Math.exp(r.score - h.maxScore) / h.denominator;
+          a.ok(Math.abs(r.weight - expected) < 1e-12);
+          if (step > 1) {
+            const prev = read(`AtlasModel10.heat(${step - 1},'${mode}','${profile}')`).rows.find(
+              (p) => p.id === r.id,
+            );
+            a.equal(r.delta, prev ? r.weight - prev.weight : null);
+          }
+        }
+      }
+    }
+a.notDeepEqual(
+  read("AtlasModel10.heat(4,'uncurated','platform').rows.map(r=>r.weight)"),
+  read("AtlasModel10.heat(6,'uncurated','platform').rows.map(r=>r.weight)"),
+  'Accruing context updates the toy calculation',
+);
+a.ok(
+  !read("AtlasModel10.heat(9,'managed','platform').rows.map(r=>r.id)").includes('history'),
+  'Removed history has no current heat',
+);
+for (const profile of ['service', 'platform', 'org'])
+  for (let n = 1; n <= 3; n++)
+    for (let step = 0; step < 7; step++) {
+      const d = read(`AtlasModel10.delegation(${step},${n},'${profile}')`);
+      for (const k of ['single', 'delegated']) {
+        a.equal(
+          d[k].aggregate,
+          d[k].calls.reduce((t, r) => t + r.tokens, 0),
+        );
+        a.equal(
+          d[k].total,
+          d[k].layers.reduce((t, l) => t + l.tokens, 0),
+        );
+        a.equal(
+          d[k].parentPeak,
+          Math.max(...d[k].calls.filter((r) => r.parent).map((r) => r.tokens)),
+        );
+      }
+      a.equal(
+        d.delegated.currentAcrossSessions,
+        d.delegated.total + d.workerWindows.reduce((t, w) => t + w.total, 0),
+      );
+      a.equal(d.workerWindows.length, step ? n : 0);
+      const parent = d.delegated.layers;
+      for (const w of d.workerWindows) {
+        a.equal(
+          w.total,
+          w.layers.reduce((t, l) => t + l.tokens, 0),
+        );
+        a.equal(w.layers.find((l) => l.id === 'base').tokens, 6000);
+        for (const id of ['tools', 'skills'])
+          a.ok(w.layers.find((l) => l.id === id).tokens < parent.find((l) => l.id === id).tokens);
+        for (const call of d.delegated.calls.filter((r) => r.id.startsWith(w.id + '/')))
+          a.equal(call.tokens, d.childBases[w.index] + call.sourceTokens + call.workTokens);
+      }
+      if (step && n > 1)
+        for (const id of ['tools', 'skills'])
+          a.equal(
+            new Set(d.workerWindows.map((w) => w.layers.find((l) => l.id === id).tokens)).size,
+            n,
+          );
+      a.equal(d.workTokens, 12000);
+      a.deepEqual([...new Set(d.workerWorkIDs.flat())].sort(), d.uniqueWorkIDs.slice().sort());
+      a.deepEqual([...new Set(d.workerSourceIDs.flat())].sort(), d.uniqueSourceIDs.slice().sort());
+    }
+for (const step of [8, 9])
+  for (const mode of ['managed', 'uncurated']) {
+    const s = read(`AtlasModel10.summary(${step},'${mode}','platform')`);
+    a.equal(s.inputTokens, s.parentTokens + s.summaryInstructionTokens);
+    if (step === 9) a.equal(s.parentAfter, read(`AtlasModel10.at(9,'${mode}','platform').total`));
+  }
+for (const h of ['opencode', 'claude', 'codex']) {
+  const x = read(`AtlasModel10.nativeEvidence('${h}')`);
+  a.ok(x.summary.length > 20);
+  a.ok(x.sources.length);
+  a.equal(x.universalBaseTokens, null);
+  a.match(x.unknown, /model|version|configuration/i);
+}
+a.equal(read('AtlasModel10.workload().layers[0].tokens'), 6000);
+a.match(read("AtlasModel10.nativeEvidence('claude')").known.join(' '), /286/);
+a.match(
+  read("AtlasModel10.nativeEvidence('claude')").known.join(' '),
+  /not.*Claude Code|excludes.*Claude Code/i,
+);
+a.match(
+  read("AtlasModel10.nativeEvidence('claude')").example,
+  /\nname: source-tracer\ndescription: .+/,
+  'Native subagent frontmatter describes when to invoke it',
+);
+console.log(
+  'PASS integrated toy heat/softmax/causality;6000 base;distinct scoped worker packets and all-call accounting;native evidence limits',
+);

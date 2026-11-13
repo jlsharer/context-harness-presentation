@@ -1,25 +1,640 @@
 'use strict';
-const AtlasContent09={
- nativePicker(s){return '<div class="native-picker09" aria-label="Native harness example"><span>Native example</span>'+[['opencode','OpenCode'],['claude','Claude'],['codex','Codex']].map(([id,label])=>'<button id="nativePick-'+id+'" data-native-target="'+id+'" aria-pressed="'+(s.harness===id)+'">'+label+'</button>').join('')+'</div>';},
- sourceLinks09(ids){return ids.map(id=>{const x=AtlasModel.source(id);return '<a href="'+x.url+'" target="_blank" rel="noopener noreferrer">'+this.esc(x.title)+' ↗</a>';}).join(' · ');},
- weightControls09(s){return '<div class="query-sequence09" aria-label="Query position">'+['System','Developer','User','Assistant','Tool'].map((r,i)=>'<button id="weightQuery'+i+'" data-weight-query="'+i+'" aria-pressed="'+(s.weightQuery===i)+'"><small>Query position '+(i*(s.weightGap+1))+'</small><strong>'+r+'</strong></button>').join('')+'</div>';},
- weightChart09(frame){const labels=['System','Developer','User','Assistant','Tool'],shortLabels=['Sys.','Dev.','User','Asst.','Tool'];return '<figure class="weight-chart09" data-current-query="'+frame.query+'"><figcaption>Relative weight (%) · current query at position '+frame.rows[frame.query].position+'</figcaption><div class="weight-plot09"><div class="weight-grid09">'+[0,25,50,75,100].map(n=>'<span style="bottom:'+n+'%"><b>'+n+'</b></span>').join('')+'</div><div class="attention-bars09">'+frame.rows.map((r,i)=>'<div class="attention-slot09"><div class="attention-bar09 role-'+(['policy','policy','evidence','stored','execution'][i])+'" data-bar-weight="'+r.weight+'" style="height:'+r.weight*100+'%" title="'+labels[i]+' at '+r.position+': '+(r.weight*100).toFixed(2)+'%"><strong>'+(r.allowed?(r.weight*100).toFixed(1)+'<span class="bar-unit09">%</span>':'<span class="chart-full09">masked</span><span class="chart-short09" aria-label="future masked">—</span>')+'</strong></div><div class="key-label09"><strong><span class="chart-full09">'+labels[i]+'</span><span class="chart-short09">'+shortLabels[i]+'</span></strong><small><span class="chart-full09">Key position </span><span class="chart-short09">pos </span>'+r.position+'</small></div></div>').join('')+'</div></div><p class="chart-axis09">X · illustrative message token + key position<span class="chart-short09 mobile-chart-legend09">— = future masked. Sys. = system; Dev. = developer; Asst. = assistant. Y values are percentages.</span></p></figure>';},
- weightMatrix09(frames,s){return '<section class="weight-history09"><h3>The same key across successive query positions</h3><p>Read across a row. Each cell shows its recalculated weight and Δ from the preceding query, in percentage points (pp). A key first becomes accessible on its own diagonal.</p><div class="weight-matrix-scroll09"><table><thead><tr><th>Key token / position</th>'+frames.map(f=>'<th class="'+(f.query===s.weightQuery?'current-query09':'')+'">Query '+f.rows[f.query].position+'</th>').join('')+'</tr></thead><tbody>'+frames[0].rows.map((r,k)=>'<tr><th>'+r.role+'<small>Key '+r.position+'</small></th>'+frames.map(f=>{const x=f.rows[k];return '<td data-weight-cell="'+k+'-'+f.query+'" class="'+(f.query===s.weightQuery?'current-query09 ':'')+(!x.allowed?'masked09':'')+'">'+(x.allowed?'<strong>'+(x.weight*100).toFixed(1)+'%</strong><small>'+(x.delta===null?'first accessible':(x.delta>=0?'+':'−')+Math.abs(x.delta*100).toFixed(1)+' pp')+'</small>':'<span>future<br>masked</span>')+'</td>';}).join('')+'</tr>').join('')+'</tbody></table></div><p class="scope-note">Five illustrative tokens in one sequence, one invented head. Advancing the query recomputes a distribution; it does not alter a stored “importance score” on an earlier token. Position gaps do not add extra competing keys.</p></section>';},
- attentionLesson09(s,inline=false){const frames=AtlasModel09.attention(s.weightHead,s.weightGap,s.weightContent),f=frames[s.weightQuery],stage=s.weightStage??2,roles=['system','developer','user','assistant history','tool'];const build='<div class="calculation-stages09">'+[['Compare Q and K','Compatibility score'],['Normalize the scores','Relative weight'],['Follow the query','All positions + Δ']].map(([label,sub],i)=>'<button id="weightStage'+i+'" data-weight-stage="'+i+'" aria-pressed="'+(stage===i)+'"><small>0'+(i+1)+' · '+sub+'</small><strong>'+label+'</strong></button>').join('')+'</div>';
- const comparison='<section class="score-explainer09"><div class="qk-flow09"><div><b>Q · Query</b><span>The current token’s learned comparison vector</span></div><strong>·</strong><div><b>K · Key</b><span>A candidate token’s learned comparison vector</span></div><strong>→</strong><div><b>Compatibility score</b><span>Dot product ÷ √d; can be negative</span></div></div><p>Q and K are numerical vectors, not literal questions or keywords. Multiply matching coordinates and add them: Q · K = Σ QᵢKᵢ. Dividing by √d scales the result; here d = 2.</p><div class="score-cards09">'+f.rows.map(r=>'<div><strong>'+r.role+'</strong><span>'+r.dot.toFixed(3)+' ÷ √2</span><b>'+r.score.toFixed(3)+'</b><small>'+(r.allowed?'allowed score':'future: excluded next')+'</small></div>').join('')+'</div><p><strong>A score is not a percentage.</strong> Its weight depends on all other accessible scores in the same calculation. Higher scores yield higher weights within that distribution.</p></section>';
- const normalization='<section class="normalization09"><h3>Score → positive strength → share of the total</h3><p>For numerical stability, subtract the largest allowed score ('+f.maxScore.toFixed(3)+') from every allowed score, then exponentiate. This shift leaves softmax percentages unchanged.</p><div class="normalization-formula09">weightᵢ = exp(scoreᵢ − max score) ÷ Σ exp(allowed scores − max score)</div><p>Denominator = '+f.rows.filter(r=>r.allowed).map(r=>r.strength.toFixed(3)).join(' + ')+' = <strong>'+f.denominator.toFixed(3)+'</strong>. Future positions contribute zero. Percentages sum to100% before rounding.</p><div class="normalization-cards09">'+f.rows.filter(r=>r.allowed).map((r,i)=>'<div class="'+(i===Math.min(2,f.query)?'worked-example09':'')+'"><strong>'+r.role+'</strong><small>score '+r.score.toFixed(3)+'</small><span>exp('+(r.score-f.maxScore).toFixed(3)+') = '+r.strength.toFixed(3)+'</span><b>'+r.strength.toFixed(3)+' / '+f.denominator.toFixed(3)+' = '+(r.weight*100).toFixed(1)+'%</b></div>').join('')+'</div></section>';
- return '<div class="attention-lesson09 '+(inline?'inline-attention09':'')+'"><div class="attention-premise09"><strong>Instruction authority sets intended conflict priority. Attention weights are calculated per query, head and layer.</strong><p>A role has no fixed percentage. These invented vectors illustrate the calculation; they do not expose any frontier model’s weights or predict obedience.</p></div>'+build+this.weightControls09(s)+'<div class="attention-stage-body09 stage-'+stage+'">'+(stage===0?comparison:stage===1?this.weightChart09(f)+normalization:this.weightChart09(f)+this.weightMatrix09(frames,s))+'</div><details class="advanced-attention09" '+(s.weightAdvanced?'open':'')+'><summary>Change the toy head, position spacing or content</summary><div class="control-row"><label>Toy head<select id="weightHead"><option value="0" '+(!s.weightHead?'selected':'')+'>A</option><option value="1" '+(s.weightHead?'selected':'')+'>B</option></select></label><label>Position spacing<select id="weightGap">'+[0,1,3,6].map(n=>'<option value="'+n+'" '+(s.weightGap===n?'selected':'')+'>'+(n+1)+'</option>').join('')+'</select></label><label>Key representation<select id="weightContent"><option value="base" '+(s.weightContent==='base'?'selected':'')+'>Base vectors</option><option value="task-match" '+(s.weightContent==='task-match'?'selected':'')+'>Changed user vector</option></select></label></div><p>RoPE rotates the invented Q/K vectors by position (toy angle0.4rad). Different content, queries, heads/layers and competing keys change the distribution. There is no universal recency multiplier.</p></details><p class="weight-summary09">The weights combine <strong>V (value)</strong> vectors into an attention output. The largest weight is not proof of governing authority or answer correctness. Next-token sampling happens separately.</p><div class="sources09">'+this.sourceLinks09(['transformer','rope','instruction-hierarchy'])+'</div></div>';
- },
- weightLab(s){return this.attentionLesson09(s)+'<div class="authority-order"><span>Simplified OpenAI authority example</span><strong>Root policy → System → Developer → User</strong><small>Root here means provider policy, not a repository root filename. Assistant history and tool content have no independent instruction authority; higher instructions may delegate scoped authority. A filename, directory depth or chart color does not establish a provider message role.</small></div>';},
- system(s){const tabs='<div class="walkthrough-tabs09"><button id="walkthroughContext" data-walkthrough-view="context" aria-pressed="'+(s.walkthroughView!=='attention')+'">Context journey</button><button id="walkthroughAttention" data-walkthrough-view="attention" aria-pressed="'+(s.walkthroughView==='attention')+'">Inside one model call →</button></div>';
- if(s.walkthroughView==='attention')return '<div class="workshop08"><div class="inline-heading09">'+tabs+'<p class="scope-note">Five-token toy calculation; separate from the replay’s token budgets.</p></div>'+this.attentionLesson09(s,true)+'</div>';
- const html=AtlasContent08.system.call(this,s),i=html.lastIndexOf('<div class="unified-boundary'),native=AtlasModel09.native(s.harness,AtlasReplay08.at(s.step).hook);return html.slice(0,i)+'<div class="walkthrough-footer09">'+tabs+this.nativePicker(s)+'<button id="inspectNativePolicy">'+this.esc(native.name)+' ↗</button>'+([8,9].includes(s.step)?'<button id="inspectSummary08">Summary inputs ↗</button>':'')+'</div></div>';
- },
- miniWindow09(layers,title,total,worker,compact=false){return '<section class="mini-window09 '+(compact?'compact-window09':'')+'" '+(worker?'data-worker-window="'+worker.id+'"':'data-parent-window')+'><header><strong>'+title+'</strong><span>'+this.count(total)+(compact?'':' tokens')+'</span></header><ol>'+layers.map((l,i)=>'<li class="mini-layer09 role-'+l.role+'"><small>'+(i+1)+'</small><span title="'+l.label+'">'+(compact?({base:'Instructions',tools:'Tools',guidance:'Guidance',skills:'Skills',task:'Task',evidence:'Sources',history:'Results'}[l.id]||l.label):({base:'Base instructions',tools:'Tool definitions',guidance:'Repo guidance',skills:'Relevant skills',task:worker?'Scoped task':'Current task',evidence:worker?'Source partition':'Selected evidence',history:worker?'Worker results':l.label}[l.id]||l.label))+'</span><b>'+this.count(l.tokens)+'</b></li>').join('')+'</ol></section>';},
- orchestration(s){const d=AtlasModel09.delegation(s.orchStep,s.workers,s.workloadProfile);const lane=(m,title,children)=>'<section class="orchestration-lane delegation-lane09"><h2>'+title+'</h2>'+'<div class="context-family09 '+(children&&d.step?'has-workers09':'')+'" style="--family-count:'+(d.workers+1)+'">'+this.miniWindow09(m.layers,'Parent',m.total,null,children&&d.step>0)+'<div class="delegation-flow09 '+(!children?'no-workers09':'')+'">'+(children?d.workerWindows.length?'<div class="flow-arrow09 role-policy">↓ scoped tasks + source partitions · child-start policy</div><div class="worker-grid09" style="--workers:'+d.workers+'">'+d.workerWindows.map(w=>this.miniWindow09(w.layers,w.id+' · '+w.status,w.total,w,true)).join('')+'</div><div class="flow-arrow09 role-stored">'+(d.step>=4?'↑ '+d.workers+' × 1,200-token validated reports admitted':'↑ report gate before parent admission; no reports yet')+'</div>':'<div class="empty-worker09">Workers have not been scoped yet. Advance to the next event.</div>':'<div class="empty-worker09">All work results stay in this parent session.</div>')+'</div></div><div class="delegation-metrics09"><span>Latest windows, summed<strong data-window-sum="'+m.kind+'">'+this.count(m.currentAcrossSessions)+'</strong></span><span>Peak dispatched parent<strong>'+this.count(m.parentPeak)+'</strong></span><span>Accrued input · all calls<strong data-accrued-input="'+m.kind+'">'+this.count(m.aggregate)+'</strong></span></div></section>';
- return '<div class="workshop08 delegation09"><div class="scenario-toolbar"><label>Workers · modeled tokens<select id="workerCount">'+[1,2,3].map(n=>'<option '+(n===s.workers?'selected':'')+'>'+n+'</option>').join('')+'</select></label><div class="unified-scrubber"><button id="orchBack" aria-label="Previous delegation event">←</button><input id="orchStep" type="range" min="0" max="6" value="'+s.orchStep+'" aria-label="Delegation event"><button id="orchForward" aria-label="Next delegation event">→</button></div><strong>'+d.label+'</strong></div><p class="delegation-scope09">Same model, selected source set, bounds and total work. Modeled tokens. Worker snapshots remain visible after return; they are not one shared context window.</p><div class="policy-comparison">'+lane(d.single,'One managed session',false)+lane(d.delegated,'Managed parent + workers',true)+'</div><div class="delegation-accounting09"><strong>Accrued input sums every dispatched request, including repeated prefixes.</strong><span>Latest-window sum adds the parent and each worker’s latest prepared input; it is neither a single window nor unique token consumption. Outputs/cache/latency are excluded.</span></div><div class="actions08">'+this.nativePicker(s)+'<button id="inspectInvocationLedger">Inspect every invocation ↗</button><button data-hook="handoff">Handoff boundaries ↗</button></div><p class="native-nuance09">'+({opencode:'OpenCode: subagents run in child sessions. Fork/history choices must be configured deliberately; this scenario models scoped workers.',claude:'Claude: fresh subagents have separate windows; forks copy conversation. Only selected report content returns to the parent in this scenario.',codex:'Codex: workers do their own model/tool work; returned summaries protect the main thread. This scenario holds inherited context to a scoped packet, not an unmeasured native default.'}[s.harness])+'</p></div>';
- },
- hooks(s){const id=s.hook||'prompt',h=AtlasContent08.hookInfo(id),native=AtlasModel09.native(s.harness,id),ids=['start','prompt','dispatch','pretool','posttool','child','handoff','precompact','postcompact'];return '<div class="workshop08 lifecycle09">'+this.nativePicker(s)+'<div class="lifecycle-layout09"><section class="lifecycle-spine09" aria-label="Session lifecycle and affected context">'+ids.map((x,i)=>{const info=AtlasContent08.hookInfo(x);return '<button id="hookNode-'+x+'" data-select-hook="'+x+'" aria-pressed="'+(id===x)+'" class="'+(['child','handoff'].includes(x)?'child-branch09':'')+'"><small>'+String(i+1).padStart(2,'0')+'</small><strong>'+info.label+'</strong><span>'+info.layers.split(', ').map(l=>'<i class="role-'+(['task','evidence','child evidence'].includes(l)?'evidence':/history|checkpoint/.test(l)?'stored':/tool/.test(l)?'execution':'policy')+'">'+l+'</i>').join('')+'</span></button>';}).join('')+'<p>Model/tool calls loop. Child work is a branch; these are policy boundaries, not a required one-pass sequence.</p></section><div class="hook-explainer"><section class="role-policy"><small class="policy-intent-label09">POLICY GOAL</small><h2>'+h.label+'</h2><p class="policy-goal-copy09">'+h.purpose+'</p><strong>Policy target: '+h.layers+'</strong></section><section class="native-integration09"><h3>'+({opencode:'OpenCode V2',claude:'Claude Code',codex:'Codex'}[s.harness])+' · native effect</h3><strong class="native-event09">'+this.esc(native.name)+'</strong><p>'+native.power+'</p><div class="hook-example09"><strong>Apply it</strong><p>'+native.example+'</p></div><p class="scope-note">'+native.limit+'</p><p class="sources09">'+this.sourceLinks09(native.sources)+'</p></section><div class="actions08"><button data-hook-example="'+id+'">Inspect a concrete example ↗</button><button data-kit="'+h.kit+'">'+(s.harness==='codex'?'Get portable package':'Get '+atlasKits08.find(k=>k.id===h.kit).name)+' →</button></div>'+(s.harness==='codex'?'<p class="scope-note bundle-note09">Codex package here: portable helpers; a native adapter is not bundled.</p>':'')+'</div></div></div>';},
- nativeAssembly09(harness){const d=AtlasModel09.assembly(harness);return '<div class="assembly-tabs09">'+[['opencode','OpenCode'],['claude','Claude'],['codex','Codex'],['cursor','Cursor']].map(([id,label])=>'<button id="assembly-'+id+'" data-native-harness="'+id+'" aria-pressed="'+(harness===id)+'">'+label+'</button>').join('')+'</div><p class="native-kind09"><strong>'+d.label+' · '+d.kind+'</strong></p>'+d.entries.map(([name,note],i)=>'<div class="native-row"><span class="rank">'+(harness==='opencode'?i+1:'•')+'</span><div><strong>'+this.esc(name)+'</strong><small>'+this.esc(note)+'</small></div></div>').join('')+'<p>'+this.esc(d.notes)+'</p><p class="scope-note">Documented sources, not a captured full provider request. Source order, role authority and attention weights are separate.</p><div class="sources09">'+this.sourceLinks09(d.sources)+'</div>';}
+const AtlasContent09 = {
+  nativePicker(s) {
+    return (
+      '<div class="native-picker09" aria-label="Native harness example"><span>Native example</span>' +
+      [
+        ['opencode', 'OpenCode'],
+        ['claude', 'Claude'],
+        ['codex', 'Codex'],
+      ]
+        .map(
+          ([id, label]) =>
+            '<button id="nativePick-' +
+            id +
+            '" data-native-target="' +
+            id +
+            '" aria-pressed="' +
+            (s.harness === id) +
+            '">' +
+            label +
+            '</button>',
+        )
+        .join('') +
+      '</div>'
+    );
+  },
+
+  sourceLinks09(ids) {
+    return ids
+      .map((id) => {
+        const x = AtlasModel.source(id);
+        return (
+          '<a href="' +
+          x.url +
+          '" target="_blank" rel="noopener noreferrer">' +
+          this.esc(x.title) +
+          ' ↗</a>'
+        );
+      })
+      .join(' · ');
+  },
+
+  weightControls09(s) {
+    return (
+      '<div class="query-sequence09" aria-label="Query position">' +
+      ['System', 'Developer', 'User', 'Assistant', 'Tool']
+        .map(
+          (r, i) =>
+            '<button id="weightQuery' +
+            i +
+            '" data-weight-query="' +
+            i +
+            '" aria-pressed="' +
+            (s.weightQuery === i) +
+            '"><small>Query position ' +
+            i * (s.weightGap + 1) +
+            '</small><strong>' +
+            r +
+            '</strong></button>',
+        )
+        .join('') +
+      '</div>'
+    );
+  },
+
+  weightChart09(frame) {
+    const labels = ['System', 'Developer', 'User', 'Assistant', 'Tool'],
+      shortLabels = ['Sys.', 'Dev.', 'User', 'Asst.', 'Tool'];
+    return (
+      '<figure class="weight-chart09" data-current-query="' +
+      frame.query +
+      '"><figcaption>Relative weight (%) · current query at position ' +
+      frame.rows[frame.query].position +
+      '</figcaption><div class="weight-plot09"><div class="weight-grid09">' +
+      [0, 25, 50, 75, 100]
+        .map((n) => '<span style="bottom:' + n + '%"><b>' + n + '</b></span>')
+        .join('') +
+      '</div><div class="attention-bars09">' +
+      frame.rows
+        .map(
+          (r, i) =>
+            '<div class="attention-slot09"><div class="attention-bar09 role-' +
+            ['policy', 'policy', 'evidence', 'stored', 'execution'][i] +
+            '" data-bar-weight="' +
+            r.weight +
+            '" style="height:' +
+            r.weight * 100 +
+            '%" title="' +
+            labels[i] +
+            ' at ' +
+            r.position +
+            ': ' +
+            (r.weight * 100).toFixed(2) +
+            '%"><strong>' +
+            (r.allowed
+              ? (r.weight * 100).toFixed(1) + '<span class="bar-unit09">%</span>'
+              : '<span class="chart-full09">masked</span><span class="chart-short09" aria-label="future masked">—</span>') +
+            '</strong></div><div class="key-label09"><strong><span class="chart-full09">' +
+            labels[i] +
+            '</span><span class="chart-short09">' +
+            shortLabels[i] +
+            '</span></strong><small><span class="chart-full09">Key position </span><span class="chart-short09">pos </span>' +
+            r.position +
+            '</small></div></div>',
+        )
+        .join('') +
+      ('</div></div><p class="chart-axis09">X · illustrative message token + key position<span ' +
+        'class="chart-short09 mobile-chart-legend09">— = future masked. Sys. = system; Dev. = ' +
+        'developer; Asst. = assistant. Y values are percentages.</span></p></figure>')
+    );
+  },
+
+  weightMatrix09(frames, s) {
+    return (
+      '<section class="weight-history09">' +
+      '<h3>The same key across successive query positions</h3>' +
+      '<p>Read across a row. Each cell shows its recalculated weight and Δ from the preceding ' +
+      'query, in percentage points (pp). A key first becomes accessible on its own ' +
+      'diagonal.</p><div class="weight-matrix-scroll09"><table><thead><tr><th>Key token / position</th>' +
+      frames
+        .map(
+          (f) =>
+            '<th class="' +
+            (f.query === s.weightQuery ? 'current-query09' : '') +
+            '">Query ' +
+            f.rows[f.query].position +
+            '</th>',
+        )
+        .join('') +
+      '</tr></thead><tbody>' +
+      frames[0].rows
+        .map(
+          (r, k) =>
+            '<tr><th>' +
+            r.role +
+            '<small>Key ' +
+            r.position +
+            '</small></th>' +
+            frames
+              .map((f) => {
+                const x = f.rows[k];
+                return (
+                  '<td data-weight-cell="' +
+                  k +
+                  '-' +
+                  f.query +
+                  '" class="' +
+                  (f.query === s.weightQuery ? 'current-query09 ' : '') +
+                  (!x.allowed ? 'masked09' : '') +
+                  '">' +
+                  (x.allowed
+                    ? '<strong>' +
+                      (x.weight * 100).toFixed(1) +
+                      '%</strong><small>' +
+                      (x.delta === null
+                        ? 'first accessible'
+                        : (x.delta >= 0 ? '+' : '−') + Math.abs(x.delta * 100).toFixed(1) + ' pp') +
+                      '</small>'
+                    : '<span>future<br>masked</span>') +
+                  '</td>'
+                );
+              })
+              .join('') +
+            '</tr>',
+        )
+        .join('') +
+      ('</tbody></table></div><p class="scope-note">Five illustrative tokens in one sequence, ' +
+        'one invented head. Advancing the query recomputes a distribution; it does not alter a ' +
+        'stored “importance score” on an earlier token. Position gaps do not add extra competing ' +
+        'keys.</p></section>')
+    );
+  },
+
+  attentionLesson09(s, inline = false) {
+    const frames = AtlasModel09.attention(s.weightHead, s.weightGap, s.weightContent),
+      f = frames[s.weightQuery],
+      stage = s.weightStage ?? 2,
+      roles = ['system', 'developer', 'user', 'assistant history', 'tool'];
+    const build =
+      '<div class="calculation-stages09">' +
+      [
+        ['Compare Q and K', 'Compatibility score'],
+        ['Normalize the scores', 'Relative weight'],
+        ['Follow the query', 'All positions + Δ'],
+      ]
+        .map(
+          ([label, sub], i) =>
+            '<button id="weightStage' +
+            i +
+            '" data-weight-stage="' +
+            i +
+            '" aria-pressed="' +
+            (stage === i) +
+            '"><small>0' +
+            (i + 1) +
+            ' · ' +
+            sub +
+            '</small><strong>' +
+            label +
+            '</strong></button>',
+        )
+        .join('') +
+      '</div>';
+    const comparison =
+      '<section class="score-explainer09"><div class="qk-flow09"><div><b>Q · Query</b>' +
+      '<span>The current token’s learned comparison vector</span></div><strong>·</strong><div>' +
+      '<b>K · Key</b><span>A candidate token’s learned comparison vector</span></div>' +
+      '<strong>→</strong><div><b>Compatibility score</b>' +
+      '<span>Dot product ÷ √d; can be negative</span></div></div>' +
+      '<p>Q and K are numerical vectors, not literal questions or keywords. Multiply matching ' +
+      'coordinates and add them: Q · K = Σ QᵢKᵢ. Dividing by √d scales the result; here d = ' +
+      '2.</p><div class="score-cards09">' +
+      f.rows
+        .map(
+          (r) =>
+            '<div><strong>' +
+            r.role +
+            '</strong><span>' +
+            r.dot.toFixed(3) +
+            ' ÷ √2</span><b>' +
+            r.score.toFixed(3) +
+            '</b><small>' +
+            (r.allowed ? 'allowed score' : 'future: excluded next') +
+            '</small></div>',
+        )
+        .join('') +
+      ('</div><p><strong>A score is not a percentage.</strong> Its weight depends on all other ' +
+        'accessible scores in the same calculation. Higher scores yield higher weights within ' +
+        'that distribution.</p></section>');
+    const normalization =
+      '<section class="normalization09">' +
+      '<h3>Score → positive strength → share of the total</h3>' +
+      '<p>For numerical stability, subtract the largest allowed score (' +
+      f.maxScore.toFixed(3) +
+      (') from every allowed score, then exponentiate. This shift leaves softmax percentages ' +
+        'unchanged.</p><div class="normalization-formula09">weightᵢ = exp(scoreᵢ − max score) ÷ ' +
+        'Σ exp(allowed scores − max score)</div><p>Denominator = ') +
+      f.rows
+        .filter((r) => r.allowed)
+        .map((r) => r.strength.toFixed(3))
+        .join(' + ') +
+      ' = <strong>' +
+      f.denominator.toFixed(3) +
+      '</strong>. Future positions contribute zero. Percentages sum to100% before rounding.</p><div class="normalization-cards09">' +
+      f.rows
+        .filter((r) => r.allowed)
+        .map(
+          (r, i) =>
+            '<div class="' +
+            (i === Math.min(2, f.query) ? 'worked-example09' : '') +
+            '"><strong>' +
+            r.role +
+            '</strong><small>score ' +
+            r.score.toFixed(3) +
+            '</small><span>exp(' +
+            (r.score - f.maxScore).toFixed(3) +
+            ') = ' +
+            r.strength.toFixed(3) +
+            '</span><b>' +
+            r.strength.toFixed(3) +
+            ' / ' +
+            f.denominator.toFixed(3) +
+            ' = ' +
+            (r.weight * 100).toFixed(1) +
+            '%</b></div>',
+        )
+        .join('') +
+      '</div></section>';
+    return (
+      '<div class="attention-lesson09 ' +
+      (inline ? 'inline-attention09' : '') +
+      ('"><div class="attention-premise09">' +
+        '<strong>Instruction authority sets intended conflict priority. Attention weights are ' +
+        'calculated per query, head and layer.</strong>' +
+        '<p>A role has no fixed percentage. These invented vectors illustrate the calculation; ' +
+        'they do not expose any frontier model’s weights or predict obedience.</p></div>') +
+      build +
+      this.weightControls09(s) +
+      '<div class="attention-stage-body09 stage-' +
+      stage +
+      '">' +
+      (stage === 0
+        ? comparison
+        : stage === 1
+          ? this.weightChart09(f) + normalization
+          : this.weightChart09(f) + this.weightMatrix09(frames, s)) +
+      '</div><details class="advanced-attention09" ' +
+      (s.weightAdvanced ? 'open' : '') +
+      ('><summary>Change the toy head, position spacing or content</summary>' +
+        '<div class="control-row"><label>Toy head<select id="weightHead"><option value="0" ') +
+      (!s.weightHead ? 'selected' : '') +
+      '>A</option><option value="1" ' +
+      (s.weightHead ? 'selected' : '') +
+      '>B</option></select></label><label>Position spacing<select id="weightGap">' +
+      [0, 1, 3, 6]
+        .map(
+          (n) =>
+            '<option value="' +
+            n +
+            '" ' +
+            (s.weightGap === n ? 'selected' : '') +
+            '>' +
+            (n + 1) +
+            '</option>',
+        )
+        .join('') +
+      '</select></label><label>Key representation<select id="weightContent"><option value="base" ' +
+      (s.weightContent === 'base' ? 'selected' : '') +
+      '>Base vectors</option><option value="task-match" ' +
+      (s.weightContent === 'task-match' ? 'selected' : '') +
+      ('>Changed user vector</option></select></label></div>' +
+        '<p>RoPE rotates the invented Q/K vectors by position (toy angle0.4rad). Different ' +
+        'content, queries, heads/layers and competing keys change the distribution. There is no ' +
+        'universal recency multiplier.</p></details>' +
+        '<p class="weight-summary09">The weights combine <strong>V (value)</strong> vectors into ' +
+        'an attention output. The largest weight is not proof of governing authority or answer ' +
+        'correctness. Next-token sampling happens separately.</p><div class="sources09">') +
+      this.sourceLinks09(['transformer', 'rope', 'instruction-hierarchy']) +
+      '</div></div>'
+    );
+  },
+
+  weightLab(s) {
+    return (
+      this.attentionLesson09(s) +
+      ('<div class="authority-order"><span>Simplified OpenAI authority example</span>' +
+        '<strong>Root policy → System → Developer → User</strong>' +
+        '<small>Root here means provider policy, not a repository root filename. Assistant ' +
+        'history and tool content have no independent instruction authority; higher instructions ' +
+        'may delegate scoped authority. A filename, directory depth or chart color does not ' +
+        'establish a provider message role.</small></div>')
+    );
+  },
+
+  system(s) {
+    const tabs =
+      '<div class="walkthrough-tabs09"><button id="walkthroughContext" data-walkthrough-view="context" aria-pressed="' +
+      (s.walkthroughView !== 'attention') +
+      '">Context journey</button><button id="walkthroughAttention" data-walkthrough-view="attention" aria-pressed="' +
+      (s.walkthroughView === 'attention') +
+      '">Inside one model call →</button></div>';
+    if (s.walkthroughView === 'attention')
+      return (
+        '<div class="workshop08"><div class="inline-heading09">' +
+        tabs +
+        '<p class="scope-note">Five-token toy calculation; separate from the replay’s token budgets.</p></div>' +
+        this.attentionLesson09(s, true) +
+        '</div>'
+      );
+    const html = AtlasContent08.system.call(this, s),
+      i = html.lastIndexOf('<div class="unified-boundary'),
+      native = AtlasModel09.native(s.harness, AtlasReplay08.at(s.step).hook);
+    return (
+      html.slice(0, i) +
+      '<div class="walkthrough-footer09">' +
+      tabs +
+      this.nativePicker(s) +
+      '<button id="inspectNativePolicy">' +
+      this.esc(native.name) +
+      ' ↗</button>' +
+      ([8, 9].includes(s.step) ? '<button id="inspectSummary08">Summary inputs ↗</button>' : '') +
+      '</div></div>'
+    );
+  },
+
+  miniWindow09(layers, title, total, worker, compact = false) {
+    return (
+      '<section class="mini-window09 ' +
+      (compact ? 'compact-window09' : '') +
+      '" ' +
+      (worker ? 'data-worker-window="' + worker.id + '"' : 'data-parent-window') +
+      '><header><strong>' +
+      title +
+      '</strong><span>' +
+      this.count(total) +
+      (compact ? '' : ' tokens') +
+      '</span></header><ol>' +
+      layers
+        .map(
+          (l, i) =>
+            '<li class="mini-layer09 role-' +
+            l.role +
+            '"><small>' +
+            (i + 1) +
+            '</small><span title="' +
+            l.label +
+            '">' +
+            (compact
+              ? {
+                  base: 'Instructions',
+                  tools: 'Tools',
+                  guidance: 'Guidance',
+                  skills: 'Skills',
+                  task: 'Task',
+                  evidence: 'Sources',
+                  history: 'Results',
+                }[l.id] || l.label
+              : {
+                  base: 'Base instructions',
+                  tools: 'Tool definitions',
+                  guidance: 'Repo guidance',
+                  skills: 'Relevant skills',
+                  task: worker ? 'Scoped task' : 'Current task',
+                  evidence: worker ? 'Source partition' : 'Selected evidence',
+                  history: worker ? 'Worker results' : l.label,
+                }[l.id] || l.label) +
+            '</span><b>' +
+            this.count(l.tokens) +
+            '</b></li>',
+        )
+        .join('') +
+      '</ol></section>'
+    );
+  },
+
+  orchestration(s) {
+    const d = AtlasModel09.delegation(s.orchStep, s.workers, s.workloadProfile);
+
+    const lane = (m, title, children) =>
+      '<section class="orchestration-lane delegation-lane09"><h2>' +
+      title +
+      '</h2>' +
+      '<div class="context-family09 ' +
+      (children && d.step ? 'has-workers09' : '') +
+      '" style="--family-count:' +
+      (d.workers + 1) +
+      '">' +
+      this.miniWindow09(m.layers, 'Parent', m.total, null, children && d.step > 0) +
+      '<div class="delegation-flow09 ' +
+      (!children ? 'no-workers09' : '') +
+      '">' +
+      (children
+        ? d.workerWindows.length
+          ? '<div class="flow-arrow09 role-policy">↓ scoped tasks + source partitions · child-start ' +
+            'policy</div><div class="worker-grid09" style="--workers:' +
+            d.workers +
+            '">' +
+            d.workerWindows
+              .map((w) => this.miniWindow09(w.layers, w.id + ' · ' + w.status, w.total, w, true))
+              .join('') +
+            '</div><div class="flow-arrow09 role-stored">' +
+            (d.step >= 4
+              ? '↑ ' + d.workers + ' × 1,200-token validated reports admitted'
+              : '↑ report gate before parent admission; no reports yet') +
+            '</div>'
+          : '<div class="empty-worker09">Workers have not been scoped yet. Advance to the next event.</div>'
+        : '<div class="empty-worker09">All work results stay in this parent session.</div>') +
+      '</div></div><div class="delegation-metrics09"><span>Latest windows, summed<strong data-window-sum="' +
+      m.kind +
+      '">' +
+      this.count(m.currentAcrossSessions) +
+      '</strong></span><span>Peak dispatched parent<strong>' +
+      this.count(m.parentPeak) +
+      '</strong></span><span>Accrued input · all calls<strong data-accrued-input="' +
+      m.kind +
+      '">' +
+      this.count(m.aggregate) +
+      '</strong></span></div></section>';
+
+    return (
+      '<div class="workshop08 delegation09"><div class="scenario-toolbar"><label>Workers · modeled tokens<select id="workerCount">' +
+      [1, 2, 3]
+        .map((n) => '<option ' + (n === s.workers ? 'selected' : '') + '>' + n + '</option>')
+        .join('') +
+      ('</select></label><div class="unified-scrubber">' +
+        '<button id="orchBack" aria-label="Previous delegation event">←</button>' +
+        '<input id="orchStep" type="range" min="0" max="6" value="') +
+      s.orchStep +
+      '" aria-label="Delegation event"><button id="orchForward" aria-label="Next delegation event">→</button></div><strong>' +
+      d.label +
+      ('</strong></div><p class="delegation-scope09">Same model, selected source set, bounds ' +
+        'and total work. Modeled tokens. Worker snapshots remain visible after return; they are ' +
+        'not one shared context window.</p><div class="policy-comparison">') +
+      lane(d.single, 'One managed session', false) +
+      lane(d.delegated, 'Managed parent + workers', true) +
+      ('</div><div class="delegation-accounting09">' +
+        '<strong>Accrued input sums every dispatched request, including repeated ' +
+        'prefixes.</strong><span>Latest-window sum adds the parent and each worker’s latest ' +
+        'prepared input; it is neither a single window nor unique token consumption. ' +
+        'Outputs/cache/latency are excluded.</span></div><div class="actions08">') +
+      this.nativePicker(s) +
+      ('<button id="inspectInvocationLedger">Inspect every invocation ↗</button>' +
+        '<button data-hook="handoff">Handoff boundaries ↗</button></div><p class="native-nuance09">') +
+      {
+        opencode:
+          'OpenCode: subagents run in child sessions. Fork/history choices must be configured deliberately; this scenario models scoped workers.',
+        claude:
+          'Claude: fresh subagents have separate windows; forks copy conversation. Only selected ' +
+          'report content returns to the parent in this scenario.',
+        codex:
+          'Codex: workers do their own model/tool work; returned summaries protect the main ' +
+          'thread. This scenario holds inherited context to a scoped packet, not an unmeasured native default.',
+      }[s.harness] +
+      '</p></div>'
+    );
+  },
+
+  hooks(s) {
+    const id = s.hook || 'prompt',
+      h = AtlasContent08.hookInfo(id),
+      native = AtlasModel09.native(s.harness, id),
+      ids = [
+        'start',
+        'prompt',
+        'dispatch',
+        'pretool',
+        'posttool',
+        'child',
+        'handoff',
+        'precompact',
+        'postcompact',
+      ];
+    return (
+      '<div class="workshop08 lifecycle09">' +
+      this.nativePicker(s) +
+      '<div class="lifecycle-layout09"><section class="lifecycle-spine09" aria-label="Session lifecycle and affected context">' +
+      ids
+        .map((x, i) => {
+          const info = AtlasContent08.hookInfo(x);
+          return (
+            '<button id="hookNode-' +
+            x +
+            '" data-select-hook="' +
+            x +
+            '" aria-pressed="' +
+            (id === x) +
+            '" class="' +
+            (['child', 'handoff'].includes(x) ? 'child-branch09' : '') +
+            '"><small>' +
+            String(i + 1).padStart(2, '0') +
+            '</small><strong>' +
+            info.label +
+            '</strong><span>' +
+            info.layers
+              .split(', ')
+              .map(
+                (l) =>
+                  '<i class="role-' +
+                  (['task', 'evidence', 'child evidence'].includes(l)
+                    ? 'evidence'
+                    : /history|checkpoint/.test(l)
+                      ? 'stored'
+                      : /tool/.test(l)
+                        ? 'execution'
+                        : 'policy') +
+                  '">' +
+                  l +
+                  '</i>',
+              )
+              .join('') +
+            '</span></button>'
+          );
+        })
+        .join('') +
+      ('<p>Model/tool calls loop. Child work is a branch; these are policy boundaries, not a ' +
+        'required one-pass sequence.</p></section><div class="hook-explainer">' +
+        '<section class="role-policy"><small class="policy-intent-label09">POLICY GOAL</small><h2>') +
+      h.label +
+      '</h2><p class="policy-goal-copy09">' +
+      h.purpose +
+      '</p><strong>Policy target: ' +
+      h.layers +
+      '</strong></section><section class="native-integration09"><h3>' +
+      { opencode: 'OpenCode V2', claude: 'Claude Code', codex: 'Codex' }[s.harness] +
+      ' · native effect</h3><strong class="native-event09">' +
+      this.esc(native.name) +
+      '</strong><p>' +
+      native.power +
+      '</p><div class="hook-example09"><strong>Apply it</strong><p>' +
+      native.example +
+      '</p></div><p class="scope-note">' +
+      native.limit +
+      '</p><p class="sources09">' +
+      this.sourceLinks09(native.sources) +
+      '</p></section><div class="actions08"><button data-hook-example="' +
+      id +
+      '">Inspect a concrete example ↗</button><button data-kit="' +
+      h.kit +
+      '">' +
+      (s.harness === 'codex'
+        ? 'Get portable package'
+        : 'Get ' + atlasKits08.find((k) => k.id === h.kit).name) +
+      ' →</button></div>' +
+      (s.harness === 'codex'
+        ? '<p class="scope-note bundle-note09">Codex package here: portable helpers; a native adapter is not bundled.</p>'
+        : '') +
+      '</div></div></div>'
+    );
+  },
+
+  nativeAssembly09(harness) {
+    const d = AtlasModel09.assembly(harness);
+    return (
+      '<div class="assembly-tabs09">' +
+      [
+        ['opencode', 'OpenCode'],
+        ['claude', 'Claude'],
+        ['codex', 'Codex'],
+        ['cursor', 'Cursor'],
+      ]
+        .map(
+          ([id, label]) =>
+            '<button id="assembly-' +
+            id +
+            '" data-native-harness="' +
+            id +
+            '" aria-pressed="' +
+            (harness === id) +
+            '">' +
+            label +
+            '</button>',
+        )
+        .join('') +
+      '</div><p class="native-kind09"><strong>' +
+      d.label +
+      ' · ' +
+      d.kind +
+      '</strong></p>' +
+      d.entries
+        .map(
+          ([name, note], i) =>
+            '<div class="native-row"><span class="rank">' +
+            (harness === 'opencode' ? i + 1 : '•') +
+            '</span><div><strong>' +
+            this.esc(name) +
+            '</strong><small>' +
+            this.esc(note) +
+            '</small></div></div>',
+        )
+        .join('') +
+      '<p>' +
+      this.esc(d.notes) +
+      ('</p><p class="scope-note">Documented sources, not a captured full provider request. ' +
+        'Source order, role authority and attention weights are separate.</p><div class="sources09">') +
+      this.sourceLinks09(d.sources) +
+      '</div>'
+    );
+  },
 };
-Object.assign(AtlasContent,AtlasContent09);
+Object.assign(AtlasContent, AtlasContent09);

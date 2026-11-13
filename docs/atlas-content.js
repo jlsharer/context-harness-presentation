@@ -1,53 +1,111 @@
 'use strict';
-const AtlasContent={
- esc:value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),
- icon(name){const paths={sources:'M5 3h10l4 4v14H5z M14 3v5h5 M8 12h8 M8 16h8',assembler:'M3 7l9-4 9 4-9 4z M3 12l9 4 9-4 M3 17l9 4 9-4',memory:'M4 6c0-4 16-4 16 0s-16 4-16 0v12c0 4 16 4 16 0V6 M4 12c0 4 16 4 16 0',model:'M7 7h10v10H7z M9 2v5 M15 2v5 M9 17v5 M15 17v5 M2 9h5 M2 15h5 M17 9h5 M17 15h5',tools:'M14 4a6 6 0 0 0-7 7L2 16l6 6 5-5a6 6 0 0 0 7-7l-4 3-4-4z',check:'M4 4h16v16H4z M7 12l4 4 6-8',context:'M4 4h16v16H4z M7 8h10 M7 12h10 M7 16h6'};return `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"><path d="${paths[name]||paths.context}"/></svg>`;},
- nativeOrder:[
-  ['Agent / provider system prompt','The selected agent or provider’s base guidance.'],
-  ['Code Mode guidance, if enabled','Conditional native tool-use guidance.'],
-  ['MCP, reference and skill guidance','Available integration and procedure guidance.'],
-  ['Global + project instructions','AGENTS.md sources, then configured instructions.'],
-  ['Date and environment context','Built-in environmental context.'],
-  ['Session-specific API instructions','Instruction entries supplied through the API.']
- ],
- title(node,title,subtitle){return `<div class="node-heading">${this.icon(node)}<div><h2>${title}</h2>${subtitle?`<small>${subtitle}</small>`:''}</div></div>`;},
- anchors:'<div class="anchors"><span class="anchor">API-2</span><span class="anchor">STORAGE-2</span><span class="anchor">INCIDENT-2</span></div>',
- output:'<div class="output-allowance" data-output-allowance><strong>Output headroom</strong> is a capacity allowance outside the input layers. Check the actual model’s limits.</div>',
- sourceLabel(s){return s.sourcePolicy==='incident'?'8 incident-relevant documents':'15 available context documents';},
- system(s,p){
-  const steps=['sources','assembler','model','tools','check'];
-  return `<div class="atlas-board" data-system-graphic>
-  <svg class="system-wire" viewBox="0 0 1000 600" preserveAspectRatio="none" aria-hidden="true"><defs><marker id="wireArrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0L7 3.5L0 7" fill="none" stroke="#b8ce9e"/></marker></defs><path class="wire ${s.flow<2?'lit':''}" d="M220 155H280"/><path class="wire" d="M220 440H280"/><path class="wire ${s.flow===2?'lit':''}" d="M650 130H720"/><path class="wire ${s.flow===3?'lit':''}" d="M780 240V336"/><path class="wire ${s.flow===4?'lit':''}" d="M945 240V336"/><path class="wire return ${s.flow===3?'lit':''}" d="M720 470H683V590H470V580"/><path class="wire return" d="M1000 500H1010V607H560V580"/><text x="227" y="140">select</text><text x="226" y="425">restore</text><text x="658" y="114">invoke</text><text x="733" y="290">tool request</text><text x="893" y="290">candidate final</text><text data-return-label="tools" x="680" y="601">tool results → reassemble</text><text data-return-label="acceptance" x="1000" y="601" text-anchor="end">failed checks ↩</text></svg>
-  <section class="node source-node ${steps[s.flow]==='sources'?'highlight':''}" data-node="sources">${this.title('sources','Source library','Available before the call')}<p class="source-categories">Contracts · incident logs · code, tests and historical decisions</p><div class="packet-summary"><strong>${p.files.length}</strong><span>documents · ${p.bytes.toLocaleString('en-US')} source bytes</span></div>${this.anchors}<button class="node-link" data-open="assembly">Inspect evidence ↗</button></section>
-  <section class="node memory-node" data-node="memory">${this.title('memory','Procedures + state','Load what the current step needs')}<div class="memory-lines"><div><b>Skill</b><span>Retry investigation.</span></div><div><b>Memory</b><span>Sourced decisions.</span></div><div><b>Handoff</b><span>Artifact + next check.</span></div></div><span class="badge">PERSISTED ≠ ALWAYS LOADED</span></section>
-  <section class="node assembler-node ${steps[s.flow]==='assembler'?'highlight':''}" data-node="assembler">${this.title('assembler','The request assembler','Custom/native harness · inclusion + layout policy')}<div class="concept-layers"><div><b>1</b><div><strong>Instructions + procedures</strong><span>Purpose, rules, relevant methods</span></div><small>REUSABLE</small></div><div><b>2</b><div><strong>Current task + constraints</strong><span>Retry one order; preserve the API</span></div><small>DYNAMIC</small></div><div><b>3</b><div><strong>Selected source evidence</strong><span>${p.files.length} documents · traceable anchors</span></div><small>SELECTED</small></div><div><b>4</b><div><strong>Conversation + tool results</strong><span>Retain, filter, summarize or retrieve</span></div><small>UPDATED</small></div></div><p class="assembler-subnote">Choose inclusion, structure and valid order before <em>each</em> invocation. Role authority and text position are separate.</p><button class="node-link" data-open="assembly">Expand ordered assembly ↗</button>${this.output}</section>
-  <section class="node model-node ${steps[s.flow]==='model'?'highlight':''}" data-node="model">${this.title('model','Model generation','Base harness · one request → one generation')}<div class="model-glyph"><span>selected input</span>${this.icon('model')}<span>text / tool requests</span></div><p>Capacity: what fits. Retrieval tests: effective use. Attention: internal computation.</p><button class="node-link" data-open="attention">Inspect attention + evidence ↗</button></section>
-  <section class="node tools-node tight-node ${steps[s.flow]==='tools'?'highlight':''}" data-node="tools">${this.title('tools','Tools','New evidence')}<ul><li>Read / search</li><li>Patch / test</li><li>Return selected results</li></ul></section>
-  <section class="node check-node tight-node ${steps[s.flow]==='check'?'highlight':''}" data-node="check">${this.title('check','Acceptance','Check the artifact')}<ul><li>Duplicate retries</li><li>Durable identity</li><li>Compatibility</li></ul><span class="badge">DONE ≠ VERIFIED</span></section>
+const AtlasContent = {
+  esc: (value) =>
+    String(value).replace(
+      /[&<>"']/g,
+      (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c],
+    ),
+
+  icon(name) {
+    const paths = {
+      sources: 'M5 3h10l4 4v14H5z M14 3v5h5 M8 12h8 M8 16h8',
+      assembler: 'M3 7l9-4 9 4-9 4z M3 12l9 4 9-4 M3 17l9 4 9-4',
+      memory: 'M4 6c0-4 16-4 16 0s-16 4-16 0v12c0 4 16 4 16 0V6 M4 12c0 4 16 4 16 0',
+      model: 'M7 7h10v10H7z M9 2v5 M15 2v5 M9 17v5 M15 17v5 M2 9h5 M2 15h5 M17 9h5 M17 15h5',
+      tools: 'M14 4a6 6 0 0 0-7 7L2 16l6 6 5-5a6 6 0 0 0 7-7l-4 3-4-4z',
+      check: 'M4 4h16v16H4z M7 12l4 4 6-8',
+      context: 'M4 4h16v16H4z M7 8h10 M7 12h10 M7 16h6',
+    };
+    return `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"><path d="${paths[name] || paths.context}"/></svg>`;
+  },
+
+  nativeOrder: [
+    ['Agent / provider system prompt', 'The selected agent or provider’s base guidance.'],
+    ['Code Mode guidance, if enabled', 'Conditional native tool-use guidance.'],
+    ['MCP, reference and skill guidance', 'Available integration and procedure guidance.'],
+    ['Global + project instructions', 'AGENTS.md sources, then configured instructions.'],
+    ['Date and environment context', 'Built-in environmental context.'],
+    ['Session-specific API instructions', 'Instruction entries supplied through the API.'],
+  ],
+
+  title(node, title, subtitle) {
+    return `<div class="node-heading">${this.icon(node)}<div><h2>${title}</h2>${subtitle ? `<small>${subtitle}</small>` : ''}</div></div>`;
+  },
+
+  anchors:
+    '<div class="anchors"><span class="anchor">API-2</span><span class="anchor">STORAGE-2</span><span class="anchor">INCIDENT-2</span></div>',
+  output:
+    '<div class="output-allowance" data-output-allowance>' +
+    '<strong>Output headroom</strong> is a capacity allowance outside the input layers. ' +
+    'Check the actual model’s limits.</div>',
+
+  sourceLabel(s) {
+    return s.sourcePolicy === 'incident'
+      ? '8 incident-relevant documents'
+      : '15 available context documents';
+  },
+
+  system(s, p) {
+    const steps = ['sources', 'assembler', 'model', 'tools', 'check'];
+    return `<div class="atlas-board" data-system-graphic>
+  <svg class="system-wire" viewBox="0 0 1000 600" preserveAspectRatio="none" aria-hidden="true"><defs><marker id="wireArrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0L7 3.5L0 7" fill="none" stroke="#b8ce9e"/></marker></defs><path class="wire ${s.flow < 2 ? 'lit' : ''}" d="M220 155H280"/><path class="wire" d="M220 440H280"/><path class="wire ${s.flow === 2 ? 'lit' : ''}" d="M650 130H720"/><path class="wire ${s.flow === 3 ? 'lit' : ''}" d="M780 240V336"/><path class="wire ${s.flow === 4 ? 'lit' : ''}" d="M945 240V336"/><path class="wire return ${s.flow === 3 ? 'lit' : ''}" d="M720 470H683V590H470V580"/><path class="wire return" d="M1000 500H1010V607H560V580"/><text x="227" y="140">select</text><text x="226" y="425">restore</text><text x="658" y="114">invoke</text><text x="733" y="290">tool request</text><text x="893" y="290">candidate final</text><text data-return-label="tools" x="680" y="601">tool results → reassemble</text><text data-return-label="acceptance" x="1000" y="601" text-anchor="end">failed checks ↩</text></svg>
+  <section class="node source-node ${steps[s.flow] === 'sources' ? 'highlight' : ''}" data-node="sources">${this.title('sources', 'Source library', 'Available before the call')}<p class="source-categories">Contracts · incident logs · code, tests and historical decisions</p><div class="packet-summary"><strong>${p.files.length}</strong><span>documents · ${p.bytes.toLocaleString('en-US')} source bytes</span></div>${this.anchors}<button class="node-link" data-open="assembly">Inspect evidence ↗</button></section>
+  <section class="node memory-node" data-node="memory">${this.title('memory', 'Procedures + state', 'Load what the current step needs')}<div class="memory-lines"><div><b>Skill</b><span>Retry investigation.</span></div><div><b>Memory</b><span>Sourced decisions.</span></div><div><b>Handoff</b><span>Artifact + next check.</span></div></div><span class="badge">PERSISTED ≠ ALWAYS LOADED</span></section>
+  <section class="node assembler-node ${steps[s.flow] === 'assembler' ? 'highlight' : ''}" data-node="assembler">${this.title('assembler', 'The request assembler', 'Custom/native harness · inclusion + layout policy')}<div class="concept-layers"><div><b>1</b><div><strong>Instructions + procedures</strong><span>Purpose, rules, relevant methods</span></div><small>REUSABLE</small></div><div><b>2</b><div><strong>Current task + constraints</strong><span>Retry one order; preserve the API</span></div><small>DYNAMIC</small></div><div><b>3</b><div><strong>Selected source evidence</strong><span>${p.files.length} documents · traceable anchors</span></div><small>SELECTED</small></div><div><b>4</b><div><strong>Conversation + tool results</strong><span>Retain, filter, summarize or retrieve</span></div><small>UPDATED</small></div></div><p class="assembler-subnote">Choose inclusion, structure and valid order before <em>each</em> invocation. Role authority and text position are separate.</p><button class="node-link" data-open="assembly">Expand ordered assembly ↗</button>${this.output}</section>
+  <section class="node model-node ${steps[s.flow] === 'model' ? 'highlight' : ''}" data-node="model">${this.title('model', 'Model generation', 'Base harness · one request → one generation')}<div class="model-glyph"><span>selected input</span>${this.icon('model')}<span>text / tool requests</span></div><p>Capacity: what fits. Retrieval tests: effective use. Attention: internal computation.</p><button class="node-link" data-open="attention">Inspect attention + evidence ↗</button></section>
+  <section class="node tools-node tight-node ${steps[s.flow] === 'tools' ? 'highlight' : ''}" data-node="tools">${this.title('tools', 'Tools', 'New evidence')}<ul><li>Read / search</li><li>Patch / test</li><li>Return selected results</li></ul></section>
+  <section class="node check-node tight-node ${steps[s.flow] === 'check' ? 'highlight' : ''}" data-node="check">${this.title('check', 'Acceptance', 'Check the artifact')}<ul><li>Duplicate retries</li><li>Durable identity</li><li>Compatibility</li></ul><span class="badge">DONE ≠ VERIFIED</span></section>
   </div>`;
- },
- assembly(s,p){
-  const parts=AtlasModel.parts(s,p),orderText=parts.map((part,i)=>`${i+1}. ${part.label}`).join('\n');
-  return `<div class="assembly-layout">
-  <section class="assembly-pane" data-node="sources"><div class="pane-title">${this.icon('sources')}<div><h2>1 · Select the material</h2><small>Actual frozen service fixture</small></div></div><label for="sourcePolicy">Evidence policy<select id="sourcePolicy"><option value="all" ${s.sourcePolicy==='all'?'selected':''}>All context documents</option><option value="incident" ${s.sourcePolicy==='incident'?'selected':''}>Incident-relevant evidence</option></select></label><div class="source-shelf"><div><strong>Current contracts</strong>API · storage · delivery · security</div><div><strong>Observed fixture behavior</strong>Incident timeline and logs</div><div><strong>Relevant historical assumption</strong>Superseded retry ADR, labeled as such</div></div><div class="selection-total" id="candidateSize" data-bytes="${p.bytes}"><strong>${p.bytes.toLocaleString('en-US')}</strong>UTF-8 source bytes · ${p.files.length} documents</div>${this.anchors}<p class="pane-scope">Candidate source text, not native model tokens or a captured complete request.</p>${this.output}</section>
-  <section class="assembly-pane" data-node="assembler"><div class="pane-title">${this.icon('assembler')}<div><h2>2 · Load initial instructions</h2><small>Documented OpenCode V2 order</small></div></div><div id="nativeOrder" class="native-stack"><span class="sr">Documented initial instruction order, not a captured native request.</span>${this.nativeOrder.map(([name,note],i)=>`<div class="native-row"><span class="rank">${i+1}</span><div><strong class="native-name">${name}</strong><small>${note}</small></div></div>`).join('')}</div><div class="native-bridge">↓ Combine with selected task, history and tool results</div><p class="pane-scope">Initial instruction sources only. Later discoveries, message/tool pairing and provider-rendered schemas have their own placement.</p><div class="role-note"><div><strong>Role / authority</strong>Provider-defined instruction priority.</div><div><strong>Order / position</strong>Where material appears in the valid input.</div></div></section>
-  <section class="assembly-pane" data-node="context"><div class="pane-title">${this.icon('context')}<div><h2>3 · Inspect the candidate</h2><small>Change layout; keep source roles intact</small></div></div><label for="layoutPolicy">Candidate task-content layout<select id="layoutPolicy"><option value="task-first" ${s.layoutPolicy==='task-first'?'selected':''}>Task → evidence → checks</option><option value="evidence-first" ${s.layoutPolicy==='evidence-first'?'selected':''}>Evidence → task → checks</option></select></label><div class="layout-message"><span>USER-CONTENT TEACHING EXAMPLE</span><div class="message-sections">${parts.map(part=>`<div class="message-section" data-section="${part.id}"><strong>${part.label}</strong><p>${this.esc(part.description)}</p></div>`).join('')}</div></div><pre id="manifestText" class="manifest-preview">${this.esc(orderText)}\n\nSame source set. Different sequence.</pre><button class="manifest-open" id="inspectManifest">Inspect full candidate manifest ↗</button><p class="pane-scope">A different serialization is observable here. Its performance effect on this task is unmeasured; published order effects have a specific model/task scope.</p></section>
+  },
+
+  assembly(s, p) {
+    const parts = AtlasModel.parts(s, p),
+      orderText = parts.map((part, i) => `${i + 1}. ${part.label}`).join('\n');
+    return `<div class="assembly-layout">
+  <section class="assembly-pane" data-node="sources"><div class="pane-title">${this.icon('sources')}<div><h2>1 · Select the material</h2><small>Actual frozen service fixture</small></div></div><label for="sourcePolicy">Evidence policy<select id="sourcePolicy"><option value="all" ${s.sourcePolicy === 'all' ? 'selected' : ''}>All context documents</option><option value="incident" ${s.sourcePolicy === 'incident' ? 'selected' : ''}>Incident-relevant evidence</option></select></label><div class="source-shelf"><div><strong>Current contracts</strong>API · storage · delivery · security</div><div><strong>Observed fixture behavior</strong>Incident timeline and logs</div><div><strong>Relevant historical assumption</strong>Superseded retry ADR, labeled as such</div></div><div class="selection-total" id="candidateSize" data-bytes="${p.bytes}"><strong>${p.bytes.toLocaleString('en-US')}</strong>UTF-8 source bytes · ${p.files.length} documents</div>${this.anchors}<p class="pane-scope">Candidate source text, not native model tokens or a captured complete request.</p>${this.output}</section>
+  <section class="assembly-pane" data-node="assembler"><div class="pane-title">${this.icon('assembler')}<div><h2>2 · Load initial instructions</h2><small>Documented OpenCode V2 order</small></div></div><div id="nativeOrder" class="native-stack"><span class="sr">Documented initial instruction order, not a captured native request.</span>${this.nativeOrder.map(([name, note], i) => `<div class="native-row"><span class="rank">${i + 1}</span><div><strong class="native-name">${name}</strong><small>${note}</small></div></div>`).join('')}</div><div class="native-bridge">↓ Combine with selected task, history and tool results</div><p class="pane-scope">Initial instruction sources only. Later discoveries, message/tool pairing and provider-rendered schemas have their own placement.</p><div class="role-note"><div><strong>Role / authority</strong>Provider-defined instruction priority.</div><div><strong>Order / position</strong>Where material appears in the valid input.</div></div></section>
+  <section class="assembly-pane" data-node="context"><div class="pane-title">${this.icon('context')}<div><h2>3 · Inspect the candidate</h2><small>Change layout; keep source roles intact</small></div></div><label for="layoutPolicy">Candidate task-content layout<select id="layoutPolicy"><option value="task-first" ${s.layoutPolicy === 'task-first' ? 'selected' : ''}>Task → evidence → checks</option><option value="evidence-first" ${s.layoutPolicy === 'evidence-first' ? 'selected' : ''}>Evidence → task → checks</option></select></label><div class="layout-message"><span>USER-CONTENT TEACHING EXAMPLE</span><div class="message-sections">${parts.map((part) => `<div class="message-section" data-section="${part.id}"><strong>${part.label}</strong><p>${this.esc(part.description)}</p></div>`).join('')}</div></div><pre id="manifestText" class="manifest-preview">${this.esc(orderText)}\n\nSame source set. Different sequence.</pre><button class="manifest-open" id="inspectManifest">Inspect full candidate manifest ↗</button><p class="pane-scope">A different serialization is observable here. Its performance effect on this task is unmeasured; published order effects have a specific model/task scope.</p></section>
   </div>`;
- },
- attention(s){
-  return `<div class="attention-layout"><section class="mechanism" data-node="model"><div class="pane-title">${this.icon('model')}<div><h2>What attention computes</h2><small>Causal Transformer mechanism</small></div></div><div class="formula">softmax(QKᵀ / √d<sub>k</sub> + M)V</div><div class="qkv"><b>Q</b><span>The current token’s query representation.</span><b>K</b><span>Accessible token keys for comparison.</span><b>V</b><span>Values combined using the scores.</span><b>M</b><span>A causal mask excludes future positions.</span></div><div class="mask-explanation"><div class="causal-mask" role="img" aria-label="Causal connection mask: each row can access itself and earlier positions, not future positions.">${Array.from({length:36},(_,i)=>`<i class="${i%6<=Math.floor(i/6)?'allowed':''}"></i>`).join('')}</div><p><strong>Allowed connections</strong>A structural mask, not measured attention weights.</p></div><p class="pane-scope">Attention varies across queries, heads and layers. A task-accuracy curve measures a different quantity.</p><button class="research-button" id="showLogits">View published internal-attention measurements ↗</button></section>
-  <section class="study" data-node="attention-evidence"><div class="study-heading"><h2>What longer context changed in a published task</h2><label for="cotPolicy"><input id="cotPolicy" type="checkbox" ${s.cot?'checked':''}> Show with-CoT condition</label></div><figure class="study-figure">${this.plot(s.cot)}</figure><figcaption class="study-caption" id="researchCaption"><strong>NoLiMa v3 (2025), Table 4 · Llama 3.3 70B.</strong> Task accuracy (%); one- and two-hop association retrieval. Paper length labels; no current-model ranking. These are measured behavioral results, not attention weights.<button id="showResearchData">Data + scope ↗</button></figcaption></section>
+  },
+
+  attention(s) {
+    return `<div class="attention-layout"><section class="mechanism" data-node="model"><div class="pane-title">${this.icon('model')}<div><h2>What attention computes</h2><small>Causal Transformer mechanism</small></div></div><div class="formula">softmax(QKᵀ / √d<sub>k</sub> + M)V</div><div class="qkv"><b>Q</b><span>The current token’s query representation.</span><b>K</b><span>Accessible token keys for comparison.</span><b>V</b><span>Values combined using the scores.</span><b>M</b><span>A causal mask excludes future positions.</span></div><div class="mask-explanation"><div class="causal-mask" role="img" aria-label="Causal connection mask: each row can access itself and earlier positions, not future positions.">${Array.from({ length: 36 }, (_, i) => `<i class="${i % 6 <= Math.floor(i / 6) ? 'allowed' : ''}"></i>`).join('')}</div><p><strong>Allowed connections</strong>A structural mask, not measured attention weights.</p></div><p class="pane-scope">Attention varies across queries, heads and layers. A task-accuracy curve measures a different quantity.</p><button class="research-button" id="showLogits">View published internal-attention measurements ↗</button></section>
+  <section class="study" data-node="attention-evidence"><div class="study-heading"><h2>What longer context changed in a published task</h2><label for="cotPolicy"><input id="cotPolicy" type="checkbox" ${s.cot ? 'checked' : ''}> Show with-CoT condition</label></div><figure class="study-figure">${this.plot(s.cot)}</figure><figcaption class="study-caption" id="researchCaption"><strong>NoLiMa v3 (2025), Table 4 · Llama 3.3 70B.</strong> Task accuracy (%); one- and two-hop association retrieval. Paper length labels; no current-model ranking. These are measured behavioral results, not attention weights.<button id="showResearchData">Data + scope ↗</button></figcaption></section>
   <section class="implications" data-node="assembler"><div class="implication">${this.icon('sources')}<div><h3>Retrieve relevant evidence</h3><p>Bring source-linked material into the working set; check that required facts survive.</p><a href="${AtlasModel.source('context-engineering').url}" target="_blank" rel="noopener noreferrer">Engineering guidance ↗</a></div></div><div class="implication">${this.icon('assembler')}<div><h3>Test structure and placement</h3><p>Placement advice is model-specific. Changing order is a policy to evaluate, not a guaranteed repair.</p><a href="${AtlasModel.source('openai-gpt41-layout').url}" target="_blank" rel="noopener noreferrer">GPT-4.1 placement guidance ↗</a></div></div><div class="implication">${this.icon('check')}<div><h3>Measure effective use</h3><p>Vary length, position and difficulty. Score accepted behavior rather than inferring attention from occupancy.</p><a href="${AtlasModel.source('nolima').url}" target="_blank" rel="noopener noreferrer">NoLiMa setup and results ↗</a></div></div></section></div>`;
- },
- plot(cot){
-  const series=cot?atlasStudy.series.slice(2,4):atlasStudy.series.slice(0,2),colors=['#abd7a4','#ecc98a'];
-  const xs=[70,238,406,574],y=v=>280-v*2.3;
-  let html='<path class="axis" d="M70 40V280H600"/>';
-  for(let t=0;t<=100;t+=25)html+=`<path class="grid" d="M70 ${y(t)}H600"/><text x="55" y="${y(t)+4}" text-anchor="end">${t}</text>`;
-  xs.forEach((x,i)=>html+=`<text x="${x}" y="301" text-anchor="middle">${atlasStudy.contextLengthLabels[i]}</text>`);
-  html+='<text class="axis-label-long" x="336" y="329" text-anchor="middle">Context length (paper labels; doubling steps)</text><text class="axis-label-short" x="336" y="329" text-anchor="middle">Context length</text><text transform="translate(18 166) rotate(-90)" text-anchor="middle">Task accuracy (%)</text>';
-  series.forEach((s,i)=>{html+=`<path class="series-line" stroke="${colors[i]}" d="${s.values.map((v,j)=>(j?'L':'M')+xs[j]+' '+y(v)).join(' ')}"/>`;s.values.forEach((v,j)=>html+=`<circle cx="${xs[j]}" cy="${y(v)}" r="5.5" fill="${colors[i]}" data-accuracy="${v}" tabindex="0" aria-label="${s.label}, ${atlasStudy.contextLengthLabels[j]} context: ${v}% accuracy"><title>${s.label} · ${atlasStudy.contextLengthLabels[j]} · ${v}%</title></circle>`);html+=`<line x1="${85+i*230}" x2="${108+i*230}" y1="22" y2="22" stroke="${colors[i]}" stroke-width="3"/><text class="legend-text" x="${117+i*230}" y="26">${i?'Two-hop':'One-hop'}<tspan class="legend-condition">${cot?' · with CoT':''}</tspan></text>`;});
-  return `<svg id="researchChart" class="research-plot" viewBox="0 0 650 345" role="img" aria-label="Published NoLiMa task accuracy versus context length for Llama 3.3 70B. Zero-to-100-percent vertical axis; not an attention-weight plot.">${html}</svg>`;
- },
- references(){return `<h2 class="reference-heading">Sources, scope and materials</h2><div id="referenceIndex" class="reference-grid">${atlasSources.sources.map(source=>`<article class="reference-entry" data-reference="${source.id}"><span>${this.esc(source.type.replaceAll('-',' ').toUpperCase())}${source.year?' · '+source.year:''}</span><h3><a href="${source.url}" target="_blank" rel="noopener noreferrer">${this.esc(source.title)} ↗</a></h3><p>${this.esc(source.supports)}</p><p class="scope"><strong>Scope:</strong> ${this.esc(source.limit)}</p><p class="scope">Locator: ${this.esc(source.locator)} · checked ${atlasSources.reviewedOn}</p></article>`).join('')}</div><div class="materials"><a href="research/round03/sources.json" download>Source catalog ↓</a><a href="research/round03/nolima-table4.json" download>Checked research data ↓</a><a href="research/round03/attention-definitions.md">Attention definitions ↗</a><a href="benchmark.html?suite=service">Our experiment explorer ↗</a><a href="benchmark-service.html">Service trial method + caveats ↗</a><a href="benchmark-pilot.html">Earlier pilot ↗</a><a href="research/round03/figures/manifest.json">Figure provenance + license ↗</a></div>`;}
+  },
+
+  plot(cot) {
+    const series = cot ? atlasStudy.series.slice(2, 4) : atlasStudy.series.slice(0, 2),
+      colors = ['#abd7a4', '#ecc98a'];
+
+    const xs = [70, 238, 406, 574],
+      y = (v) => 280 - v * 2.3;
+
+    let html = '<path class="axis" d="M70 40V280H600"/>';
+    for (let t = 0; t <= 100; t += 25)
+      html += `<path class="grid" d="M70 ${y(t)}H600"/><text x="55" y="${y(t) + 4}" text-anchor="end">${t}</text>`;
+    xs.forEach(
+      (x, i) =>
+        (html += `<text x="${x}" y="301" text-anchor="middle">${atlasStudy.contextLengthLabels[i]}</text>`),
+    );
+    html +=
+      '<text class="axis-label-long" x="336" y="329" text-anchor="middle">Context length ' +
+      '(paper labels; doubling steps)</text>' +
+      '<text class="axis-label-short" x="336" y="329" text-anchor="middle">Context ' +
+      'length</text><text transform="translate(18 166) rotate(-90)" text-anchor="middle">Task ' +
+      'accuracy (%)</text>';
+    series.forEach((s, i) => {
+      html += `<path class="series-line" stroke="${colors[i]}" d="${s.values.map((v, j) => (j ? 'L' : 'M') + xs[j] + ' ' + y(v)).join(' ')}"/>`;
+      s.values.forEach(
+        (v, j) =>
+          (html += `<circle cx="${xs[j]}" cy="${y(v)}" r="5.5" fill="${colors[i]}" data-accuracy="${v}" tabindex="0" aria-label="${s.label}, ${atlasStudy.contextLengthLabels[j]} context: ${v}% accuracy"><title>${s.label} · ${atlasStudy.contextLengthLabels[j]} · ${v}%</title></circle>`),
+      );
+      html += `<line x1="${85 + i * 230}" x2="${108 + i * 230}" y1="22" y2="22" stroke="${colors[i]}" stroke-width="3"/><text class="legend-text" x="${117 + i * 230}" y="26">${i ? 'Two-hop' : 'One-hop'}<tspan class="legend-condition">${cot ? ' · with CoT' : ''}</tspan></text>`;
+    });
+    return `<svg id="researchChart" class="research-plot" viewBox="0 0 650 345" role="img" aria-label="Published NoLiMa task accuracy versus context length for Llama 3.3 70B. Zero-to-100-percent vertical axis; not an attention-weight plot.">${html}</svg>`;
+  },
+
+  references() {
+    return `<h2 class="reference-heading">Sources, scope and materials</h2><div id="referenceIndex" class="reference-grid">${atlasSources.sources.map((source) => `<article class="reference-entry" data-reference="${source.id}"><span>${this.esc(source.type.replaceAll('-', ' ').toUpperCase())}${source.year ? ' · ' + source.year : ''}</span><h3><a href="${source.url}" target="_blank" rel="noopener noreferrer">${this.esc(source.title)} ↗</a></h3><p>${this.esc(source.supports)}</p><p class="scope"><strong>Scope:</strong> ${this.esc(source.limit)}</p><p class="scope">Locator: ${this.esc(source.locator)} · checked ${atlasSources.reviewedOn}</p></article>`).join('')}</div><div class="materials"><a href="research/round03/sources.json" download>Source catalog ↓</a><a href="research/round03/nolima-table4.json" download>Checked research data ↓</a><a href="research/round03/attention-definitions.md">Attention definitions ↗</a><a href="benchmark.html?suite=service">Our experiment explorer ↗</a><a href="benchmark-service.html">Service trial method + caveats ↗</a><a href="benchmark-pilot.html">Earlier pilot ↗</a><a href="research/round03/figures/manifest.json">Figure provenance + license ↗</a></div>`;
+  },
 };

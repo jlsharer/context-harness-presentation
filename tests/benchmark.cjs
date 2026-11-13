@@ -1,120 +1,232 @@
-const {chromium}=require('playwright');
-const assert=require('node:assert/strict');
-const fs=require('node:fs/promises');
-const path=require('node:path');
-const http=require('node:http');
-const os=require('node:os');
-(async()=>{
-const output=await fs.mkdtemp(path.join(os.tmpdir(),'benchmark-browser-'));
-const server=http.createServer(async(req,res)=>{try{
- const name=new URL(req.url,'http://localhost').pathname.slice(1)||'benchmark.html';
- if(!/^(benchmark(?:-schema|-pilot)?\.(html|js|css)|benchmark-data\/[\w-]+\.json)$/.test(name)){res.writeHead(404).end();return;}
- const data=await fs.readFile(path.join(__dirname,'../docs',name));res.writeHead(200,{'Content-Type':{'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json'}[path.extname(name)]});res.end(data);
-}catch{res.writeHead(404).end()}});
-await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(0,'127.0.0.1',resolve)});let browser;
-try{
- browser=await chromium.launch({executablePath:process.env.TEST_BROWSER||undefined});
- const page=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[];
- page.on('pageerror',e=>errors.push(e.message));
- const base=process.env.BENCHMARK_URL||'http://127.0.0.1:'+server.address().port+'/benchmark.html';
- await page.goto(base);await page.getByText('No measured results loaded.',{exact:true}).waitFor();
- await page.getByRole('button',{name:'Load synthetic demonstration'}).click();
- await page.getByText('Synthetic demonstration — not measured results.',{exact:true}).waitFor();
- assert.equal(await page.locator('.comparison-card').count(),2);
- assert.equal(await page.locator('.arm-status').count(),5);
- assert.match(await page.locator('#comparability').innerText(),/Matched conditions/);
- assert.match(await page.locator('#unavailable').innerText(),/C.*D.*E/s);
- await page.locator('#rightArm').selectOption('B');
- await page.locator('.comparison-card').nth(1).getByRole('button',{name:/Inspect calls/}).click();
- await page.getByRole('dialog').waitFor();
- assert.match(await page.locator('#detailBody').innerText(),/10 model attempts/);
- const worker=page.locator('#detailBody details').filter({hasText:'session-'}).first();await worker.locator('summary').click();
- await page.getByRole('button',{name:'Close'}).click();
- assert.equal(await page.locator('#detail').evaluate(el=>el.open),false);
- assert.match(await page.evaluate(()=>document.activeElement.textContent),/Inspect calls/);
- await page.screenshot({path:path.join(output,'demo-desktop.png'),fullPage:true});
- const report=JSON.parse(await fs.readFile(path.join(__dirname,'../docs/benchmark-data/demo.json'),'utf8'));
- report.runs[0].harness.name='<img src=x onerror=alert(1)>';
- report.runs[0].estimatedModelUsd=null;
- const malicious=path.join(output,'import.json');await fs.writeFile(malicious,JSON.stringify(report));
- await page.locator('#importFile').setInputFiles(malicious);
- await page.waitForFunction(()=>document.querySelector('#harness').textContent.includes('<img'));
- assert.equal(await page.locator('img').count(),0);
- await page.locator('#harness').selectOption('<img src=x onerror=alert(1)>');
- assert.match(await page.locator('#comparison').innerText(),/Unavailable/);
- await page.screenshot({path:path.join(output,'desktop.png'),fullPage:true});
- await page.setViewportSize({width:390,height:844});
- assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
- await page.screenshot({path:path.join(output,'mobile.png'),fullPage:true});
- await page.getByRole('button',{name:'Load synthetic demonstration'}).click();
- await page.locator('#harness').selectOption('Example harness');
- await page.screenshot({path:path.join(output,'demo-mobile.png'),fullPage:true});
- await page.setViewportSize({width:1440,height:1000});
- await page.getByRole('button',{name:'Load measured pilot'}).click();
- await page.waitForFunction(()=>document.querySelector('#harness').textContent.includes('OpenCode global-native'));
- assert.match(await page.locator('#costScope').innerText(),/API-equivalent.*not subscription charges/);
- await page.locator('#task').selectOption('component-feature');
- await page.locator('#rightArm').selectOption('B');
- assert.match(await page.locator('#comparison').innerText(),/48 \/ 48/);
- assert.match(await page.locator('#comparison').innerText(),/API-equivalent model cost/);
- await page.locator('.comparison-card').nth(0).getByRole('button',{name:'Prompt, protocol and acceptance'}).click();
- await page.getByRole('heading',{name:'Shared task',exact:true}).waitFor();
- assert.match(await page.locator('#detailBody').innerText(),/Owner-approved single-session benchmark condition/);
- assert.match(await page.locator('#detailBody').innerText(),/Both tests must complete with no failures/);
- assert.match(await page.locator('#detailBody').innerText(),/complete native\/provider system prompt/);
- assert.equal(await page.locator('#detailBody [data-protocol]').count(),0);
- await page.getByRole('button',{name:'Close',exact:true}).click();
- assert.match(await page.evaluate(()=>document.activeElement.textContent),/Prompt, protocol and acceptance/);
- await page.locator('.comparison-card').nth(1).getByRole('button',{name:'Prompt, protocol and acceptance'}).click();
- await page.getByRole('heading',{name:'Shared task',exact:true}).waitFor();
- assert.match(await page.locator('#detailBody').innerText(),/Managed sequential benchmark condition/);
- assert.equal(await page.locator('#detailBody [data-protocol]').count(),4);
- await page.locator('#detailBody [data-protocol]').nth(1).locator('summary').click();
- assert.match(await page.locator('#detailBody').innerText(),/Global native profile: assets live at \[RUNTIME_ROOT\]/);
- await page.screenshot({path:path.join(output,'parent-inputs.png'),fullPage:true});
- await page.keyboard.press('Escape');
- const inputPattern='**/pilot-2-component-feature-A-inputs.json';
- await page.route(inputPattern,route=>route.fulfill({status:200,contentType:'application/json',body:'{"version":1,"prompt":"tampered"}'}));
- await page.locator('.comparison-card').nth(0).getByRole('button',{name:'Prompt, protocol and acceptance'}).click();
- await page.getByText('Inputs unavailable: Evidence checksum mismatch',{exact:true}).waitFor();
- await page.keyboard.press('Escape');await page.unroute(inputPattern);
+const { chromium } = require('playwright');
+const assert = require('node:assert/strict');
+const fs = require('node:fs/promises');
+const path = require('node:path');
+const http = require('node:http');
+const os = require('node:os');
+(async () => {
+  const output = await fs.mkdtemp(path.join(os.tmpdir(), 'benchmark-browser-'));
+  const server = http.createServer(async (req, res) => {
+    try {
+      const name = new URL(req.url, 'http://localhost').pathname.slice(1) || 'benchmark.html';
+      if (
+        !/^(benchmark(?:-schema|-pilot)?\.(html|js|css)|benchmark-data\/[\w-]+\.json)$/.test(name)
+      ) {
+        res.writeHead(404).end();
+        return;
+      }
+      const data = await fs.readFile(path.join(__dirname, '../docs', name));
+      res.writeHead(200, {
+        'Content-Type': {
+          '.html': 'text/html',
+          '.js': 'text/javascript',
+          '.css': 'text/css',
+          '.json': 'application/json',
+        }[path.extname(name)],
+      });
+      res.end(data);
+    } catch {
+      res.writeHead(404).end();
+    }
+  });
+  await new Promise((resolve, reject) => {
+    server.once('error', reject);
+    server.listen(0, '127.0.0.1', resolve);
+  });
+  let browser;
+  try {
+    browser = await chromium.launch({ executablePath: process.env.TEST_BROWSER || undefined });
+    const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } }),
+      errors = [];
+    page.on('pageerror', (e) => errors.push(e.message));
+    const base =
+      process.env.BENCHMARK_URL || 'http://127.0.0.1:' + server.address().port + '/benchmark.html';
+    await page.goto(base);
+    await page.getByText('No measured results loaded.', { exact: true }).waitFor();
+    await page.getByRole('button', { name: 'Load synthetic demonstration' }).click();
+    await page
+      .getByText('Synthetic demonstration — not measured results.', { exact: true })
+      .waitFor();
+    assert.equal(await page.locator('.comparison-card').count(), 2);
+    assert.equal(await page.locator('.arm-status').count(), 5);
+    assert.match(await page.locator('#comparability').innerText(), /Matched conditions/);
+    assert.match(await page.locator('#unavailable').innerText(), /C.*D.*E/s);
+    await page.locator('#rightArm').selectOption('B');
+    await page
+      .locator('.comparison-card')
+      .nth(1)
+      .getByRole('button', { name: /Inspect calls/ })
+      .click();
+    await page.getByRole('dialog').waitFor();
+    assert.match(await page.locator('#detailBody').innerText(), /10 model attempts/);
+    const worker = page.locator('#detailBody details').filter({ hasText: 'session-' }).first();
+    await worker.locator('summary').click();
+    await page.getByRole('button', { name: 'Close' }).click();
+    assert.equal(await page.locator('#detail').evaluate((el) => el.open), false);
+    assert.match(await page.evaluate(() => document.activeElement.textContent), /Inspect calls/);
+    await page.screenshot({ path: path.join(output, 'demo-desktop.png'), fullPage: true });
+    const report = JSON.parse(
+      await fs.readFile(path.join(__dirname, '../docs/benchmark-data/demo.json'), 'utf8'),
+    );
+    report.runs[0].harness.name = '<img src=x onerror=alert(1)>';
+    report.runs[0].estimatedModelUsd = null;
+    const malicious = path.join(output, 'import.json');
+    await fs.writeFile(malicious, JSON.stringify(report));
+    await page.locator('#importFile').setInputFiles(malicious);
+    await page.waitForFunction(() =>
+      document.querySelector('#harness').textContent.includes('<img'),
+    );
+    assert.equal(await page.locator('img').count(), 0);
+    await page.locator('#harness').selectOption('<img src=x onerror=alert(1)>');
+    assert.match(await page.locator('#comparison').innerText(), /Unavailable/);
+    await page.screenshot({ path: path.join(output, 'desktop.png'), fullPage: true });
+    await page.setViewportSize({ width: 390, height: 844 });
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    await page.screenshot({ path: path.join(output, 'mobile.png'), fullPage: true });
+    await page.getByRole('button', { name: 'Load synthetic demonstration' }).click();
+    await page.locator('#harness').selectOption('Example harness');
+    await page.screenshot({ path: path.join(output, 'demo-mobile.png'), fullPage: true });
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.getByRole('button', { name: 'Load measured pilot' }).click();
+    await page.waitForFunction(() =>
+      document.querySelector('#harness').textContent.includes('OpenCode global-native'),
+    );
+    assert.match(
+      await page.locator('#costScope').innerText(),
+      /API-equivalent.*not subscription charges/,
+    );
+    await page.locator('#task').selectOption('component-feature');
+    await page.locator('#rightArm').selectOption('B');
+    assert.match(await page.locator('#comparison').innerText(), /48 \/ 48/);
+    assert.match(await page.locator('#comparison').innerText(), /API-equivalent model cost/);
+    await page
+      .locator('.comparison-card')
+      .nth(0)
+      .getByRole('button', { name: 'Prompt, protocol and acceptance' })
+      .click();
+    await page.getByRole('heading', { name: 'Shared task', exact: true }).waitFor();
+    assert.match(
+      await page.locator('#detailBody').innerText(),
+      /Owner-approved single-session benchmark condition/,
+    );
+    assert.match(
+      await page.locator('#detailBody').innerText(),
+      /Both tests must complete with no failures/,
+    );
+    assert.match(
+      await page.locator('#detailBody').innerText(),
+      /complete native\/provider system prompt/,
+    );
+    assert.equal(await page.locator('#detailBody [data-protocol]').count(), 0);
+    await page.getByRole('button', { name: 'Close', exact: true }).click();
+    assert.match(
+      await page.evaluate(() => document.activeElement.textContent),
+      /Prompt, protocol and acceptance/,
+    );
+    await page
+      .locator('.comparison-card')
+      .nth(1)
+      .getByRole('button', { name: 'Prompt, protocol and acceptance' })
+      .click();
+    await page.getByRole('heading', { name: 'Shared task', exact: true }).waitFor();
+    assert.match(
+      await page.locator('#detailBody').innerText(),
+      /Managed sequential benchmark condition/,
+    );
+    assert.equal(await page.locator('#detailBody [data-protocol]').count(), 4);
+    await page.locator('#detailBody [data-protocol]').nth(1).locator('summary').click();
+    assert.match(
+      await page.locator('#detailBody').innerText(),
+      /Global native profile: assets live at \[RUNTIME_ROOT\]/,
+    );
+    await page.screenshot({ path: path.join(output, 'parent-inputs.png'), fullPage: true });
+    await page.keyboard.press('Escape');
+    const inputPattern = '**/pilot-2-component-feature-A-inputs.json';
+    await page.route(inputPattern, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: '{"version":1,"prompt":"tampered"}',
+      }),
+    );
+    await page
+      .locator('.comparison-card')
+      .nth(0)
+      .getByRole('button', { name: 'Prompt, protocol and acceptance' })
+      .click();
+    await page
+      .getByText('Inputs unavailable: Evidence checksum mismatch', { exact: true })
+      .waitFor();
+    await page.keyboard.press('Escape');
+    await page.unroute(inputPattern);
 
- await page.locator('#rightArm').selectOption('C');
- assert.match(await page.locator('#comparison').innerText(),/Parallel requested; concurrent workers were not verified/);
- assert.match(await page.locator('#comparability').innerText(),/coverage.parallel/);
- await page.locator('#task').selectOption('idempotency');
- assert.match(await page.locator('.comparison-card').nth(1).innerText(),/failed/);
- await page.locator('.comparison-card').nth(1).getByRole('button',{name:/Inspect calls/}).click();
- assert.match(await page.locator('#detailBody').innerText(),/14 model attempts; 1 delegations/);
- await page.keyboard.press('Escape');
- assert.equal(await page.locator('#detail').evaluate(el=>el.open),false);
- await page.locator('#rightArm').selectOption('B');
- await page.screenshot({path:path.join(output,'measured-desktop.png'),fullPage:true});
- await page.setViewportSize({width:390,height:844});
- assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
- await page.screenshot({path:path.join(output,'measured-mobile.png'),fullPage:true});
+    await page.locator('#rightArm').selectOption('C');
+    assert.match(
+      await page.locator('#comparison').innerText(),
+      /Parallel requested; concurrent workers were not verified/,
+    );
+    assert.match(await page.locator('#comparability').innerText(), /coverage.parallel/);
+    await page.locator('#task').selectOption('idempotency');
+    assert.match(await page.locator('.comparison-card').nth(1).innerText(), /failed/);
+    await page
+      .locator('.comparison-card')
+      .nth(1)
+      .getByRole('button', { name: /Inspect calls/ })
+      .click();
+    assert.match(await page.locator('#detailBody').innerText(), /14 model attempts; 1 delegations/);
+    await page.keyboard.press('Escape');
+    assert.equal(await page.locator('#detail').evaluate((el) => el.open), false);
+    await page.locator('#rightArm').selectOption('B');
+    await page.screenshot({ path: path.join(output, 'measured-desktop.png'), fullPage: true });
+    await page.setViewportSize({ width: 390, height: 844 });
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    await page.screenshot({ path: path.join(output, 'measured-mobile.png'), fullPage: true });
 
- const measured=JSON.parse(await fs.readFile(path.join(__dirname,'../docs/benchmark-data/measured-pilot.json'),'utf8'));
- for(const width of [1440,390]){
-  await page.setViewportSize({width,height:900});
-  for(const run of measured.runs){
-   await page.locator('#task').selectOption(run.task);await page.locator('#rightArm').selectOption(run.arm);
-   await page.locator('.comparison-card').nth(1).getByRole('button',{name:'Prompt, protocol and acceptance'}).click();
-   await page.getByRole('heading',{name:'Shared task',exact:true}).waitFor();
-   assert.match(await page.locator('#detailBody').innerText(),new RegExp(run.id));
-   assert.equal(await page.locator('#detailBody [data-protocol]').count(),run.arm==='A'?0:4);
-   assert.ok(await page.locator('#detail').evaluate(d=>d.scrollWidth<=d.clientWidth));
-   if(run.id==='pilot-5-idempotency-C')assert.match(await page.locator('#detailBody').innerText(),/TWO fresh researcher children concurrently/);
-   await page.getByRole('button',{name:'Close',exact:true}).click();
-   assert.match(await page.evaluate(()=>document.activeElement.textContent),/Prompt, protocol and acceptance/);
+    const measured = JSON.parse(
+      await fs.readFile(path.join(__dirname, '../docs/benchmark-data/measured-pilot.json'), 'utf8'),
+    );
+    for (const width of [1440, 390]) {
+      await page.setViewportSize({ width, height: 900 });
+      for (const run of measured.runs) {
+        await page.locator('#task').selectOption(run.task);
+        await page.locator('#rightArm').selectOption(run.arm);
+        await page
+          .locator('.comparison-card')
+          .nth(1)
+          .getByRole('button', { name: 'Prompt, protocol and acceptance' })
+          .click();
+        await page.getByRole('heading', { name: 'Shared task', exact: true }).waitFor();
+        assert.match(await page.locator('#detailBody').innerText(), new RegExp(run.id));
+        assert.equal(
+          await page.locator('#detailBody [data-protocol]').count(),
+          run.arm === 'A' ? 0 : 4,
+        );
+        assert.ok(await page.locator('#detail').evaluate((d) => d.scrollWidth <= d.clientWidth));
+        if (run.id === 'pilot-5-idempotency-C')
+          assert.match(
+            await page.locator('#detailBody').innerText(),
+            /TWO fresh researcher children concurrently/,
+          );
+        await page.getByRole('button', { name: 'Close', exact: true }).click();
+        assert.match(
+          await page.evaluate(() => document.activeElement.textContent),
+          /Prompt, protocol and acceptance/,
+        );
+      }
+    }
+    await page.goto(new URL('benchmark-pilot.html', base).href);
+    assert.equal(await page.locator('tbody tr').count(), 6);
+    assert.match(await page.locator('main').innerText(), /capacity exhausted/);
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.screenshot({ path: path.join(output, 'pilot-report.png'), fullPage: true });
+    assert.deepEqual(errors, []);
+    console.log('Benchmark browser checks passed; screenshots:', output);
+  } finally {
+    await browser?.close();
+    server.close();
   }
- }
- await page.goto(new URL('benchmark-pilot.html',base).href);
- assert.equal(await page.locator('tbody tr').count(),6);
- assert.match(await page.locator('main').innerText(),/capacity exhausted/);
- assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
- await page.setViewportSize({width:1440,height:1000});
- await page.screenshot({path:path.join(output,'pilot-report.png'),fullPage:true});
- assert.deepEqual(errors,[]);console.log('Benchmark browser checks passed; screenshots:',output);
-}finally{await browser?.close();server.close();}
-})().catch(e=>{console.error(e);process.exitCode=1});
+})().catch((e) => {
+  console.error(e);
+  process.exitCode = 1;
+});

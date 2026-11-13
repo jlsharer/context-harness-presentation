@@ -1,21 +1,226 @@
-import assert from 'node:assert/strict';import fs from 'node:fs';import os from 'node:os';import path from 'node:path';import {spawnSync} from 'node:child_process';import {pathToFileURL} from 'node:url';
-const base=path.resolve('docs/kits');assert.ok(fs.existsSync(base+'/core.mjs'),'Installable kit helpers required');const core=await import(pathToFileURL(base+'/core.mjs'));
-const packet=core.buildPacket({goal:'Fix retry',constraints:['Preserve API'],checks:['concurrent retry'],sources:[{path:'contracts/storage.md',text:'Committed identity survives lost acknowledgement.'}]});assert.match(packet.text,/Committed identity/);assert.ok(packet.bytes>0);
-assert.throws(()=>core.validateHandoff({summary:'done'}));const report={task_id:'retry',summary:'Commit succeeded; acknowledgement failed.',source_anchors:['STORAGE-2'],findings:['Retain committed identity'],checks:[{command:'npm test',status:'not-run'}],open_questions:[]};assert.equal(core.validateHandoff(report).task_id,'retry');assert.throws(()=>core.validateHandoff({...report,checks:[{command:'x',status:'maybe'}]}));
-assert.throws(()=>core.validateCheckpoint({goal:'retry'}));assert.ok(core.validateCheckpoint({goal:'retry',constraints:['API'],source_anchors:['API-2'],open_work:['test'],acceptance_checks:['retry']}));
-assert.throws(()=>core.validateHandoff({...report,raw_output:'X'.repeat(2000000)}),'Unknown large payload cannot bypass report gate');assert.throws(()=>core.validateHandoff({...report,checks:[{command:'npm test',status:'not-run',raw_output:'unexpected'}]}));assert.throws(()=>core.validateHandoff({...report,findings:Array(10).fill('x'.repeat(1500))}),'Declared fields must also obey total serialized bound');
-assert.throws(()=>core.validateHandoff({...report,findings:Array(4).fill('界'.repeat(1200))}),'Serialized bound counts UTF-8 bytes');
-const bounded=core.boundResult('abcdefghij',4);assert.equal(bounded.preview,'abcd');assert.equal(bounded.fullText,'abcdefghij');assert.equal(bounded.truncated,true);
-assert.equal(core.auditCache({provider:'openai',usage:{input_tokens:20000,input_tokens_details:{cached_tokens:14000,cache_write_tokens:0}},before:'abc',now:'abd'}).fresh,6000);assert.equal(core.auditCache({provider:'openai',usage:{input_tokens:20000,input_tokens_details:{cached_tokens:14000}},before:'abc',now:'abd'}).write,null);assert.equal(core.auditCache({provider:'anthropic',usage:{input_tokens:6000,cache_read_input_tokens:14000,cache_creation_input_tokens:0}}).total,20000);
-const {planInstall,applyInstall}=await import(pathToFileURL(base+'/install.mjs'));const root=fs.mkdtempSync(path.join(os.tmpdir(),'context-kit # install-'));fs.mkdirSync(root+'/.claude');fs.writeFileSync(root+'/.claude/settings.json',JSON.stringify({env:{KEEP:'yes'},hooks:{UserPromptSubmit:[{hooks:[{type:'command',command:'existing-command'}]}]}}));
-const plan=planInstall({root,harness:'claude',kits:['continuity','handoff']});assert.equal(fs.existsSync(root+'/.context-kit'),false);applyInstall(plan);let settings=JSON.parse(fs.readFileSync(root+'/.claude/settings.json'));assert.equal(settings.env.KEEP,'yes');assert.equal(settings.hooks.UserPromptSubmit.length,2);assert.ok(settings.hooks.SubagentStart);applyInstall(planInstall({root,harness:'claude',kits:['continuity','handoff']}));settings=JSON.parse(fs.readFileSync(root+'/.claude/settings.json'));assert.equal(settings.hooks.UserPromptSubmit.length,2);
-applyInstall(planInstall({root,harness:'codex',kits:['cache']}));assert.ok(fs.existsSync(root+'/.agents/skills/context-menu/SKILL.md'),'Selected packages discoverable through native reference skill');assert.match(fs.readFileSync(root+'/.context-kit/PROTOCOLS.md','utf8'),/Goal|goal/);
-const hook=spawnSync(process.execPath,[root+'/.context-kit/hook.mjs','continuity'],{input:JSON.stringify({hook_event_name:'UserPromptSubmit'}),encoding:'utf8'});assert.equal(hook.status,0,hook.stderr);assert.ok(hook.stdout.trim(),'Hook CLI emits output from a path containing spaces/hash');assert.equal(JSON.parse(hook.stdout).hookSpecificOutput.hookEventName,'UserPromptSubmit');
-const handback=spawnSync(process.execPath,[root+'/.context-kit/hook.mjs','handoff'],{input:JSON.stringify({hook_event_name:'PreToolUse',tool_name:'SubagentHandback',tool_input:{message:'done'}}),encoding:'utf8'});assert.equal(JSON.parse(handback.stdout).hookSpecificOutput.permissionDecision,'deny');
-const padded=spawnSync(process.execPath,[root+'/.context-kit/hook.mjs','handoff'],{input:JSON.stringify({hook_event_name:'PreToolUse',tool_name:'SubagentHandback',tool_input:{message:' '.repeat(13000)+JSON.stringify(report)}}),encoding:'utf8'});assert.equal(JSON.parse(padded.stdout).hookSpecificOutput?.permissionDecision,'deny','Raw delivered message must obey byte bound too');
-const isolated=fs.mkdtempSync(path.join(os.tmpdir(),'kit-target-scope-'));applyInstall(planInstall({root:isolated,harness:'codex',kits:['continuity']}));applyInstall(planInstall({root:isolated,harness:'claude',kits:['cache']}));assert.equal(fs.existsSync(isolated+'/.claude/settings.json'),false,'Kits selected for Codex must not activate unselected Claude hooks');fs.rmSync(isolated,{recursive:true,force:true});
-applyInstall(planInstall({root,harness:'claude',kits:['results']}));settings=JSON.parse(fs.readFileSync(root+'/.claude/settings.json'));assert.ok(settings.hooks.PostToolUse.some(e=>e.matcher==='^Bash$'),'Result kit installs the supported Bash post-tool adapter');
-const rawBash={stdout:'x'.repeat(12000),stderr:'',interrupted:false,isImage:false,retainedMetadata:'keep'};const transformed=spawnSync(process.execPath,[root+'/.context-kit/hook.mjs','results'],{input:JSON.stringify({hook_event_name:'PostToolUse',tool_name:'Bash',tool_response:rawBash}),encoding:'utf8'});assert.equal(transformed.status,0,transformed.stderr);const output=JSON.parse(transformed.stdout).hookSpecificOutput;assert.ok(output?.updatedToolOutput,'Schema-preserving updatedToolOutput required');assert.ok(output.updatedToolOutput.stdout.length<=8000);assert.equal(output.updatedToolOutput.retainedMetadata,'keep');assert.equal(output.updatedToolOutput.stderr,'');const artifacts=fs.readdirSync(root+'/.context-kit/artifacts');assert.equal(artifacts.length,1);assert.equal(JSON.parse(fs.readFileSync(root+'/.context-kit/artifacts/'+artifacts[0])).stdout,rawBash.stdout);
-const skipCases=[{...rawBash,stderr:'error details'},{...rawBash,interrupted:true},{...rawBash,isImage:true},{...rawBash,exitCode:1},{...rawBash,stdout:'short'},'unknown shape'];for(const response of skipCases){const skipped=spawnSync(process.execPath,[root+'/.context-kit/hook.mjs','results'],{input:JSON.stringify({hook_event_name:'PostToolUse',tool_name:'Bash',tool_response:response}),encoding:'utf8'});assert.equal(skipped.status,0,skipped.stderr);assert.deepEqual(JSON.parse(skipped.stdout),{});}assert.equal(fs.readdirSync(root+'/.context-kit/artifacts').length,1,'Skipped responses do not create artifacts');
-const other=fs.mkdtempSync(path.join(os.tmpdir(),'context-kit-conflict-'));fs.mkdirSync(other+'/.context-kit');fs.writeFileSync(other+'/.context-kit/core.mjs','user-owned');assert.throws(()=>applyInstall(planInstall({root:other,harness:'codex',kits:['focus']})));assert.equal(fs.existsSync(other+'/.agents'),false);const symlinkRoot=fs.mkdtempSync(path.join(os.tmpdir(),'context-kit-symlink-'));fs.symlinkSync(os.tmpdir(),symlinkRoot+'/.context-kit');assert.throws(()=>planInstall({root:symlinkRoot,harness:'codex',kits:['focus']}));
-for(const dir of [root,other,symlinkRoot])fs.rmSync(dir,{recursive:true,force:true});console.log('PASS packet/handoff/checkpoint/bounds/cache helpers and non-destructive idempotent scoped installation');
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { pathToFileURL } from 'node:url';
+const base = path.resolve('docs/kits');
+assert.ok(fs.existsSync(base + '/core.mjs'), 'Installable kit helpers required');
+const core = await import(pathToFileURL(base + '/core.mjs'));
+const packet = core.buildPacket({
+  goal: 'Fix retry',
+  constraints: ['Preserve API'],
+  checks: ['concurrent retry'],
+  sources: [
+    { path: 'contracts/storage.md', text: 'Committed identity survives lost acknowledgement.' },
+  ],
+});
+assert.match(packet.text, /Committed identity/);
+assert.ok(packet.bytes > 0);
+assert.throws(() => core.validateHandoff({ summary: 'done' }));
+const report = {
+  task_id: 'retry',
+  summary: 'Commit succeeded; acknowledgement failed.',
+  source_anchors: ['STORAGE-2'],
+  findings: ['Retain committed identity'],
+  checks: [{ command: 'npm test', status: 'not-run' }],
+  open_questions: [],
+};
+assert.equal(core.validateHandoff(report).task_id, 'retry');
+assert.throws(() =>
+  core.validateHandoff({ ...report, checks: [{ command: 'x', status: 'maybe' }] }),
+);
+assert.throws(() => core.validateCheckpoint({ goal: 'retry' }));
+assert.ok(
+  core.validateCheckpoint({
+    goal: 'retry',
+    constraints: ['API'],
+    source_anchors: ['API-2'],
+    open_work: ['test'],
+    acceptance_checks: ['retry'],
+  }),
+);
+assert.throws(
+  () => core.validateHandoff({ ...report, raw_output: 'X'.repeat(2000000) }),
+  'Unknown large payload cannot bypass report gate',
+);
+assert.throws(() =>
+  core.validateHandoff({
+    ...report,
+    checks: [{ command: 'npm test', status: 'not-run', raw_output: 'unexpected' }],
+  }),
+);
+assert.throws(
+  () => core.validateHandoff({ ...report, findings: Array(10).fill('x'.repeat(1500)) }),
+  'Declared fields must also obey total serialized bound',
+);
+assert.throws(
+  () => core.validateHandoff({ ...report, findings: Array(4).fill('界'.repeat(1200)) }),
+  'Serialized bound counts UTF-8 bytes',
+);
+const bounded = core.boundResult('abcdefghij', 4);
+assert.equal(bounded.preview, 'abcd');
+assert.equal(bounded.fullText, 'abcdefghij');
+assert.equal(bounded.truncated, true);
+assert.equal(
+  core.auditCache({
+    provider: 'openai',
+    usage: {
+      input_tokens: 20000,
+      input_tokens_details: { cached_tokens: 14000, cache_write_tokens: 0 },
+    },
+    before: 'abc',
+    now: 'abd',
+  }).fresh,
+  6000,
+);
+assert.equal(
+  core.auditCache({
+    provider: 'openai',
+    usage: { input_tokens: 20000, input_tokens_details: { cached_tokens: 14000 } },
+    before: 'abc',
+    now: 'abd',
+  }).write,
+  null,
+);
+assert.equal(
+  core.auditCache({
+    provider: 'anthropic',
+    usage: { input_tokens: 6000, cache_read_input_tokens: 14000, cache_creation_input_tokens: 0 },
+  }).total,
+  20000,
+);
+const { planInstall, applyInstall } = await import(pathToFileURL(base + '/install.mjs'));
+const root = fs.mkdtempSync(path.join(os.tmpdir(), 'context-kit # install-'));
+fs.mkdirSync(root + '/.claude');
+fs.writeFileSync(
+  root + '/.claude/settings.json',
+  JSON.stringify({
+    env: { KEEP: 'yes' },
+    hooks: { UserPromptSubmit: [{ hooks: [{ type: 'command', command: 'existing-command' }] }] },
+  }),
+);
+const plan = planInstall({ root, harness: 'claude', kits: ['continuity', 'handoff'] });
+assert.equal(fs.existsSync(root + '/.context-kit'), false);
+applyInstall(plan);
+let settings = JSON.parse(fs.readFileSync(root + '/.claude/settings.json'));
+assert.equal(settings.env.KEEP, 'yes');
+assert.equal(settings.hooks.UserPromptSubmit.length, 2);
+assert.ok(settings.hooks.SubagentStart);
+applyInstall(planInstall({ root, harness: 'claude', kits: ['continuity', 'handoff'] }));
+settings = JSON.parse(fs.readFileSync(root + '/.claude/settings.json'));
+assert.equal(settings.hooks.UserPromptSubmit.length, 2);
+applyInstall(planInstall({ root, harness: 'codex', kits: ['cache'] }));
+assert.ok(
+  fs.existsSync(root + '/.agents/skills/context-menu/SKILL.md'),
+  'Selected packages discoverable through native reference skill',
+);
+assert.match(fs.readFileSync(root + '/.context-kit/PROTOCOLS.md', 'utf8'), /Goal|goal/);
+const hook = spawnSync(process.execPath, [root + '/.context-kit/hook.mjs', 'continuity'], {
+  input: JSON.stringify({ hook_event_name: 'UserPromptSubmit' }),
+  encoding: 'utf8',
+});
+assert.equal(hook.status, 0, hook.stderr);
+assert.ok(hook.stdout.trim(), 'Hook CLI emits output from a path containing spaces/hash');
+assert.equal(JSON.parse(hook.stdout).hookSpecificOutput.hookEventName, 'UserPromptSubmit');
+const handback = spawnSync(process.execPath, [root + '/.context-kit/hook.mjs', 'handoff'], {
+  input: JSON.stringify({
+    hook_event_name: 'PreToolUse',
+    tool_name: 'SubagentHandback',
+    tool_input: { message: 'done' },
+  }),
+  encoding: 'utf8',
+});
+assert.equal(JSON.parse(handback.stdout).hookSpecificOutput.permissionDecision, 'deny');
+const padded = spawnSync(process.execPath, [root + '/.context-kit/hook.mjs', 'handoff'], {
+  input: JSON.stringify({
+    hook_event_name: 'PreToolUse',
+    tool_name: 'SubagentHandback',
+    tool_input: { message: ' '.repeat(13000) + JSON.stringify(report) },
+  }),
+  encoding: 'utf8',
+});
+assert.equal(
+  JSON.parse(padded.stdout).hookSpecificOutput?.permissionDecision,
+  'deny',
+  'Raw delivered message must obey byte bound too',
+);
+const isolated = fs.mkdtempSync(path.join(os.tmpdir(), 'kit-target-scope-'));
+applyInstall(planInstall({ root: isolated, harness: 'codex', kits: ['continuity'] }));
+applyInstall(planInstall({ root: isolated, harness: 'claude', kits: ['cache'] }));
+assert.equal(
+  fs.existsSync(isolated + '/.claude/settings.json'),
+  false,
+  'Kits selected for Codex must not activate unselected Claude hooks',
+);
+fs.rmSync(isolated, { recursive: true, force: true });
+applyInstall(planInstall({ root, harness: 'claude', kits: ['results'] }));
+settings = JSON.parse(fs.readFileSync(root + '/.claude/settings.json'));
+assert.ok(
+  settings.hooks.PostToolUse.some((e) => e.matcher === '^Bash$'),
+  'Result kit installs the supported Bash post-tool adapter',
+);
+const rawBash = {
+  stdout: 'x'.repeat(12000),
+  stderr: '',
+  interrupted: false,
+  isImage: false,
+  retainedMetadata: 'keep',
+};
+const transformed = spawnSync(process.execPath, [root + '/.context-kit/hook.mjs', 'results'], {
+  input: JSON.stringify({
+    hook_event_name: 'PostToolUse',
+    tool_name: 'Bash',
+    tool_response: rawBash,
+  }),
+  encoding: 'utf8',
+});
+assert.equal(transformed.status, 0, transformed.stderr);
+const output = JSON.parse(transformed.stdout).hookSpecificOutput;
+assert.ok(output?.updatedToolOutput, 'Schema-preserving updatedToolOutput required');
+assert.ok(output.updatedToolOutput.stdout.length <= 8000);
+assert.equal(output.updatedToolOutput.retainedMetadata, 'keep');
+assert.equal(output.updatedToolOutput.stderr, '');
+const artifacts = fs.readdirSync(root + '/.context-kit/artifacts');
+assert.equal(artifacts.length, 1);
+assert.equal(
+  JSON.parse(fs.readFileSync(root + '/.context-kit/artifacts/' + artifacts[0])).stdout,
+  rawBash.stdout,
+);
+const skipCases = [
+  { ...rawBash, stderr: 'error details' },
+  { ...rawBash, interrupted: true },
+  { ...rawBash, isImage: true },
+  { ...rawBash, exitCode: 1 },
+  { ...rawBash, stdout: 'short' },
+  'unknown shape',
+];
+for (const response of skipCases) {
+  const skipped = spawnSync(process.execPath, [root + '/.context-kit/hook.mjs', 'results'], {
+    input: JSON.stringify({
+      hook_event_name: 'PostToolUse',
+      tool_name: 'Bash',
+      tool_response: response,
+    }),
+    encoding: 'utf8',
+  });
+  assert.equal(skipped.status, 0, skipped.stderr);
+  assert.deepEqual(JSON.parse(skipped.stdout), {});
+}
+assert.equal(
+  fs.readdirSync(root + '/.context-kit/artifacts').length,
+  1,
+  'Skipped responses do not create artifacts',
+);
+const other = fs.mkdtempSync(path.join(os.tmpdir(), 'context-kit-conflict-'));
+fs.mkdirSync(other + '/.context-kit');
+fs.writeFileSync(other + '/.context-kit/core.mjs', 'user-owned');
+assert.throws(() => applyInstall(planInstall({ root: other, harness: 'codex', kits: ['focus'] })));
+assert.equal(fs.existsSync(other + '/.agents'), false);
+const symlinkRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'context-kit-symlink-'));
+fs.symlinkSync(os.tmpdir(), symlinkRoot + '/.context-kit');
+assert.throws(() => planInstall({ root: symlinkRoot, harness: 'codex', kits: ['focus'] }));
+for (const dir of [root, other, symlinkRoot]) fs.rmSync(dir, { recursive: true, force: true });
+console.log(
+  'PASS packet/handoff/checkpoint/bounds/cache helpers and non-destructive idempotent scoped installation',
+);

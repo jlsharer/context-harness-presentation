@@ -1,6 +1,7 @@
 # Claude evidence and accounting
 
 Primary sources, checked2026-11-12:
+
 - https://code.claude.com/docs/en/monitoring-usage
 - https://code.claude.com/docs/en/commands
 - https://code.claude.com/docs/en/how-claude-code-works

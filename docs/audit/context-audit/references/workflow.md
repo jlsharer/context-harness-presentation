@@ -14,15 +14,33 @@ Before work delegation, provide task_id, goal, constraints, allowed source paths
 ## Report contract
 
 Exactly these fields, at most12,000 serialized characters:
+
 ```json
-{"task_id":"retry-investigation","summary":"Observed condition and proposed next step","source_anchors":["tests/retry.test.ts:42"],"findings":["Source-linked observation, not an unsupported assertion"],"checks":[{"command":"npm test -- retry","status":"not-run","artifact":null}],"open_questions":["What outcome would disprove the hypothesis?"]}
+{
+  "task_id": "retry-investigation",
+  "summary": "Observed condition and proposed next step",
+  "source_anchors": ["tests/retry.test.ts:42"],
+  "findings": ["Source-linked observation, not an unsupported assertion"],
+  "checks": [{ "command": "npm test -- retry", "status": "not-run", "artifact": null }],
+  "open_questions": ["What outcome would disprove the hypothesis?"]
+}
 ```
+
 Statuses: passed, failed, not-run. Passed/failed require an artifact path or stable evidence reference. The validator checks structure and evidence-reference presence, not truth or command execution. Run `node scripts/cli.mjs validate --kind report --file REPORT.json`.
 
 ## Checkpoint contract
 
 Exactly these fields:
+
 ```json
-{"goal":"Investigate retry failure without API changes","constraints":["Preserve tenant isolation"],"source_anchors":["contracts/storage.md:18"],"decisions":["Decision and evidence supporting it"],"open_work":["Run the proposed regression check"],"checks":[{"command":"npm test -- retry","status":"not-run","artifact":null}]}
+{
+  "goal": "Investigate retry failure without API changes",
+  "constraints": ["Preserve tenant isolation"],
+  "source_anchors": ["contracts/storage.md:18"],
+  "decisions": ["Decision and evidence supporting it"],
+  "open_work": ["Run the proposed regression check"],
+  "checks": [{ "command": "npm test -- retry", "status": "not-run", "artifact": null }]
+}
 ```
+
 Validate with `--kind checkpoint`, then write to active project `.context-audit/checkpoint.json`. Creation is agent work, not something a hook can infer. Current user intent takes precedence over stored checkpoints. Before compaction, preserve these elements; on resume/after compaction, the selected SessionStart hook supplies a bounded validated checkpoint if present. Check applicable native instruction loading separately.

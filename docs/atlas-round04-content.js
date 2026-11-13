@@ -1,65 +1,535 @@
 'use strict';
-const Round04Content={
- timeline(s){
-  const event=AtlasSession.at(s.step,s.sourcePolicy);
-  return '<div class="session-toolbar" data-session-timeline><button id="stepBack" aria-label="Previous lifecycle event">←</button><label class="scrubber"><abbr title="A retained conversation with its own history and working state.">Session</abbr> replay <input id="sessionStep" type="range" min="0" max="13" step="1" value="'+event.step+'" aria-label="Session lifecycle event"></label><button id="stepForward" aria-label="Next lifecycle event">→</button><div id="sessionCounters"><strong>'+ (event.session==='child'?'Child · C'+event.call:'Parent · P'+event.call)+'</strong><span><abbr title="One user request and the response cycle; it can include several model invocations.">User turn</abbr> '+event.turn+(event.step>=10?' · summary S1 '+(event.step===10?'prepared':'completed'):'')+'</span></div><span class="replay-label">TEACHING REPLAY · NOT A MEASURED RUN</span></div>';
- },
- system(s){
-  const e=AtlasSession.at(s.step,s.sourcePolicy),hook=atlasResearch.hooks.entries.find(h=>h.id===e.hook);
-  const blocks=e.blocks.map(b=>'<button class="context-block" data-inspect-block="'+b.id+'" data-block="'+b.id+'"><div><strong>'+AtlasContent.esc(b.label)+'</strong><span>'+b.bytes.toLocaleString()+' bytes · '+AtlasContent.esc(b.origin)+'</span></div><p>'+AtlasContent.esc(b.text.slice(0,135))+(b.text.length>135?'…':'')+'</p></button>').join('');
-  return '<div class="session-layout">'+this.timeline(s)+
-   '<div class="session-grid" data-system-graphic><svg class="journey-wires" viewBox="0 0 1000 400" preserveAspectRatio="none" aria-hidden="true"><defs><marker id="journeyArrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0L7 3.5L0 7" fill="none" stroke="currentColor"/></marker></defs><path d="M215 85H245M710 85H740M900 185V240M745 325H725V390H500V370" /></svg>'+
-   '<div class="store-column"><section class="session-panel"><div class="panel-heading">'+AtlasContent.icon('sources')+'<h2>Outside the request</h2></div><p>The source library and complete artifacts remain retrievable.</p><div class="store-total"><b>15</b><span>frozen fixture documents<br>12,621 source bytes</span></div>'+AtlasContent.anchors+'<button class="text-button" data-open="assembly">See source → request ↗</button></section>'+
-   '<section class="session-panel custom-policy '+(e.node==='memory'?'event-active':'')+'"><span class="boundary-label">YOUR CUSTOM / NATIVE POLICY</span><h3>Select · bound · preserve</h3><p>Choose evidence, retain sourced decisions, scope child packets and validate checkpoints.</p><button class="text-button" id="inspectHook">Inspect this event’s hook ↗</button></section></div>'+
-   '<section class="session-panel request-panel '+(e.node==='assembler'?'event-active':'')+'" data-node="assembler"><div class="panel-heading">'+AtlasContent.icon('assembler')+'<div><h2>'+ (e.session==='child'?'Child working context':'Parent working context')+'</h2><small>Assembled again at each invocation</small></div><div id="contextSize" data-bytes="'+e.bytes+'"><strong>'+e.bytes.toLocaleString()+'</strong><span>example UTF-8 bytes</span></div></div><div id="activeContext" class="active-context">'+blocks+'</div><div class="request-foot"><button id="inspectContext" class="text-button">Inspect complete snapshot ↗</button><span class="context-delta" title="'+AtlasContent.esc(e.delta.text)+'"><strong>'+e.delta.label+':</strong> '+AtlasContent.esc(e.delta.text)+'</span></div><div class="output-allowance" data-output-allowance>Output allowance stays outside these input layers.</div></section>'+
-   '<div class="execution-column"><section class="session-panel base-panel '+(e.node==='model'?'event-active':'')+'"><span class="boundary-label">BASE HARNESS EXECUTION</span><div class="panel-heading">'+AtlasContent.icon('model')+'<h2><abbr title="One request to the model, with assembled input. Tool execution is a separate event.">Model invocation</abbr></h2></div><div class="invocation-id">'+(e.session==='child'?'C'+e.call:'P'+e.call)+'</div><p>'+ (e.call===0?'Prepared context; no model call yet.':'A request produces text and/or tool requests.')+'</p><button class="text-button" data-open="attention">Evidence → practical levers ↗</button></section>'+
-   '<section class="session-panel execution-detail '+(e.node==='tools'||e.node==='child'?'event-active':'')+'"><div class="two-boundaries"><div><h3>Tools ↩</h3><p>Selected result returns before the next model call.</p></div><div class="'+(e.session==='child'?'child-active':'')+'"><h3>Child session</h3><p>Own context + call counter. Return a selected handoff.</p></div></div><div class="acceptance-strip">Check the artifact → failures become evidence for reassembly.</div></section></div></div>'+
-   '<div class="replay-bottom"><div class="event-track">'+AtlasSession.events.map((v,i)=>'<button data-step="'+i+'" '+(i===e.step?'aria-current="step"':'')+' title="'+AtlasContent.esc(v.label)+'">'+['Start','Prompt','P1','Tool ↓','Tool ↑','P2','Child','C1','Return','P3','Pre','Post','Turn 2','P4'][i]+'</button>').join('')+'</div><div class="event-explanation"><span class="event-index">'+(e.step+1)+' / 14</span><strong>'+AtlasContent.esc(e.change)+'</strong><span>'+AtlasContent.esc(hook.label)+'</span><button data-open="hooks">How the hook applies ↗</button></div></div></div>';
- },
- assembly(s){
-  const source=AtlasSession.anchors().find(x=>x.anchor===(s.anchor||'STORAGE-2')),before=AtlasSession.candidate(s.sourcePolicy,'evidence-first'),after=AtlasSession.candidate(s.sourcePolicy,s.layoutPolicy);
-  const candidate=(p,id,title)=>'<article class="candidate-column" data-candidate="'+id+'"><div class="candidate-heading"><span>'+title+'</span><strong>'+p.bytes.toLocaleString()+' bytes</strong></div><div class="candidate-sections">'+p.sections.map((part,i)=>'<section data-section="'+part.id+'"><div class="section-rank">'+(i+1)+'</div><div><h3>'+part.label+'</h3><pre>'+AtlasContent.esc((part.id==='evidence'?source.text:part.text).slice(0,part.id==='evidence'?325:180))+(part.id==='evidence'?'':'…')+'</pre>'+(part.id==='evidence'?'<small>Original '+source.anchor+' excerpt · '+p.sourceFiles.length+' complete source bodies in the inspectable payload</small>':'')+'</div></section>').join('')+'</div></article>';
-  return '<div class="concrete-assembly"><div class="assembly-controls"><label>Source inclusion<select id="sourcePolicy"><option value="all" '+(s.sourcePolicy==='all'?'selected':'')+'>All 15 context documents</option><option value="incident" '+(s.sourcePolicy==='incident'?'selected':'')+'>8 incident-relevant documents</option></select></label><label>After: candidate content order<select id="layoutPolicy"><option value="task-first" '+(s.layoutPolicy==='task-first'?'selected':'')+'>Task → evidence → checks</option><option value="evidence-first" '+(s.layoutPolicy==='evidence-first'?'selected':'')+'>Evidence → task → checks</option></select></label><button id="inspectNative">Native instructions + roles ↗</button></div>'+
-   '<div class="assembly-journey"><section class="source-inspection"><div class="panel-heading">'+AtlasContent.icon('sources')+'<h2>Actual source material</h2></div><span class="path-label">'+source.name+'</span><pre id="sourceExcerpt">'+AtlasContent.esc(source.text)+'</pre><div class="anchors">'+AtlasSession.anchors().map(x=>'<button class="anchor" data-anchor="'+x.anchor+'" '+(source.anchor===x.anchor?'aria-pressed="true"':'aria-pressed="false"')+'>'+x.anchor+'</button>').join('')+'</div><div id="candidateSize" data-bytes="'+after.sourceBodyBytes+'" class="selection-total"><strong>'+after.sourceBodyBytes.toLocaleString()+'</strong>UTF-8 source bytes · '+after.sourceFiles.length+' documents</div><p>Excerpt shown verbatim. Full selected bodies enter both candidate payloads.</p><div class="source-to-payload">Original sources → candidate sections</div><div class="output-allowance" data-output-allowance>Output allowance is separate from included text.</div></section><div id="candidateBefore">'+candidate(before,'before','BEFORE · EVIDENCE FIRST')+'</div><div id="candidateAfter">'+candidate(after,'after','AFTER · '+(s.layoutPolicy==='task-first'?'TASK FIRST':'EVIDENCE FIRST'))+'</div></div>'+
-   '<div class="assembly-bottom"><p>Same selected material; independently adjustable order. These are user-content teaching payloads, not captured native requests. Counts include the shown teaching text, not provider schemas or hidden instructions.</p><button id="inspectManifest">Inspect both complete requests ↗</button></div></div>';
- },
- hooks(s){
-  const selected=s.hook||AtlasSession.at(s.step,s.sourcePolicy).hook,h=atlasResearch.hooks.entries.find(x=>x.id===selected)||atlasResearch.hooks.entries[0];
-  const code={
-   start:'onSessionCreated(session)\\n  await initializePolicy(session)\\n  await restoreSourcedState(session)\\n  // Complete before sending first prompt.',
-   prompt:'onPromptAdmitted(draft)\\n  attachRelevantEvidence(draft)\\n  attachAcceptanceChecks(draft)\\n  // Runs once per admitted prompt.',
-   dispatch:'await ctx.session.hook(\"context\", event => {\\n  // Your functions select valid messages/tools.\\n  applyContextPolicy(event)\\n})\\n// Every agent-loop dispatch, including tool continuations.',
-   pretool:'await ctx.tool.hook(\"execute.before\", event => {\\n  boundToolInput(event)\\n})',
-   posttool:'await ctx.tool.hook(\"execute.after\", event => {\\n  archiveOriginalResult(event)\\n  selectUsefulResult(event)\\n})',
-   child:'child = await createChildSession()\\nawait initializeChildPolicy(child)\\nawait sendScopedTaskAndEvidence(child)\\n// A fork copies history; use its documented semantics.',
-   precompact:'await ctx.session.hook(\"compaction\", event => {\\n  attachCheckpointInstructions(event)\\n  // Preserve invariants, anchors and open work.\\n})',
-   postcompact:'onCompactionEnded(event)\\n  recordCheckpoint(event)\\n  validateRequiredAnchors(event)\\n  scheduleRestoreBeforeNextRequest()\\n// Observation cannot rewrite completed compaction.'
-  }[h.id];
-  return '<div class="hook-layout"><div class="hook-toolbar"><label>Lifecycle boundary<select id="hookPolicy">'+atlasResearch.hooks.entries.map(x=>'<option value="'+x.id+'" '+(h.id===x.id?'selected':'')+'>'+x.label+'</option>').join('')+'</select></label><p><strong>Hook:</strong> code invoked at a supported lifecycle boundary. Its capabilities depend on the harness and event.</p></div><div id="hookDetail" class="hook-flow">'+
-   '<section class="hook-event session-panel"><span class="boundary-label">1 · BASE HARNESS EVENT</span><h2>'+h.label+'</h2><p>'+h.purpose+'</p><div class="hook-state">Parent / child<br>↓<br>Admit prompt → model ↔ tools<br>↓<br>Checkpoint → next request</div><button data-open="system" class="text-button">Return to the same replay step ↗</button></section>'+
-   '<section class="hook-code session-panel"><span class="boundary-label">2 · YOUR POLICY</span><h2>Encode the rule once</h2><pre>'+AtlasContent.esc(code.replaceAll('\\n','\n'))+'</pre><p>API-shaped teaching example. Helper functions are your implementation; this is not a complete installable plugin.</p><div class="policy-benefit">Repeated policy execution can reduce repeated manual setup. Measure hook latency, failure handling and acceptance locally.</div></section>'+
-   '<section class="hook-adapters session-panel"><span class="boundary-label">3 · DOCUMENTED ADAPTERS</span><h3>OpenCode V2</h3><code>'+AtlasContent.esc(h.opencode)+'</code><h3>Claude Code</h3><code>'+AtlasContent.esc(h.claude)+'</code><p>'+h.capability+'</p><div class="hook-limit">'+h.limit+'</div><small>Names and capabilities verified against current documentation. Match your installed version.</small></section></div><div class="hook-bottom"><strong>Observe ≠ intercept ≠ rewrite.</strong> Startup, outgoing requests, stored history and compacted state are distinct boundaries. Apply the same policy to supported parent and child entry points explicitly.</div></div>';
- },
- attention(s){
-  const kind=s.study||'frontier',provider=atlasResearch.provider,pos=atlasResearch.position;
-  const descriptions={
-   frontier:{title:'Can current named models use a very large input?',finding:'Published graph-task scores differ across this named provider cohort.',lever:'Bound the working evidence and choose the model on your task, with explicit acceptance checks.',measure:'Compare accepted results, end-to-end latency and cost under matched task/context conditions.',limit:'This is one aggregate subset, not a length-by-length attention curve or an overall model ranking.'},
-   position:{title:'Does the same evidence work equally well everywhere?',finding:'Moving the answer-containing document changed QA accuracy in this historical study.',lever:'Test evidence placement and clear task/check boundaries while preserving valid message roles.',measure:'Hold content fixed; vary evidence position, input length and task difficulty.',limit:'These 2023 models establish the measured example; test present-day models separately.'},
-   length:{title:'What changes when evidence gets longer and harder?',finding:'The named study reports different accuracy by length, association depth and reasoning-prompt condition.',lever:'Retrieve relevant facts and preserve the links needed to resolve the task.',measure:'Vary length, placement and difficulty. Score accepted behavior and missing required facts.',limit:'These Llama 3.3 results are scoped to NoLiMa; CoT is a tested condition, not a universal repair.'}
-  }[kind];
-  const chart=kind==='frontier'?'<div id="researchChart" class="provider-chart" role="img" aria-label="Published GraphWalks BFS F1 percentage for three named provider models, zero to 100 scale.">'+provider.series.map((x,i)=>'<div class="provider-row"><div><strong>'+x.model+'</strong><span>'+x.provider+'</span></div><div class="provider-track"><div class="provider-bar provider-'+i+'" style="width:'+x.value+'%"></div><b data-score="'+x.value+'">'+x.value.toFixed(1)+'</b></div></div>').join('')+'<div class="provider-axis"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div><p>Breadth-first-search F1 (%) · 256K–1M context subset</p></div>':this.linePlot(kind,s.cot);
-  const caption=kind==='frontier'?'<strong>Google DeepMind · October 2026 cohort · GraphWalks BFS F1.</strong> 200 problems, 256K–1M subset; all compared results reported self-computed. Highest/max available thinking. F1 balances precision and recall; it is not exact-answer accuracy.':kind==='position'?'<strong>Lost in the Middle v3 (2023), Table 6 · 20 documents.</strong> QA accuracy: a listed acceptable answer appears in the response. Zero-based position of the answer-containing document, not token offset. Historical models.':'<strong>NoLiMa v3 (2025), Table 4 · Llama 3.3 70B.</strong> Association-retrieval task accuracy (%). Paper length labels; one-/two-hop conditions. Published behavioral results.';
-  const glossary=kind==='frontier'?'<p><strong>BFS · breadth-first search:</strong> follow graph edges one depth at a time.</p><p><strong>F1:</strong> balances precision (returned nodes that are correct) and recall (required nodes recovered).</p>':kind==='position'?'<p><strong>Document index:</strong> zero-based location among 20 documents. Index 0 is first; 19 is last.</p><p><strong>QA accuracy:</strong> share of questions where an acceptable answer occurs in the generated response.</p>':'<p><strong>CoT · Chain of Thought:</strong> the study’s prompt asks for step-by-step reasoning.</p><p><strong>One-hop / two-hop:</strong> resolve one association (A→B) or two linked associations (A→B→C).</p>';
-  return '<div class="research-layout"><div class="research-toolbar"><label>Published evidence<select id="researchStudy"><option value="frontier" '+(kind==='frontier'?'selected':'')+'>Named frontier provider cohort · 2026</option><option value="position" '+(kind==='position'?'selected':'')+'>Evidence position · QA accuracy</option><option value="length" '+(kind==='length'?'selected':'')+'>Length + difficulty · NoLiMa</option></select></label>'+(kind==='length'?'<label class="cot-control"><input id="cotPolicy" type="checkbox" '+(s.cot?'checked':'')+'> Show with-CoT condition</label>':'')+'<button id="showMechanism">Attention mechanism + internal measurements ↗</button></div><div class="evidence-grid"><section class="research-actions"><h2>'+descriptions.title+'</h2><div><span>FINDING</span><p>'+descriptions.finding+'</p></div><div><span>YOUR LEVER</span><p>'+descriptions.lever+'</p></div><div><span>MEASURE LOCALLY</span><p>'+descriptions.measure+'</p></div><small>'+descriptions.limit+'</small></section><section class="research-visual">'+chart+'<div class="study-caption" id="researchCaption">'+caption+'<button id="showResearchData">Data + scope ↗</button></div></section></div><div id="studyGlossary" class="study-glossary">'+glossary+'</div><div class="task-connection"><span>Apply the policy to our fixture; published results do not measure this task.</span>'+AtlasContent.anchors+'<button data-open="assembly">Test placement in the request ↗</button></div></div>';
- },
- linePlot(kind,cot){
-  const isPosition=kind==='position',dataset=isPosition?atlasResearch.position:atlasStudy,series=isPosition?dataset.series:cot?dataset.series.slice(2,4):dataset.series.slice(0,2),labels=isPosition?dataset.positions:dataset.contextLengthLabels,xs=labels.map((value,i)=>70+530*(isPosition?value/labels[labels.length-1]:i/(labels.length-1))),y=v=>280-v*2.3,colors=['#7f99a3','#b49dac'];
-  let html='<path class="axis" d="M70 40V280H615"/>';
-  for(let t=0;t<=100;t+=25)html+='<path class="grid" d="M70 '+y(t)+'H615"/><text x="55" y="'+(y(t)+4)+'" text-anchor="end">'+t+'</text>';
-  labels.forEach((l,i)=>html+='<text x="'+xs[i]+'" y="301" text-anchor="middle">'+l+'</text>');
-  html+='<text class="axis-label-long" x="340" y="330" text-anchor="middle">'+(isPosition?'Answer-containing document (zero-based index)':'Context length (paper labels; doubling steps)')+'</text><text class="axis-label-short" x="340" y="330" text-anchor="middle">'+(isPosition?'Document index':'Context length')+'</text><text transform="translate(18 165) rotate(-90)" text-anchor="middle">'+(isPosition?'QA accuracy (%)':'Task accuracy (%)')+'</text>';
-  series.forEach((s,i)=>{html+='<path class="series-line" stroke="'+colors[i]+'" d="'+s.values.map((v,j)=>(j?'L':'M')+xs[j]+' '+y(v)).join(' ')+'"/>';s.values.forEach((v,j)=>html+='<circle cx="'+xs[j]+'" cy="'+y(v)+'" r="5.5" fill="'+colors[i]+'" data-accuracy="'+v+'" tabindex="0" aria-label="'+AtlasContent.esc(s.label)+', '+labels[j]+': '+v+'%"><title>'+AtlasContent.esc(s.label)+' · '+labels[j]+' · '+v+'%</title></circle>');html+='<line x1="'+(83+i*270)+'" x2="'+(105+i*270)+'" y1="22" y2="22" stroke="'+colors[i]+'" stroke-width="3"/><text class="legend-text" x="'+(114+i*270)+'" y="26">'+(isPosition?s.label:i?'Two-hop':'One-hop')+'</text>';});
-  return '<svg id="researchChart" class="research-plot" viewBox="0 0 650 345" role="img" aria-label="Published '+(isPosition?'historical QA accuracy versus document position':'NoLiMa task accuracy versus context length')+'. Zero to 100 percent.">'+html+'</svg>';
- }
+const Round04Content = {
+  timeline(s) {
+    const event = AtlasSession.at(s.step, s.sourcePolicy);
+    return (
+      '<div class="session-toolbar" data-session-timeline>' +
+      '<button id="stepBack" aria-label="Previous lifecycle event">←</button>' +
+      '<label class="scrubber"><abbr title="A retained conversation with its own history and ' +
+      'working state.">Session</abbr> replay <input id="sessionStep" type="range" min="0" ' +
+      'max="13" step="1" value="' +
+      event.step +
+      ('" aria-label="Session lifecycle event"></label>' +
+        '<button id="stepForward" aria-label="Next lifecycle event">→</button>' +
+        '<div id="sessionCounters"><strong>') +
+      (event.session === 'child' ? 'Child · C' + event.call : 'Parent · P' + event.call) +
+      '</strong><span><abbr title="One user request and the response cycle; it can include several model invocations.">User turn</abbr> ' +
+      event.turn +
+      (event.step >= 10 ? ' · summary S1 ' + (event.step === 10 ? 'prepared' : 'completed') : '') +
+      '</span></div><span class="replay-label">TEACHING REPLAY · NOT A MEASURED RUN</span></div>'
+    );
+  },
+
+  system(s) {
+    const e = AtlasSession.at(s.step, s.sourcePolicy),
+      hook = atlasResearch.hooks.entries.find((h) => h.id === e.hook);
+    const blocks = e.blocks
+      .map(
+        (b) =>
+          '<button class="context-block" data-inspect-block="' +
+          b.id +
+          '" data-block="' +
+          b.id +
+          '"><div><strong>' +
+          AtlasContent.esc(b.label) +
+          '</strong><span>' +
+          b.bytes.toLocaleString() +
+          ' bytes · ' +
+          AtlasContent.esc(b.origin) +
+          '</span></div><p>' +
+          AtlasContent.esc(b.text.slice(0, 135)) +
+          (b.text.length > 135 ? '…' : '') +
+          '</p></button>',
+      )
+      .join('');
+    return (
+      '<div class="session-layout">' +
+      this.timeline(s) +
+      ('<div class="session-grid" data-system-graphic>' +
+        '<svg class="journey-wires" viewBox="0 0 1000 400" preserveAspectRatio="none" ' +
+        'aria-hidden="true"><defs><marker id="journeyArrow" markerWidth="7" markerHeight="7" ' +
+        'refX="6" refY="3.5" orient="auto">' +
+        '<path d="M0 0L7 3.5L0 7" fill="none" stroke="currentColor"/></marker></defs>' +
+        '<path d="M215 85H245M710 85H740M900 185V240M745 325H725V390H500V370" /></svg>') +
+      '<div class="store-column"><section class="session-panel"><div class="panel-heading">' +
+      AtlasContent.icon('sources') +
+      ('<h2>Outside the request</h2></div>' +
+        '<p>The source library and complete artifacts remain retrievable.</p>' +
+        '<div class="store-total"><b>15</b><span>frozen fixture documents<br>12,621 source bytes</span></div>') +
+      AtlasContent.anchors +
+      '<button class="text-button" data-open="assembly">See source → request ↗</button></section>' +
+      '<section class="session-panel custom-policy ' +
+      (e.node === 'memory' ? 'event-active' : '') +
+      ('"><span class="boundary-label">YOUR CUSTOM / NATIVE POLICY</span>' +
+        '<h3>Select · bound · preserve</h3>' +
+        '<p>Choose evidence, retain sourced decisions, scope child packets and validate ' +
+        'checkpoints.</p><button class="text-button" id="inspectHook">Inspect this event’s hook ' +
+        '↗</button></section></div>') +
+      '<section class="session-panel request-panel ' +
+      (e.node === 'assembler' ? 'event-active' : '') +
+      '" data-node="assembler"><div class="panel-heading">' +
+      AtlasContent.icon('assembler') +
+      '<div><h2>' +
+      (e.session === 'child' ? 'Child working context' : 'Parent working context') +
+      '</h2><small>Assembled again at each invocation</small></div><div id="contextSize" data-bytes="' +
+      e.bytes +
+      '"><strong>' +
+      e.bytes.toLocaleString() +
+      '</strong><span>example UTF-8 bytes</span></div></div><div id="activeContext" class="active-context">' +
+      blocks +
+      ('</div><div class="request-foot">' +
+        '<button id="inspectContext" class="text-button">Inspect complete snapshot ↗</button>' +
+        '<span class="context-delta" title="') +
+      AtlasContent.esc(e.delta.text) +
+      '"><strong>' +
+      e.delta.label +
+      ':</strong> ' +
+      AtlasContent.esc(e.delta.text) +
+      '</span></div><div class="output-allowance" data-output-allowance>Output allowance stays outside these input layers.</div></section>' +
+      '<div class="execution-column"><section class="session-panel base-panel ' +
+      (e.node === 'model' ? 'event-active' : '') +
+      '"><span class="boundary-label">BASE HARNESS EXECUTION</span><div class="panel-heading">' +
+      AtlasContent.icon('model') +
+      ('<h2><abbr title="One request to the model, with assembled input. Tool execution is a ' +
+        'separate event.">Model invocation</abbr></h2></div><div class="invocation-id">') +
+      (e.session === 'child' ? 'C' + e.call : 'P' + e.call) +
+      '</div><p>' +
+      (e.call === 0
+        ? 'Prepared context; no model call yet.'
+        : 'A request produces text and/or tool requests.') +
+      '</p><button class="text-button" data-open="attention">Evidence → practical levers ↗</button></section>' +
+      '<section class="session-panel execution-detail ' +
+      (e.node === 'tools' || e.node === 'child' ? 'event-active' : '') +
+      '"><div class="two-boundaries"><div><h3>Tools ↩</h3><p>Selected result returns before the next model call.</p></div><div class="' +
+      (e.session === 'child' ? 'child-active' : '') +
+      ('"><h3>Child session</h3><p>Own context + call counter. Return a selected handoff.</p>' +
+        '</div></div><div class="acceptance-strip">Check the artifact → failures become evidence ' +
+        'for reassembly.</div></section></div></div>') +
+      '<div class="replay-bottom"><div class="event-track">' +
+      AtlasSession.events
+        .map(
+          (v, i) =>
+            '<button data-step="' +
+            i +
+            '" ' +
+            (i === e.step ? 'aria-current="step"' : '') +
+            ' title="' +
+            AtlasContent.esc(v.label) +
+            '">' +
+            [
+              'Start',
+              'Prompt',
+              'P1',
+              'Tool ↓',
+              'Tool ↑',
+              'P2',
+              'Child',
+              'C1',
+              'Return',
+              'P3',
+              'Pre',
+              'Post',
+              'Turn 2',
+              'P4',
+            ][i] +
+            '</button>',
+        )
+        .join('') +
+      '</div><div class="event-explanation"><span class="event-index">' +
+      (e.step + 1) +
+      ' / 14</span><strong>' +
+      AtlasContent.esc(e.change) +
+      '</strong><span>' +
+      AtlasContent.esc(hook.label) +
+      '</span><button data-open="hooks">How the hook applies ↗</button></div></div></div>'
+    );
+  },
+
+  assembly(s) {
+    const source = AtlasSession.anchors().find((x) => x.anchor === (s.anchor || 'STORAGE-2')),
+      before = AtlasSession.candidate(s.sourcePolicy, 'evidence-first'),
+      after = AtlasSession.candidate(s.sourcePolicy, s.layoutPolicy);
+
+    const candidate = (p, id, title) =>
+      '<article class="candidate-column" data-candidate="' +
+      id +
+      '"><div class="candidate-heading"><span>' +
+      title +
+      '</span><strong>' +
+      p.bytes.toLocaleString() +
+      ' bytes</strong></div><div class="candidate-sections">' +
+      p.sections
+        .map(
+          (part, i) =>
+            '<section data-section="' +
+            part.id +
+            '"><div class="section-rank">' +
+            (i + 1) +
+            '</div><div><h3>' +
+            part.label +
+            '</h3><pre>' +
+            AtlasContent.esc(
+              (part.id === 'evidence' ? source.text : part.text).slice(
+                0,
+                part.id === 'evidence' ? 325 : 180,
+              ),
+            ) +
+            (part.id === 'evidence' ? '' : '…') +
+            '</pre>' +
+            (part.id === 'evidence'
+              ? '<small>Original ' +
+                source.anchor +
+                ' excerpt · ' +
+                p.sourceFiles.length +
+                ' complete source bodies in the inspectable payload</small>'
+              : '') +
+            '</div></section>',
+        )
+        .join('') +
+      '</div></article>';
+
+    return (
+      '<div class="concrete-assembly"><div class="assembly-controls"><label>Source inclusion<select id="sourcePolicy"><option value="all" ' +
+      (s.sourcePolicy === 'all' ? 'selected' : '') +
+      '>All 15 context documents</option><option value="incident" ' +
+      (s.sourcePolicy === 'incident' ? 'selected' : '') +
+      ('>8 incident-relevant documents</option></select></label>' +
+        '<label>After: candidate content order<select id="layoutPolicy"><option value="task-first" ') +
+      (s.layoutPolicy === 'task-first' ? 'selected' : '') +
+      '>Task → evidence → checks</option><option value="evidence-first" ' +
+      (s.layoutPolicy === 'evidence-first' ? 'selected' : '') +
+      '>Evidence → task → checks</option></select></label><button id="inspectNative">Native instructions + roles ↗</button></div>' +
+      '<div class="assembly-journey"><section class="source-inspection"><div class="panel-heading">' +
+      AtlasContent.icon('sources') +
+      '<h2>Actual source material</h2></div><span class="path-label">' +
+      source.name +
+      '</span><pre id="sourceExcerpt">' +
+      AtlasContent.esc(source.text) +
+      '</pre><div class="anchors">' +
+      AtlasSession.anchors()
+        .map(
+          (x) =>
+            '<button class="anchor" data-anchor="' +
+            x.anchor +
+            '" ' +
+            (source.anchor === x.anchor ? 'aria-pressed="true"' : 'aria-pressed="false"') +
+            '>' +
+            x.anchor +
+            '</button>',
+        )
+        .join('') +
+      '</div><div id="candidateSize" data-bytes="' +
+      after.sourceBodyBytes +
+      '" class="selection-total"><strong>' +
+      after.sourceBodyBytes.toLocaleString() +
+      '</strong>UTF-8 source bytes · ' +
+      after.sourceFiles.length +
+      (' documents</div><p>Excerpt shown verbatim. Full selected bodies enter both candidate ' +
+        'payloads.</p><div class="source-to-payload">Original sources → candidate sections</div>' +
+        '<div class="output-allowance" data-output-allowance>Output allowance is separate from ' +
+        'included text.</div></section><div id="candidateBefore">') +
+      candidate(before, 'before', 'BEFORE · EVIDENCE FIRST') +
+      '</div><div id="candidateAfter">' +
+      candidate(
+        after,
+        'after',
+        'AFTER · ' + (s.layoutPolicy === 'task-first' ? 'TASK FIRST' : 'EVIDENCE FIRST'),
+      ) +
+      '</div></div>' +
+      ('<div class="assembly-bottom"><p>Same selected material; independently adjustable order. ' +
+        'These are user-content teaching payloads, not captured native requests. Counts include ' +
+        'the shown teaching text, not provider schemas or hidden instructions.</p>' +
+        '<button id="inspectManifest">Inspect both complete requests ↗</button></div></div>')
+    );
+  },
+
+  hooks(s) {
+    const selected = s.hook || AtlasSession.at(s.step, s.sourcePolicy).hook,
+      h =
+        atlasResearch.hooks.entries.find((x) => x.id === selected) ||
+        atlasResearch.hooks.entries[0];
+    const code = {
+      start:
+        'onSessionCreated(session)\\n  await initializePolicy(session)\\n  await ' +
+        'restoreSourcedState(session)\\n  // Complete before sending first prompt.',
+      prompt:
+        'onPromptAdmitted(draft)\\n  attachRelevantEvidence(draft)\\n  attachAcceptanceChecks(draft)\\n  // Runs once per admitted prompt.',
+      dispatch:
+        'await ctx.session.hook("context", event => {\\n  // Your functions select valid ' +
+        'messages/tools.\\n  applyContextPolicy(event)\\n})\\n// Every agent-loop dispatch, ' +
+        'including tool continuations.',
+      pretool: 'await ctx.tool.hook(\"execute.before\", event => {\\n  boundToolInput(event)\\n})',
+      posttool:
+        'await ctx.tool.hook(\"execute.after\", event => {\\n  archiveOriginalResult(event)\\n  selectUsefulResult(event)\\n})',
+      child:
+        'child = await createChildSession()\\nawait initializeChildPolicy(child)\\nawait ' +
+        'sendScopedTaskAndEvidence(child)\\n// A fork copies history; use its documented semantics.',
+      precompact:
+        'await ctx.session.hook("compaction", event => {\\n  ' +
+        'attachCheckpointInstructions(event)\\n  // Preserve invariants, anchors and open work.\\n})',
+      postcompact:
+        'onCompactionEnded(event)\\n  recordCheckpoint(event)\\n  validateRequiredAnchors(event)\\n ' +
+        ' scheduleRestoreBeforeNextRequest()\\n// Observation cannot rewrite completed compaction.',
+    }[h.id];
+    return (
+      '<div class="hook-layout"><div class="hook-toolbar"><label>Lifecycle boundary<select id="hookPolicy">' +
+      atlasResearch.hooks.entries
+        .map(
+          (x) =>
+            '<option value="' +
+            x.id +
+            '" ' +
+            (h.id === x.id ? 'selected' : '') +
+            '>' +
+            x.label +
+            '</option>',
+        )
+        .join('') +
+      ('</select></label><p><strong>Hook:</strong> code invoked at a supported lifecycle ' +
+        'boundary. Its capabilities depend on the harness and event.</p></div>' +
+        '<div id="hookDetail" class="hook-flow">') +
+      '<section class="hook-event session-panel"><span class="boundary-label">1 · BASE HARNESS EVENT</span><h2>' +
+      h.label +
+      '</h2><p>' +
+      h.purpose +
+      ('</p><div class="hook-state">Parent / child<br>↓<br>Admit prompt → model ↔ ' +
+        'tools<br>↓<br>Checkpoint → next request</div>' +
+        '<button data-open="system" class="text-button">Return to the same replay step ↗</button></section>') +
+      '<section class="hook-code session-panel"><span class="boundary-label">2 · YOUR POLICY</span><h2>Encode the rule once</h2><pre>' +
+      AtlasContent.esc(code.replaceAll('\\n', '\n')) +
+      ('</pre><p>API-shaped teaching example. Helper functions are your implementation; this is ' +
+        'not a complete installable plugin.</p>' +
+        '<div class="policy-benefit">Repeated policy execution can reduce repeated manual setup. ' +
+        'Measure hook latency, failure handling and acceptance locally.</div></section>') +
+      '<section class="hook-adapters session-panel"><span class="boundary-label">3 · DOCUMENTED ADAPTERS</span><h3>OpenCode V2</h3><code>' +
+      AtlasContent.esc(h.opencode) +
+      '</code><h3>Claude Code</h3><code>' +
+      AtlasContent.esc(h.claude) +
+      '</code><p>' +
+      h.capability +
+      '</p><div class="hook-limit">' +
+      h.limit +
+      ('</div><small>Names and capabilities verified against current documentation. Match your ' +
+        'installed version.</small></section></div><div class="hook-bottom">' +
+        '<strong>Observe ≠ intercept ≠ rewrite.</strong> Startup, outgoing requests, stored ' +
+        'history and compacted state are distinct boundaries. Apply the same policy to supported ' +
+        'parent and child entry points explicitly.</div></div>')
+    );
+  },
+
+  attention(s) {
+    const kind = s.study || 'frontier',
+      provider = atlasResearch.provider,
+      pos = atlasResearch.position;
+    const descriptions = {
+      frontier: {
+        title: 'Can current named models use a very large input?',
+        finding: 'Published graph-task scores differ across this named provider cohort.',
+        lever:
+          'Bound the working evidence and choose the model on your task, with explicit acceptance checks.',
+        measure:
+          'Compare accepted results, end-to-end latency and cost under matched task/context conditions.',
+        limit:
+          'This is one aggregate subset, not a length-by-length attention curve or an overall model ranking.',
+      },
+      position: {
+        title: 'Does the same evidence work equally well everywhere?',
+        finding:
+          'Moving the answer-containing document changed QA accuracy in this historical study.',
+        lever:
+          'Test evidence placement and clear task/check boundaries while preserving valid message roles.',
+        measure: 'Hold content fixed; vary evidence position, input length and task difficulty.',
+        limit:
+          'These 2023 models establish the measured example; test present-day models separately.',
+      },
+      length: {
+        title: 'What changes when evidence gets longer and harder?',
+        finding:
+          'The named study reports different accuracy by length, association depth and reasoning-prompt condition.',
+        lever: 'Retrieve relevant facts and preserve the links needed to resolve the task.',
+        measure:
+          'Vary length, placement and difficulty. Score accepted behavior and missing required facts.',
+        limit:
+          'These Llama 3.3 results are scoped to NoLiMa; CoT is a tested condition, not a universal repair.',
+      },
+    }[kind];
+    const chart =
+      kind === 'frontier'
+        ? '<div id="researchChart" class="provider-chart" role="img" aria-label="Published ' +
+          'GraphWalks BFS F1 percentage for three named provider models, zero to 100 scale.">' +
+          provider.series
+            .map(
+              (x, i) =>
+                '<div class="provider-row"><div><strong>' +
+                x.model +
+                '</strong><span>' +
+                x.provider +
+                '</span></div><div class="provider-track"><div class="provider-bar provider-' +
+                i +
+                '" style="width:' +
+                x.value +
+                '%"></div><b data-score="' +
+                x.value +
+                '">' +
+                x.value.toFixed(1) +
+                '</b></div></div>',
+            )
+            .join('') +
+          ('<div class="provider-axis"><span>0</span><span>25</span><span>50</span><span>75</span>' +
+            '<span>100</span></div><p>Breadth-first-search F1 (%) · 256K–1M context subset</p></div>')
+        : this.linePlot(kind, s.cot);
+    const caption =
+      kind === 'frontier'
+        ? '<strong>Google DeepMind · October 2026 cohort · GraphWalks BFS F1.</strong> 200 ' +
+          'problems, 256K–1M subset; all compared results reported self-computed. Highest/max ' +
+          'available thinking. F1 balances precision and recall; it is not exact-answer accuracy.'
+        : kind === 'position'
+          ? '<strong>Lost in the Middle v3 (2023), Table 6 · 20 documents.</strong> QA accuracy: a ' +
+            'listed acceptable answer appears in the response. Zero-based position of the ' +
+            'answer-containing document, not token offset. Historical models.'
+          : '<strong>NoLiMa v3 (2025), Table 4 · Llama 3.3 70B.</strong> Association-retrieval task ' +
+            'accuracy (%). Paper length labels; one-/two-hop conditions. Published behavioral results.';
+    const glossary =
+      kind === 'frontier'
+        ? '<p><strong>BFS · breadth-first search:</strong> follow graph edges one depth at a ' +
+          'time.</p><p><strong>F1:</strong> balances precision (returned nodes that are correct) ' +
+          'and recall (required nodes recovered).</p>'
+        : kind === 'position'
+          ? '<p><strong>Document index:</strong> zero-based location among 20 documents. Index 0 is ' +
+            'first; 19 is last.</p><p><strong>QA accuracy:</strong> share of questions where an ' +
+            'acceptable answer occurs in the generated response.</p>'
+          : '<p><strong>CoT · Chain of Thought:</strong> the study’s prompt asks for step-by-step ' +
+            'reasoning.</p><p><strong>One-hop / two-hop:</strong> resolve one association (A→B) or ' +
+            'two linked associations (A→B→C).</p>';
+    return (
+      '<div class="research-layout"><div class="research-toolbar"><label>Published evidence<select id="researchStudy"><option value="frontier" ' +
+      (kind === 'frontier' ? 'selected' : '') +
+      '>Named frontier provider cohort · 2026</option><option value="position" ' +
+      (kind === 'position' ? 'selected' : '') +
+      '>Evidence position · QA accuracy</option><option value="length" ' +
+      (kind === 'length' ? 'selected' : '') +
+      '>Length + difficulty · NoLiMa</option></select></label>' +
+      (kind === 'length'
+        ? '<label class="cot-control"><input id="cotPolicy" type="checkbox" ' +
+          (s.cot ? 'checked' : '') +
+          '> Show with-CoT condition</label>'
+        : '') +
+      ('<button id="showMechanism">Attention mechanism + internal measurements ↗</button></div>' +
+        '<div class="evidence-grid"><section class="research-actions"><h2>') +
+      descriptions.title +
+      '</h2><div><span>FINDING</span><p>' +
+      descriptions.finding +
+      '</p></div><div><span>YOUR LEVER</span><p>' +
+      descriptions.lever +
+      '</p></div><div><span>MEASURE LOCALLY</span><p>' +
+      descriptions.measure +
+      '</p></div><small>' +
+      descriptions.limit +
+      '</small></section><section class="research-visual">' +
+      chart +
+      '<div class="study-caption" id="researchCaption">' +
+      caption +
+      '<button id="showResearchData">Data + scope ↗</button></div></section></div><div id="studyGlossary" class="study-glossary">' +
+      glossary +
+      '</div><div class="task-connection"><span>Apply the policy to our fixture; published results do not measure this task.</span>' +
+      AtlasContent.anchors +
+      '<button data-open="assembly">Test placement in the request ↗</button></div></div>'
+    );
+  },
+
+  linePlot(kind, cot) {
+    const isPosition = kind === 'position',
+      dataset = isPosition ? atlasResearch.position : atlasStudy,
+      series = isPosition
+        ? dataset.series
+        : cot
+          ? dataset.series.slice(2, 4)
+          : dataset.series.slice(0, 2),
+      labels = isPosition ? dataset.positions : dataset.contextLengthLabels,
+      xs = labels.map(
+        (value, i) =>
+          70 + 530 * (isPosition ? value / labels[labels.length - 1] : i / (labels.length - 1)),
+      ),
+      y = (v) => 280 - v * 2.3,
+      colors = ['#7f99a3', '#b49dac'];
+
+    let html = '<path class="axis" d="M70 40V280H615"/>';
+    for (let t = 0; t <= 100; t += 25)
+      html +=
+        '<path class="grid" d="M70 ' +
+        y(t) +
+        'H615"/><text x="55" y="' +
+        (y(t) + 4) +
+        '" text-anchor="end">' +
+        t +
+        '</text>';
+    labels.forEach(
+      (l, i) => (html += '<text x="' + xs[i] + '" y="301" text-anchor="middle">' + l + '</text>'),
+    );
+    html +=
+      '<text class="axis-label-long" x="340" y="330" text-anchor="middle">' +
+      (isPosition
+        ? 'Answer-containing document (zero-based index)'
+        : 'Context length (paper labels; doubling steps)') +
+      '</text><text class="axis-label-short" x="340" y="330" text-anchor="middle">' +
+      (isPosition ? 'Document index' : 'Context length') +
+      '</text><text transform="translate(18 165) rotate(-90)" text-anchor="middle">' +
+      (isPosition ? 'QA accuracy (%)' : 'Task accuracy (%)') +
+      '</text>';
+    series.forEach((s, i) => {
+      html +=
+        '<path class="series-line" stroke="' +
+        colors[i] +
+        '" d="' +
+        s.values.map((v, j) => (j ? 'L' : 'M') + xs[j] + ' ' + y(v)).join(' ') +
+        '"/>';
+      s.values.forEach(
+        (v, j) =>
+          (html +=
+            '<circle cx="' +
+            xs[j] +
+            '" cy="' +
+            y(v) +
+            '" r="5.5" fill="' +
+            colors[i] +
+            '" data-accuracy="' +
+            v +
+            '" tabindex="0" aria-label="' +
+            AtlasContent.esc(s.label) +
+            ', ' +
+            labels[j] +
+            ': ' +
+            v +
+            '%"><title>' +
+            AtlasContent.esc(s.label) +
+            ' · ' +
+            labels[j] +
+            ' · ' +
+            v +
+            '%</title></circle>'),
+      );
+      html +=
+        '<line x1="' +
+        (83 + i * 270) +
+        '" x2="' +
+        (105 + i * 270) +
+        '" y1="22" y2="22" stroke="' +
+        colors[i] +
+        '" stroke-width="3"/><text class="legend-text" x="' +
+        (114 + i * 270) +
+        '" y="26">' +
+        (isPosition ? s.label : i ? 'Two-hop' : 'One-hop') +
+        '</text>';
+    });
+    return (
+      '<svg id="researchChart" class="research-plot" viewBox="0 0 650 345" role="img" aria-label="Published ' +
+      (isPosition
+        ? 'historical QA accuracy versus document position'
+        : 'NoLiMa task accuracy versus context length') +
+      '. Zero to 100 percent.">' +
+      html +
+      '</svg>'
+    );
+  },
 };
-Object.assign(AtlasContent,Round04Content);
+Object.assign(AtlasContent, Round04Content);

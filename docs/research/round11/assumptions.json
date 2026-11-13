@@ -28,30 +28,8 @@
       "report": 1150
     }
   ],
-  "workUnitTokens": [
-    1000,
-    900,
-    1400,
-    700,
-    1200,
-    800,
-    1600,
-    600,
-    1300,
-    1000,
-    900,
-    600
-  ],
-  "sourceUnitPercentages": [
-    14,
-    9,
-    18,
-    7,
-    16,
-    11,
-    15,
-    10
-  ],
+  "workUnitTokens": [1000, 900, 1400, 700, 1200, 800, 1600, 600, 1300, 1000, 900, 600],
+  "sourceUnitPercentages": [14, 9, 18, 7, 16, 11, 15, 10],
   "calls": "Initial C1 at step1 has no local results; C2 consumes initial results, C3 full results. Only validated report output becomes prepared parent input at step4. Accrued input excludes output billing.",
   "nativeChoice": "Session/delegation selectors removed: old switches changed readout only. No source-derived comparable universal full token baseline established. Native loading/lifecycle views remain.",
   "officialSourcesRechecked": [

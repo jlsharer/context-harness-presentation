@@ -1,3 +1,66 @@
-import fs from 'node:fs';import path from 'node:path';import {analyze,discover} from './analyze.mjs';import {planInstall,applyPlan,rollback} from './install.mjs';import {checkContract} from './contracts.mjs';
-const args=process.argv.slice(2),cmd=args.shift(),get=(k,f)=>args.includes(k)?args[args.indexOf(k)+1]:f,all=k=>args.flatMap((x,i)=>x===k?[args[i+1]]:[]),json=f=>JSON.parse(fs.readFileSync(f,'utf8')),emit=value=>{const text=JSON.stringify(value,null,2)+'\n',out=get('--out');if(out){fs.mkdirSync(path.dirname(path.resolve(out)),{recursive:true});fs.writeFileSync(out,text,{mode:0o600});console.log('Wrote '+out);}else console.log(text);};
-try{if(cmd==='discover')emit(discover(get('--claude-home'),Number(get('--limit',20))));else if(cmd==='analyze')emit(await analyze({claudeHome:get('--claude-home'),files:all('--transcript'),events:get('--events'),discover:args.includes('--discover'),limit:Number(get('--limit',20)),since:get('--since')}));else if(cmd==='install'){const s=get('--selection'),selection=s?json(s):null;if(selection&&(selection.schema!==1||!Array.isArray(selection.packages)))throw Error('Selection needs schema1 and packages array');const plan=planInstall({claudeHome:get('--claude-home'),selected:selection?selection.packages:get('--selected','').split(',').filter(Boolean)});if(args.includes('--apply'))emit(applyPlan(plan));else emit(plan);}else if(cmd==='apply'){const p=json(get('--plan'));if(p.schema!==1||!p.root||!Array.isArray(p.files)||!Array.isArray(p.selected))throw Error('Invalid preview plan');emit(applyPlan(p));}else if(cmd==='rollback')emit(rollback(get('--manifest')));else if(cmd==='validate')emit(checkContract(get('--kind'),json(get('--file'))));else console.log('Context audit · Node18+ · local only\nCommands: discover --claude-home DIR [--limit20]; analyze --claude-home DIR [--transcript FILE ...] [--events JSONL] [--discover] [--since ISO] [--out report.json]; install --claude-home DIR [--selected continuity,evidence] [--selection selection.json] [--out preview.json]; apply --plan preview.json; rollback --manifest FILE; validate --kind checkpoint|report --file FILE.\nInstall without selected packages bootstraps only /context-audit. Preview before apply. No model calls or automatic telemetry exporter setup.');}catch(e){console.error(e.message);process.exitCode=1;}
+import fs from 'node:fs';
+import path from 'node:path';
+import { analyze, discover } from './analyze.mjs';
+import { planInstall, applyPlan, rollback } from './install.mjs';
+import { checkContract } from './contracts.mjs';
+
+const args = process.argv.slice(2),
+  cmd = args.shift(),
+  get = (k, f) => (args.includes(k) ? args[args.indexOf(k) + 1] : f),
+  all = (k) => args.flatMap((x, i) => (x === k ? [args[i + 1]] : [])),
+  json = (f) => JSON.parse(fs.readFileSync(f, 'utf8')),
+  emit = (value) => {
+    const text = JSON.stringify(value, null, 2) + '\n',
+      out = get('--out');
+    if (out) {
+      fs.mkdirSync(path.dirname(path.resolve(out)), { recursive: true });
+      fs.writeFileSync(out, text, { mode: 0o600 });
+      console.log('Wrote ' + out);
+    } else console.log(text);
+  };
+
+try {
+  if (cmd === 'discover') emit(discover(get('--claude-home'), Number(get('--limit', 20))));
+  else if (cmd === 'analyze')
+    emit(
+      await analyze({
+        claudeHome: get('--claude-home'),
+        files: all('--transcript'),
+        events: get('--events'),
+        discover: args.includes('--discover'),
+        limit: Number(get('--limit', 20)),
+        since: get('--since'),
+      }),
+    );
+  else if (cmd === 'install') {
+    const s = get('--selection'),
+      selection = s ? json(s) : null;
+    if (selection && (selection.schema !== 1 || !Array.isArray(selection.packages)))
+      throw Error('Selection needs schema1 and packages array');
+    const plan = planInstall({
+      claudeHome: get('--claude-home'),
+      selected: selection ? selection.packages : get('--selected', '').split(',').filter(Boolean),
+    });
+    if (args.includes('--apply')) emit(applyPlan(plan));
+    else emit(plan);
+  } else if (cmd === 'apply') {
+    const p = json(get('--plan'));
+    if (p.schema !== 1 || !p.root || !Array.isArray(p.files) || !Array.isArray(p.selected))
+      throw Error('Invalid preview plan');
+    emit(applyPlan(p));
+  } else if (cmd === 'rollback') emit(rollback(get('--manifest')));
+  else if (cmd === 'validate') emit(checkContract(get('--kind'), json(get('--file'))));
+  else
+    console.log(
+      'Context audit · Node18+ · local only\nCommands: discover --claude-home DIR [--limit20]; ' +
+        'analyze --claude-home DIR [--transcript FILE ...] [--events JSONL] [--discover] ' +
+        '[--since ISO] [--out report.json]; install --claude-home DIR [--selected ' +
+        'continuity,evidence] [--selection selection.json] [--out preview.json]; apply --plan ' +
+        'preview.json; rollback --manifest FILE; validate --kind checkpoint|report --file FILE.\n' +
+        'Install without selected packages bootstraps only /context-audit. Preview before apply. ' +
+        'No model calls or automatic telemetry exporter setup.',
+    );
+} catch (e) {
+  console.error(e.message);
+  process.exitCode = 1;
+}

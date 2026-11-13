@@ -1,6 +1,58 @@
-const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');const base=path.resolve(__dirname,'../docs');const research=JSON.parse(vm.runInNewContext(fs.readFileSync(path.join(base,'atlas-research.js'),'utf8')+';JSON.stringify(atlasResearch)'));
-for(const [key,file] of [['provider','provider-context.json'],['position','position-accuracy.json'],['hooks','hooks.json']])assert.deepEqual(research[key],JSON.parse(fs.readFileSync(path.join(base,'research/round04',file))));
-assert.deepEqual(research.provider.series.map(s=>[s.provider,s.model,s.value]),[['Google DeepMind','Gemini 4 Carbon',96.2],['OpenAI','GPT-6 Astra',71.8],['Anthropic','Claude Opus 5.5',66.8]]);assert.equal(research.provider.metric,'BFS F1 (%)');assert.match(research.provider.context,/200/);assert.match(research.provider.publishedCohort,/October 2026/);assert.match(research.provider.limits,/not.*overall|not an overall/);
-assert.deepEqual(research.position.positions,[0,4,9,14,19]);assert.deepEqual(research.position.series.map(s=>s.values),[[75.8,57.2,53.8,55.4,63.2],[59.9,55.9,56.8,57.2,60.1]]);assert.match(research.position.locator,/Table 6/);assert.match(research.position.scoring,/not whole-output exact match/);assert.match(research.position.limits,/Historical/);
-assert.equal(research.hooks.entries.length,8);for(const h of research.hooks.entries){assert.ok(h.purpose&&h.opencode&&h.claude&&h.capability&&h.limit);assert.notEqual(h.id,'session.everything');}assert.match(research.hooks.entries.find(h=>h.id==='postcompact').limit,/cannot edit/);assert.match(research.hooks.entries.find(h=>h.id==='prompt').limit,/not every model invocation/);assert.match(research.hooks.entries.find(h=>h.id==='child').limit,/copies history/);
-console.log('PASS: provider/model/metric/cohort and exact values; historical position indices/scoring/values; bundled research fidelity; eight scoped hook mappings.');
+const assert = require('node:assert/strict'),
+  fs = require('node:fs'),
+  path = require('node:path'),
+  vm = require('node:vm');
+const base = path.resolve(__dirname, '../docs');
+const research = JSON.parse(
+  vm.runInNewContext(
+    fs.readFileSync(path.join(base, 'atlas-research.js'), 'utf8') +
+      ';JSON.stringify(atlasResearch)',
+  ),
+);
+for (const [key, file] of [
+  ['provider', 'provider-context.json'],
+  ['position', 'position-accuracy.json'],
+  ['hooks', 'hooks.json'],
+])
+  assert.deepEqual(
+    research[key],
+    JSON.parse(fs.readFileSync(path.join(base, 'research/round04', file))),
+  );
+assert.deepEqual(
+  research.provider.series.map((s) => [s.provider, s.model, s.value]),
+  [
+    ['Google DeepMind', 'Gemini 4 Carbon', 96.2],
+    ['OpenAI', 'GPT-6 Astra', 71.8],
+    ['Anthropic', 'Claude Opus 5.5', 66.8],
+  ],
+);
+assert.equal(research.provider.metric, 'BFS F1 (%)');
+assert.match(research.provider.context, /200/);
+assert.match(research.provider.publishedCohort, /October 2026/);
+assert.match(research.provider.limits, /not.*overall|not an overall/);
+assert.deepEqual(research.position.positions, [0, 4, 9, 14, 19]);
+assert.deepEqual(
+  research.position.series.map((s) => s.values),
+  [
+    [75.8, 57.2, 53.8, 55.4, 63.2],
+    [59.9, 55.9, 56.8, 57.2, 60.1],
+  ],
+);
+assert.match(research.position.locator, /Table 6/);
+assert.match(research.position.scoring, /not whole-output exact match/);
+assert.match(research.position.limits, /Historical/);
+assert.equal(research.hooks.entries.length, 8);
+for (const h of research.hooks.entries) {
+  assert.ok(h.purpose && h.opencode && h.claude && h.capability && h.limit);
+  assert.notEqual(h.id, 'session.everything');
+}
+assert.match(research.hooks.entries.find((h) => h.id === 'postcompact').limit, /cannot edit/);
+assert.match(
+  research.hooks.entries.find((h) => h.id === 'prompt').limit,
+  /not every model invocation/,
+);
+assert.match(research.hooks.entries.find((h) => h.id === 'child').limit, /copies history/);
+console.log(
+  'PASS: provider/model/metric/cohort and exact values; historical position ' +
+    'indices/scoring/values; bundled research fidelity; eight scoped hook mappings.',
+);
