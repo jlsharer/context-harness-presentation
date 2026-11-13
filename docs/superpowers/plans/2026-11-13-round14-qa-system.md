@@ -40,7 +40,7 @@ Preserve existing owner dirt; stage only this round. Authored QA story/budgets/c
 ## Task 4: review and publication
 
 - [x] Run affected model/helper/browser/format/ZIP checks; independent final review; one Critical/Important fix pass with reproducing tests.
-- [ ] Commit scoped changes; publish existing site; verify live interactions and published source/archive hashes.
+- [x] Commit scoped changes; publish existing site; verify live interactions and published source/archive hashes.
 
 ## Ledger
 
@@ -59,3 +59,5 @@ Preserve existing owner dirt; stage only this round. Authored QA story/budgets/c
 - Final: Ruling: native compatibility, real CI outcomes and accepted-task savings remain environment trials, not verified by the offline fixture/browser tests — declaring these verified would be false; cost if wrong is a package requiring adaptation in a particular client/repository. Hostile same-user filesystem races are outside the local access-control claim; publication is verified separately after push.
 
 - Final fixed: QA bundle reconstruction error — four-target reapplication/additive regression RED→GREEN; empty selection loss — refresh regression RED→GREEN; worker cost-label overlap — bounding-box regression RED→GREEN. Final affected suite:22 pure/helper suites, three browser suites and source ZIP fidelity all passed after the fixes. Format check passed for210 sources.
+
+- Publication: commit c29b84155f8db47cd371d643d42d0ed1b0e8d275 pushed to existing main/docs Pages target; GitHub reported built. Full R14 browser checks passed against the public site (walkthrough/phases, fixed arrows, context details, routed returns/cost formula, manual map, granular selection and file explorer, live/mobile/reset).128 published assets, toolkit/audit source files and downloads matched local SHA256. Local preview remains http://localhost:8768/atlas.html. Protected preexisting owner changes remain uncommitted.
