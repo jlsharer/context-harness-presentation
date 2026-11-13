@@ -196,3 +196,13 @@ Tests use temporary fixture projects/homes, never the owner's history or install
 Claude package target and expandable explorer refinement
 
 R14 browser coverage now verifies the Claude default, actual ZIP download bytes and filename, retained OpenCode switching, native directory paths, per-folder and all-folder controls, keyboard expansion, collapse-state preservation, linked-reference reveal and mobile preview fit. `tests/context-kits-archive.py` extracts the downloadable ZIP and runs its installer twice in a temporary Claude project, checking delivered skills/resources, agents, hooks and CLAUDE.md without creating OpenCode files. This verifies package generation/installation, not execution inside an installed Claude client.
+
+
+Native personal Claude packages
+
+    node tests/native-claude.mjs
+    python3 tests/native-claude-archives.py
+    node tests/package-previews.mjs
+    node tests/atlas.cjs
+
+These add minimal native file sets, conservative settings merging, no framework or project namespace, exact cwd/session checkpoint isolation and producer CLI, event output contracts, private bounded storage and interrupted install recovery. All26 focused ZIPs are extracted/previewed; separately extracted packages install additively and runtime scripts still work after removing the extracted installers. Native Claude previews now use the personal root and item-first/dependency views. Rebuild `node tools/build-native-claude.mjs` before preview and source ZIP builders. Existing project/portable adapters remain historical compatibility, not the default personal Claude path. Instruction baseline/application trials exercised the previous gap and new explicit producer/standalone QA helper usage, without running a native Claude client.

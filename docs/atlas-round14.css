@@ -1,4 +1,39 @@
 /* Plum = policy; blue = source evidence; teal = retained state. */
+.package-actions15 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.component-download15 {
+  font-size: 13px;
+  white-space: nowrap;
+}
+.explorer-loading14 {
+  padding: 12px 16px;
+  margin: 10px 0;
+  border: 1px solid #647d77;
+  border-radius: 5px;
+  background: #293c4a;
+}
+.explorer-loading14 p {
+  font-size: 15px;
+  line-height: 1.5;
+  margin: 5px 0;
+}
+.explorer-loading14 small {
+  font-size: 13px;
+  line-height: 1.5;
+}
+.explorer-loading14 summary {
+  cursor: pointer;
+}
+.explorer-tree14 .dependency-control15 {
+  border: 1px solid #a990b8;
+  margin: 0 0 10px;
+  padding: 7px;
+  color: #e4d6ef;
+}
 .round14 .average-parts14 {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }

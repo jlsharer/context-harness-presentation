@@ -263,7 +263,7 @@ const AtlasContent14 = {
       'Load the repo and every instruction',
       'Start from a small task contract + targeted sources',
       'task-contract',
-      'AGENTS.md / CLAUDE.md + packet',
+      'Native instructions / rules + packet',
     ],
     [
       'Invoke or paste every skill at kickoff',
@@ -305,7 +305,7 @@ const AtlasContent14 = {
       'Relay outputs between a chain of skills',
       'Use one coordinator with stage input/output contracts',
       'workflow-coordinator',
-      'Workflow skill + protocols',
+      'Workflow skill + stage contracts',
     ],
     [
       'Run the entire complex workflow on one model',
@@ -506,12 +506,14 @@ const AtlasContent14 = {
 
   techniqueDetail14(s, id) {
     const t = this.technique14(id),
-      bundle = atlasKits08.find((b) => b.id === t.bundle);
+      bundle = atlasKits08.find((b) => b.id === t.bundle),
+      native =
+        s.kitHarness === 'claude' ? atlasPackageFiles14.metadata['claude:technique:' + id] : null;
     return `<h3>${this.esc(t.name)}</h3>
       <p>${this.esc(t.purpose)}</p>
       <dl>
       <dt>Mechanism</dt>
-      <dd>${this.esc(t.mechanism)}</dd>
+      <dd>${this.esc(native ? native.loading.join(' ') : t.mechanism)}</dd>
       <dt>Context affected</dt>
       <dd>${this.esc(t.layers)}</dd>
       <dt>Bundle</dt>
@@ -519,10 +521,8 @@ const AtlasContent14 = {
       <dt>Required dependencies</dt>
       <dd>${t.requires.length ? t.requires.join(', ') : 'None'}</dd>
       </dl>
-      <p>Claude installs a supported native integration where stated. OpenCode/Codex use the delivered portable protocol/helper unless the package explicitly lists a native adapter. Instructions and schema validation do not establish factual correctness or measured savings.</p>
-      <p>
-      <a href="kits/${t.protocol}" target="_blank" rel="noopener noreferrer">Read the exact protocol ↗</a>
-      </p>${this.techniqueLink14(id, 'Select this technique on Packages')}`;
+      <p>${native ? `Personal native file: <code>~/.claude/${this.esc(native.primary)}</code>. No shared menu, protocol index or project framework is required.` : 'This target retains its delivered project/portable integration. Arbitrary protocol files are not loaded automatically.'} Instructions and schema validation do not establish factual correctness or measured savings.</p>
+      <p>${native ? `<button data-package-preview="technique:${id}">Inspect native files ↗</button> <a href="${native.archive}" download>Download this component ↓</a>` : `<a href="kits/${t.protocol}" target="_blank" rel="noopener noreferrer">Read the exact protocol ↗</a>`}</p>${this.techniqueLink14(id, 'Select this technique on Packages')}`;
   },
 
   ledger14(s, actor) {

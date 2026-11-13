@@ -9,11 +9,18 @@ const AtlasCatalog14 = {
     ['routing', 'Agents / Routing'],
   ],
 
-  previewButton(kind, id, label = 'Preview files') {
-    return `<button class="preview-files14" data-package-preview="${kind}:${id}">${label} ↗</button>`;
+  previewButton(kind, id, label = 'Preview files', harness) {
+    return `<span class="package-actions15"><button class="preview-files14" data-package-preview="${kind}:${id}">${label} ↗</button>${harness === 'claude' ? `<a class="component-download15" href="kits/claude/${kind}-${id}.zip" download>Download ↓</a>` : ''}</span>`;
   },
 
   capability(s, t) {
+    if (s.kitHarness === 'claude') {
+      const metadata = atlasPackageFiles14.metadata['claude:technique:' + t.id];
+      return (
+        metadata?.loading.join(' ') ||
+        'Native personal Claude component; inspect its loading mechanism.'
+      );
+    }
     if (t.skill)
       return s.kitHarness === 'claude'
         ? 'Claude entry: /' + t.skill
@@ -33,6 +40,15 @@ const AtlasCatalog14 = {
     return 'This target: portable protocol/helper; no unsupported automatic native hook is claimed';
   },
 
+  mechanism(s, t) {
+    if (s.kitHarness !== 'claude') return t.mechanism;
+    const primary = atlasPackageFiles14.metadata['claude:technique:' + t.id]?.primary || '';
+    if (primary.startsWith('rules/')) return 'Native personal rule · startup';
+    if (primary.startsWith('hooks/')) return 'Native hook · registered event';
+    if (primary.startsWith('agents/')) return 'Native subagents · delegated work';
+    return 'Native personal skill · on demand';
+  },
+
   standalone(s, t) {
     return `<article class="catalog-item14" data-catalog-item="${t.id}">
       <header>
@@ -43,7 +59,7 @@ const AtlasCatalog14 = {
       <span>${t.category === 'skills' ? 'Standalone skill' : t.category === 'workflows' ? 'Workflow entry' : 'Standalone technique'}</span>
       </header>
       <p>${AtlasContent.esc(t.purpose)}</p>
-      <small>${AtlasContent.esc(t.mechanism)}</small><p class="package-capability14">${AtlasContent.esc(this.capability(s, t))}</p>${t.requires.length ? `<p class="dependency-note14">Includes: ${t.requires.map((id) => AtlasContent.esc(atlasTechniques14.find((x) => x.id === id).name)).join(' · ')}</p>` : ''}<footer>${this.previewButton('technique', t.id)}<button data-mapping-detail="${t.id}">How it works ↗</button>
+      <small>${AtlasContent.esc(this.mechanism(s, t))}</small><p class="package-capability14">${AtlasContent.esc(this.capability(s, t))}</p>${t.requires.length ? `<p class="dependency-note14">Includes: ${t.requires.map((id) => AtlasContent.esc(atlasTechniques14.find((x) => x.id === id).name)).join(' · ')}</p>` : ''}<footer>${this.previewButton('technique', t.id, 'Preview files', s.kitHarness)}<button data-mapping-detail="${t.id}">How it works ↗</button>
       </footer>
       </article>`;
   },
@@ -59,7 +75,9 @@ const AtlasCatalog14 = {
         portable: 'portable',
       }[s.kitHarness];
     const command = selected.length
-      ? `node install.mjs --harness ${s.kitHarness} --techniques ${selected.join(',')} --target /path/to/project`
+      ? s.kitHarness === 'claude'
+        ? `node install.mjs --techniques ${selected.join(',')}`
+        : `node install.mjs --harness ${s.kitHarness} --techniques ${selected.join(',')} --target /path/to/project`
       : 'Choose a bundle or standalone item.';
     const cards =
       category === 'bundles'
@@ -81,13 +99,13 @@ const AtlasCatalog14 = {
           return `<div class="standalone14 ${s.focusTechnique === id ? 'focused14' : ''}" id="technique-${id}">
       <label>
       <input type="checkbox" id="techniqueChoice-${id}" data-technique-selection="${id}" ${selected.includes(id) ? 'checked' : ''}>
-      <span>${AtlasContent.esc(t.name)}<small>${AtlasContent.esc(t.mechanism)}</small>
+      <span>${AtlasContent.esc(t.name)}<small>${AtlasContent.esc(this.mechanism(s, t))}</small>
       </span>
-      </label>${this.previewButton('technique', id, 'Files')}</div>`;
+      </label>${this.previewButton('technique', id, 'Files', s.kitHarness)}</div>`;
         })
         .join(
           '',
-        )}</div>${this.previewButton('bundle', b.id, 'Preview bundle directory')}</section>`;
+        )}</div>${this.previewButton('bundle', b.id, 'Preview bundle directory', s.kitHarness)}</section>`;
             })
             .join('')
         : atlasTechniques14
@@ -98,7 +116,7 @@ const AtlasCatalog14 = {
       <div class="catalog-welcome14">
       <div>
       <strong>Take a working pattern back to your harness.</strong>
-      <p>Browse complete workflow and skill files, select a bundle or its parts, then preview the local install. Native hooks, protocols and helpers are labeled separately. Skills include operating references, templates and validators.</p>
+      <p>Browse complete workflow and skill files, select a bundle or its parts, then preview the local install. Each component explains when it loads: startup rule, invoked skill or event hook. Skills include operating references, templates and validators.</p>
       </div>
       <label>Download + preview target<select id="kitHarness">${[
         ['claude', 'Claude Code'],
@@ -113,7 +131,7 @@ const AtlasCatalog14 = {
         .join('')}</select>
       </label>
       </div>
-      <nav class="catalog-categories14" aria-label="Package categories">${this.categories.map(([id, label]) => `<button data-catalog-category="${id}" aria-pressed="${category === id}">${label}</button>`).join('')}</nav>${
+      <nav class="catalog-categories14" aria-label="Package categories">${this.categories.map(([id, label]) => `<button data-catalog-category="${id}" aria-pressed="${category === id}">${s.kitHarness === 'claude' && id === 'protocols' ? 'Startup rules' : label}</button>`).join('')}</nav>${
         category === 'workflows'
           ? `<nav class="catalog-subcategories14" aria-label="Workflow and skill types">
       <button data-catalog-kind="workflows" aria-pressed="${kind === 'workflows'}">Complete workflows</button>
@@ -125,14 +143,26 @@ const AtlasCatalog14 = {
       <section class="install-panel14">
       <strong>${selected.length} techniques / workflows / skills selected</strong>
       <code id="installCommand">${AtlasContent.esc(command)}</code>
-      <p>Download → extract → run the preview command → review local files → repeat with <code>--apply</code> when authorized. Parent checkboxes select a whole bundle; mixed means partial. Dependencies are included; removing one also removes dependent workflows. Legacy <code>--kits</code> commands still work.</p>
+      <p>Download → extract → run the preview command → review the listed files → repeat with <code>--apply</code> when authorized. Existing differing files require local review; the installer preserves unrelated settings and permissions. Parent checkboxes select a whole bundle; mixed means partial. Dependencies are included; removing one also removes dependent workflows. Legacy <code>--kits</code> commands still work.</p>
       <div>
-      <a href="kits/context-kits.zip" download="context-kits-${s.kitHarness}.zip">Download ${harnessName} install kit ↓</a>
+      <a href="${s.kitHarness === 'claude' ? 'kits/claude-native.zip' : 'kits/context-kits.zip'}" download="${s.kitHarness === 'claude' ? 'claude-native.zip' : 'context-kits-' + s.kitHarness + '.zip'}">Download ${harnessName} library ↓</a>
       <button id="copyInstallCommand" ${!selected.length ? 'disabled' : ''}>Copy selected preview command</button>
       <button id="inspectPackageFiles14">Selection + support ↗</button>
       <button data-view="audit">Global Claude usage audit →</button>
       </div>
-      <p>The shared archive includes the installer and all package sources. The selected target controls the native paths in Preview files and the install command. Claude Code installs skills under <code>.claude/skills/</code>, selected agents/hooks under <code>.claude/</code>, and selected project guidance in <code>CLAUDE.md</code>.</p>
+      <p>${
+        s.kitHarness === 'claude'
+          ? 'Claude components install directly into your personal <code>~/.claude/skills/</code>, ' +
+            '<code>rules/</code>, <code>agents/</code> and <code>hooks/</code>, with selected hook ' +
+            'entries merged into <code>~/.claude/settings.json</code>. No framework, menu skill or ' +
+            'protocol index is installed. Individual Download links contain only that item and its ' +
+            'required dependencies. The library supports your combined selection. ' +
+            '<code>CLAUDE_CONFIG_DIR</code> or <code>--claude-home</code> can choose another ' +
+            'configuration directory.'
+          : 'This target retains the legacy project/portable installer. Arbitrary protocol files are ' +
+            'not loaded automatically; inspect the native entry or explicitly invoked helper. The ' +
+            'archive contains all sources; only selected items/dependencies are installed.'
+      }</p>
       <p>Claude: selected supported hooks/agents. OpenCode: paired continuity adapter or portable guidance. Codex: skills/protocols/helpers here. No permissions or telemetry export changes. The global audit package keeps its private local-report defaults.</p>
       </section>
       <p class="package-authoring14">Authoring basis: <a href="kits/qa/references/provenance.md" target="_blank" rel="noopener noreferrer">published practices and source examples ↗</a> · <a href="kits/README.md" target="_blank" rel="noopener noreferrer">installation and operating guide ↗</a>. Validate native behavior and accepted-task results in your own environment.</p>
@@ -317,25 +347,27 @@ const AtlasCatalog14 = {
     return render(root);
   },
 
-  preview(s, key, requestedFile, mode = 'read', collapsed = new Set()) {
+  preview(s, key, requestedFile, mode = 'read', collapsed = new Set(), showDependencies = false) {
     const manifest = atlasPackageFiles14.manifests[s.kitHarness + ':' + key];
     if (!manifest) return '<p>No preview is available for this selection.</p>';
-    const [kind, id] = key.split(':');
-    const item = kind === 'technique' ? atlasTechniques14.find((t) => t.id === id) : null;
+    const metadata = atlasPackageFiles14.metadata[s.kitHarness + ':' + key];
+    const focused = manifest.filter((file) => metadata.focus.includes(file.path));
+    const visible = showDependencies ? manifest : focused;
+    const dependencyCount = manifest.length - focused.length;
     const selected =
-      manifest.find((f) => f.path === requestedFile) ||
-      (item?.skill
-        ? manifest.find((f) => f.path.endsWith('/' + item.skill + '/SKILL.md'))
-        : null) ||
-      manifest.find((f) => f.path.endsWith('/PROTOCOLS.md')) ||
+      visible.find((f) => f.path === requestedFile) ||
+      visible.find((f) => f.path === metadata.primary) ||
+      visible[0] ||
       manifest[0];
-    const tree = this.fileTree(manifest, selected.path, collapsed);
+    const tree = this.fileTree(visible, selected.path, collapsed);
     const source = atlasPackageFiles14.contents[selected.hash];
-    return `<div class="file-explorer14" data-preview-harness="${s.kitHarness}" data-preview-key="${key}" data-preview-path="${AtlasContent.esc(selected.path)}" data-preview-mode="${mode}">
-      <p class="explorer-scope14">Fresh-install example · ${AtlasContent.esc(s.kitHarness)} · this package + dependencies. <code>&lt;PROJECT&gt;</code> is a placeholder. Your existing private settings are merged locally and are never read by this browser.</p>
+    return `<div class="file-explorer14" data-preview-harness="${s.kitHarness}" data-preview-key="${key}" data-preview-path="${AtlasContent.esc(selected.path)}" data-preview-mode="${mode}" data-preview-dependencies-visible="${showDependencies}">
+      <p class="explorer-scope14">${AtlasContent.esc(metadata.root)} · ${focused.length} item files${dependencyCount ? ` + ${dependencyCount} required dependency files` : ''}. ${s.kitHarness === 'claude' ? 'Personal native install; no project framework or protocol index.' : 'Legacy project/portable install.'} Existing private settings are merged locally and never read by this browser. ${metadata.archive ? `<a href="${metadata.archive}" download>Download this package ↓</a>` : ''}</p>
+      <details class="explorer-loading14" ${metadata.loading.length === 1 ? 'open' : ''}><summary>When this loads</summary>${metadata.loading.map((text) => `<p>${AtlasContent.esc(text)}</p>`).join('')}<small>Native policy, client version and discovery settings still apply. Loading guidance does not guarantee compliance. <a href="https://code.claude.com/docs/en/memory" target="_blank" rel="noopener noreferrer">Rules</a> · <a href="https://code.claude.com/docs/en/skills" target="_blank" rel="noopener noreferrer">Skills</a> · <a href="https://code.claude.com/docs/en/hooks" target="_blank" rel="noopener noreferrer">Hooks</a></small></details>
       <div class="explorer-layout14">
       <nav class="explorer-tree14" aria-label="Installed file solution explorer">
-      <h3>PROJECT / SOLUTION EXPLORER</h3>
+      <h3>${AtlasContent.esc(metadata.root)} / SOLUTION EXPLORER</h3>
+      ${dependencyCount ? `<button class="dependency-control15" data-preview-dependencies aria-pressed="${showDependencies}">${showDependencies ? 'Show item files only' : `Show required dependencies (${dependencyCount})`}</button>` : ''}
       <div class="explorer-actions14"><button data-preview-expand-all>Expand all</button><button data-preview-collapse-all>Collapse all</button></div>${tree}</nav>
       <section class="explorer-editor14">
       <header>

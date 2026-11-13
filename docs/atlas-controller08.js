@@ -98,7 +98,7 @@ const views = {
     '07 / CHOOSE A PACKAGE',
     'Install a technique with a clear purpose.',
     'Portable helpers plus supported native integrations; each capability is stated.',
-    ['opencode-hooks', 'claude-hooks', 'codex-skills'],
+    ['claude-memory', 'claude-skills', 'claude-hooks', 'opencode-hooks', 'codex-skills'],
   ],
   references: [
     'REFERENCES / EVIDENCE AND MATERIALS',
@@ -621,6 +621,8 @@ function packageFilesRender(key, file, mode = 'read', reveal = false) {
   const samePreview =
     dialog.dataset.key === key &&
     previousView?.dataset.previewHarness === AtlasModel.state.kitHarness;
+  const showDependencies =
+    samePreview && previousView.dataset.previewDependenciesVisible === 'true';
   const collapsed = new Set(
     samePreview
       ? [...previousView.querySelectorAll('details[data-preview-directory]:not([open])')].map(
@@ -640,6 +642,7 @@ function packageFilesRender(key, file, mode = 'read', reveal = false) {
     file,
     mode,
     collapsed,
+    showDependencies,
   );
   dialog.dataset.key = key;
   const view = A('packageFilesBody').querySelector('[data-preview-path]');
@@ -661,6 +664,7 @@ document.addEventListener('click', async (event) => {
       b.dataset.previewMode ||
       b.hasAttribute('data-preview-expand-all') ||
       b.hasAttribute('data-preview-collapse-all') ||
+      b.hasAttribute('data-preview-dependencies') ||
       b.id === 'copyPreviewFile14' ||
       b.dataset.catalogCategory ||
       b.dataset.catalogKind)
@@ -673,6 +677,17 @@ document.addEventListener('click', async (event) => {
       return;
     }
     const dialog = A('packageFilesDialog');
+    if (b.hasAttribute('data-preview-dependencies')) {
+      const view = A('packageFilesBody').querySelector('.file-explorer14');
+      view.dataset.previewDependenciesVisible = String(
+        view.dataset.previewDependenciesVisible !== 'true',
+      );
+      packageFilesRender(dialog.dataset.key, dialog.dataset.file, dialog.dataset.mode);
+      A('packageFilesBody')
+        .querySelector('[data-preview-dependencies]')
+        ?.focus({ preventScroll: true });
+      return;
+    }
     if (b.hasAttribute('data-preview-expand-all') || b.hasAttribute('data-preview-collapse-all')) {
       for (const directory of A('packageFilesBody').querySelectorAll(
         'details[data-preview-directory]',

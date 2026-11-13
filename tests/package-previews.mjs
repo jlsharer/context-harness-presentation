@@ -5,19 +5,29 @@ import crypto from 'node:crypto';
 import os from 'node:os';
 import path from 'node:path';
 import { planInstall } from '../docs/kits/install.mjs';
+import { loadNativeCatalog } from '../docs/kits/native/catalog.mjs';
+import { planNativeInstall } from '../docs/kits/native/install.mjs';
 const c = vm.createContext({});
 vm.runInContext(fs.readFileSync('docs/atlas-package-files14.js', 'utf8'), c);
 const data = JSON.parse(vm.runInContext('JSON.stringify(atlasPackageFiles14)', c));
+const native = loadNativeCatalog();
 assert.equal(Object.keys(data.manifests).length, 104);
 const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'verify-package-preview-'));
 try {
   for (const [key, files] of Object.entries(data.manifests)) {
     const [harness, kind, id] = key.split(':');
-    const plan = planInstall({
-      root: temporary,
-      harness,
-      ...(kind === 'bundle' ? { kits: [id] } : { techniques: [id] }),
-    });
+    const plan =
+      harness === 'claude'
+        ? planNativeInstall({
+            claudeHome: temporary,
+            payload: native,
+            ...(kind === 'bundle' ? { kits: [id] } : { techniques: [id] }),
+          })
+        : planInstall({
+            root: temporary,
+            harness,
+            ...(kind === 'bundle' ? { kits: [id] } : { techniques: [id] }),
+          });
     assert.equal(
       new Set(plan.files.map((f) => f.relative)).size,
       plan.files.length,
@@ -28,10 +38,25 @@ try {
       files.map((f) => f.path).sort(),
       key,
     );
+    const metadata = data.metadata[key];
+    assert.ok(
+      files.some((f) => f.path === metadata.primary),
+      key + ' meaningful primary',
+    );
+    assert.ok(metadata.focus.includes(metadata.primary), key + ' primary is visible');
+    assert.ok(
+      metadata.focus.every((p) => files.some((f) => f.path === p)),
+      key + ' focus subset',
+    );
+    if (harness === 'claude') {
+      assert.equal(metadata.root, '~/.claude');
+      assert.ok(files.every((f) => !/context-kit|context-menu|PROTOCOLS/.test(f.path)));
+      assert.ok(fs.existsSync(path.join('docs', metadata.archive)), key + ' focused download');
+    }
     for (const file of plan.files) {
       const expected = files.find((f) => f.path === file.relative);
       assert.equal(
-        file.content.replaceAll(temporary, '<PROJECT>'),
+        file.content.replaceAll(temporary, harness === 'claude' ? '<CLAUDE_HOME>' : '<PROJECT>'),
         data.contents[expected.hash],
         key + '/' + file.relative,
       );
@@ -57,7 +82,7 @@ for (const name of [
   'qa-evidence-report',
 ])
   assert.ok(
-    files.some((f) => f.path === '.claude/skills/' + name + '/SKILL.md'),
+    files.some((f) => f.path === 'skills/' + name + '/SKILL.md'),
     name,
   );
 for (const target of ['claude', 'codex', 'opencode', 'portable'])

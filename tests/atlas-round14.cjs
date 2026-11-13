@@ -122,20 +122,21 @@ const root = path.resolve(__dirname, '../docs');
     );
     await page.goto(base + '#recipes');
     assert.equal(await page.locator('#kitHarness').inputValue(), 'claude');
-    assert.match(await page.locator('#installCommand').textContent(), /--harness claude/);
-    const kitDownload = page.locator('a[href="kits/context-kits.zip"]');
+    assert.match(await page.locator('#installCommand').textContent(), /--techniques/);
+    const kitDownload = page.locator('a[href="kits/claude-native.zip"]');
     assert.match(await kitDownload.textContent(), /Claude Code/);
     const downloaded = page.waitForEvent('download');
     await kitDownload.click();
     const archive = await downloaded;
-    assert.equal(archive.suggestedFilename(), 'context-kits-claude.zip');
+    assert.equal(archive.suggestedFilename(), 'claude-native.zip');
     assert.deepEqual(
       await fs.readFile(await archive.path()),
-      await fs.readFile(path.join(root, 'kits/context-kits.zip')),
+      await fs.readFile(path.join(root, 'kits/claude-native.zip')),
     );
     await page.locator('#kitHarness').selectOption('opencode');
     assert.match(await page.locator('#installCommand').textContent(), /--harness opencode/);
     await page.locator('[data-package-preview="bundle:focus"]').click();
+    await page.locator('[data-preview-dependencies]').click();
     assert.ok(await page.locator('[data-preview-directory=".opencode"]').count());
     assert.equal(await page.locator('[data-preview-directory=".claude"]').count(), 0);
     await page.keyboard.press('Escape');
@@ -153,19 +154,30 @@ const root = path.resolve(__dirname, '../docs');
     await page.locator('[data-package-preview="technique:workflow-coordinator"]').click();
     assert.equal(
       await page.locator('.file-explorer14').getAttribute('data-preview-path'),
-      '.claude/skills/context-workflow/SKILL.md',
+      'skills/context-workflow/SKILL.md',
     );
+    assert.equal(
+      await page.locator('[data-preview-file="skills/qa-failure-triage/SKILL.md"]').count(),
+      0,
+      'Default preview focuses on the selected workflow',
+    );
+    assert.match(await page.locator('.explorer-loading14').textContent(), /on use|invoked/);
+    await page.locator('[data-preview-dependencies]').click();
+    assert.equal(
+      await page.locator('[data-preview-file="skills/qa-failure-triage/SKILL.md"]').count(),
+      1,
+      'Required workflow dependencies remain inspectable',
+    );
+    await page.locator('[data-preview-dependencies]').click();
     const referencesFolder = page.locator(
-      'details[data-preview-directory=".claude/skills/context-workflow/references"]',
+      'details[data-preview-directory="skills/context-workflow/references"]',
     );
     assert.equal(await referencesFolder.count(), 1, 'Preview directories are interactive');
     await referencesFolder.locator(':scope > summary').click();
     assert.equal(await referencesFolder.getAttribute('open'), null);
     assert.equal(
       await page
-        .locator(
-          '[data-preview-file=".claude/skills/context-workflow/references/repository-setup.md"]',
-        )
+        .locator('[data-preview-file="skills/context-workflow/references/repository-setup.md"]')
         .isVisible(),
       false,
     );
@@ -179,7 +191,7 @@ const root = path.resolve(__dirname, '../docs');
     assert.equal(await page.locator('details[data-preview-directory]:not([open])').count(), 0);
     await page.locator('[data-preview-collapse-all]').click();
     assert.equal(await page.locator('details[data-preview-directory][open]').count(), 0);
-    const claudeFolder = page.locator('details[data-preview-directory=".claude"]');
+    const claudeFolder = page.locator('details[data-preview-directory="skills"]');
     await claudeFolder.locator(':scope > summary').focus();
     await page.keyboard.press('Enter');
     assert.notEqual(
@@ -226,6 +238,28 @@ const root = path.resolve(__dirname, '../docs');
       const cards = await page.locator('[data-catalog-item]').count();
       assert.equal(await page.locator('[data-catalog-item] [data-package-preview]').count(), cards);
     }
+    await page.locator('[data-catalog-category=hooks]').click();
+    const reminderCard = page.locator('[data-catalog-item="goal-reminder"]');
+    const reminderDownload = page.waitForEvent('download');
+    await reminderCard.locator('a[href="kits/claude/technique-goal-reminder.zip"]').click();
+    const reminderArchive = await reminderDownload;
+    assert.deepEqual(
+      await fs.readFile(await reminderArchive.path()),
+      await fs.readFile(path.join(root, 'kits/claude/technique-goal-reminder.zip')),
+    );
+    await reminderCard.locator('[data-package-preview]').click();
+    assert.equal(
+      await page.locator('.file-explorer14').getAttribute('data-preview-path'),
+      'hooks/goal-reminder.mjs',
+    );
+    assert.equal(
+      await page.locator('[data-preview-file]').count(),
+      2,
+      'Reminder preview has only its hook and settings entry',
+    );
+    assert.match(await page.locator('.explorer-scope14').textContent(), /~\/.claude/);
+    assert.match(await page.locator('.explorer-loading14').textContent(), /UserPromptSubmit/);
+    await page.keyboard.press('Escape');
     await page.goto(base + '?orch=22#orchestration');
     assert.equal(await page.locator('[data-average-actor]').count(), 5);
     await page.locator('[data-average-actor=parent]').click();

@@ -44,6 +44,10 @@ async function readableArchive(source, output) {
   }
 }
 
+execFileSync(process.execPath, [path.join(root, 'tools/build-native-claude.mjs')], {
+  cwd: root,
+  stdio: 'inherit',
+});
 run('tools/build-context-kits.py');
 run('tools/build-qa-workflow.py');
 execFileSync(process.execPath, [path.join(root, 'tools/build-package-previews.mjs')], {
