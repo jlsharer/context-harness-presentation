@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "task_id": "SET_TASK_ID",
+  "goal": "Replace with the requested QA outcome and acceptance scope",
+  "revision": "SET_TARGET_REVISION",
+  "classification_required": true,
+  "required_checks": [
+    {"id": "targeted-local", "kind": "local"},
+    {"id": "required-ci", "kind": "ci"}
+  ],
+  "constraints": ["Replace with applicable project and user constraints"],
+  "allowed_paths": ["SET_APPROVED_EDIT_PATHS"],
+  "commands": {"targeted": null, "parallel": null, "related": null},
+  "external_actions": {"push": "not-authorized", "deploy": "not-authorized"}
+}

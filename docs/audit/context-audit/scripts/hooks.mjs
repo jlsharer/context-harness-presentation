@@ -28,19 +28,30 @@ function localPath(cwd, relative) {
   return dest;
 }
 
-function existingProjectKit(cwd, mode) {
+function existingProjectKit(cwd, mode, eventName) {
   try {
     const s = JSON.parse(fs.readFileSync(path.join(cwd, '.context-kit/selection.json'))),
       c = JSON.parse(fs.readFileSync(path.join(cwd, '.claude/settings.json')));
+    const granular = s.byHarnessTechniques?.claude;
+    const technique =
+      mode === 'results'
+        ? 'bounded-results'
+        : eventName === 'PreCompact'
+          ? 'compaction-checkpoint'
+          : 'checkpoint-restore';
+    const commandMode =
+      mode === 'results' ? 'results' : eventName === 'PreCompact' ? 'continuity' : 'restore';
     return (
-      (s.byHarness?.claude || (s.harness === 'claude' && s.kits) || []).includes(mode) &&
-      Object.values(c.hooks || {})
-        .flatMap((x) => x)
-        .some((e) =>
-          (e.hooks || []).some(
-            (h) => h.command?.includes('.context-kit/hook.mjs') && h.command.includes(mode),
-          ),
-        )
+      (granular
+        ? granular.includes(technique)
+        : (s.byHarness?.claude || (s.harness === 'claude' && s.kits) || []).includes(mode)) &&
+      (c.hooks?.[eventName] || []).some((e) =>
+        (e.hooks || []).some(
+          (h) =>
+            h.command?.includes('.context-kit/hook.mjs') &&
+            h.command.includes(granular ? commandMode : mode),
+        ),
+      )
     );
   } catch {
     return false;
@@ -103,7 +114,15 @@ function record(cwd, event, extra = {}) {
 export function handleHook(mode, event) {
   if (!event?.cwd || !fs.existsSync(event.cwd)) return null;
   const cwd = event.cwd;
-  if (['continuity', 'results'].includes(mode) && existingProjectKit(cwd, mode)) return null;
+  if (
+    ['continuity', 'results'].includes(mode) &&
+    existingProjectKit(
+      cwd,
+      mode,
+      event.hook_event_name || (mode === 'results' ? 'PostToolUse' : 'PreCompact'),
+    )
+  )
+    return null;
   if (mode === 'results') {
     const r = event.tool_response;
     if (

@@ -45,6 +45,11 @@ async function readableArchive(source, output) {
 }
 
 run('tools/build-context-kits.py');
+run('tools/build-qa-workflow.py');
+execFileSync(process.execPath, [path.join(root, 'tools/build-package-previews.mjs')], {
+  cwd: root,
+  stdio: 'inherit',
+});
 run('tools/build-context-audit.py');
 packageDirectory(path.join(root, 'docs/policies'), path.join(root, 'docs/policies/workshop.zip'));
 const starters = path.join(root, 'docs/benchmark-data/service-starters.zip');

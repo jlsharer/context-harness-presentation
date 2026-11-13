@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { checkedPath, privateDirectory, writePrivate } from './local-data.mjs';
 import {
   buildPacket,
   boundResult,
@@ -22,11 +23,11 @@ try {
   if (command === 'bound') {
     const out = boundResult(fs.readFileSync(file, 'utf8'), Number(process.argv[4] || 8000)),
       dir = path.resolve(process.argv[5] || '.context-kit/artifacts');
-    fs.mkdirSync(dir, { recursive: true });
-    const artifact = path.join(dir, out.sha256 + '.txt');
+    privateDirectory(dir);
+    const artifact = checkedPath(path.join(dir, out.sha256 + '.txt'));
     if (fs.existsSync(artifact) && fs.readFileSync(artifact, 'utf8') !== out.fullText)
       throw Error('Artifact conflict');
-    fs.writeFileSync(artifact, out.fullText);
+    writePrivate(artifact, out.fullText);
     result = {
       preview: out.preview,
       artifact,
@@ -44,6 +45,10 @@ try {
   }
   console.log(JSON.stringify(result, null, 2));
 } catch (error) {
-  console.error(error.message);
+  console.error(
+    error instanceof SyntaxError
+      ? 'Invalid local JSON; inspect it in a local editor.'
+      : error.message,
+  );
   process.exitCode = 1;
 }

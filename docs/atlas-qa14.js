@@ -1,0 +1,370 @@
+'use strict';
+const atlasQA14 = {
+  'schema': 1,
+  'title': 'Fix a recurring parallel checkout CI failure',
+  'scope':
+    'Authored realistic QA scenario. Synthetic tokens, calls, cache partitions and outcomes; no real CI execution or measured optimization gain.',
+  'phases': [
+    { 'name': 'Prepare', 'step': 0 },
+    { 'name': 'Diagnose', 'step': 4 },
+    { 'name': 'Repair', 'step': 9 },
+    { 'name': 'Verify', 'step': 12 },
+    { 'name': 'CI', 'step': 17 },
+    { 'name': 'Handoff', 'step': 21 },
+  ],
+  'events': [
+    {
+      'step': 0,
+      'phase': 'Prepare',
+      'title': 'Start with the native harness',
+      'boundary': 'SessionStart',
+      'evidence':
+        'Native instructions and selected project guidance are assembled. No task or model call yet.',
+      'techniques': ['task-contract', 'skill-discovery'],
+      'layers': ['guidance', 'skills'],
+      'call': false,
+      'classification': 'unknown',
+    },
+    {
+      'step': 1,
+      'phase': 'Prepare',
+      'title': 'Define the QA contract',
+      'boundary': 'UserPromptSubmit',
+      'evidence':
+        'Investigate intermittent empty-cart CI failures. Determine product versus test defect; ' +
+        'preserve checkout behavior; require local and CI evidence.',
+      'techniques': ['task-contract', 'goal-reminder'],
+      'layers': ['task'],
+      'call': true,
+      'classification': 'unknown',
+    },
+    {
+      'step': 2,
+      'phase': 'Prepare',
+      'title': 'Load only the investigation skill',
+      'boundary': 'Skill admission',
+      'evidence':
+        'Load the diagnosis protocol and selected checkout test/fixture paths. Keep unrelated skills discoverable, not fully loaded.',
+      'techniques': ['skill-discovery', 'source-selection'],
+      'layers': ['skills', 'evidence'],
+      'call': true,
+      'classification': 'unknown',
+    },
+    {
+      'step': 3,
+      'phase': 'Prepare',
+      'title': 'Read the failing CI shard',
+      'boundary': 'Tool result \u2192 next input',
+      'evidence':
+        'Authored CI #1841: cart expected 2 items, received 0; failures cluster in the parallel checkout shard. Classification remains unknown.',
+      'techniques': ['bounded-results', 'artifact-ledger'],
+      'layers': ['history', 'evidence'],
+      'call': false,
+      'classification': 'unknown',
+    },
+    {
+      'step': 4,
+      'phase': 'Diagnose',
+      'title': 'Reproduce with parallel workers',
+      'boundary': 'Model \u2192 local test tool',
+      'evidence':
+        'Authored local parallel repro fails intermittently with the same empty-cart assertion. Save full diagnostics and source anchors.',
+      'techniques': ['source-selection', 'artifact-ledger'],
+      'layers': ['evidence', 'history'],
+      'call': true,
+      'classification': 'unknown',
+    },
+    {
+      'step': 5,
+      'phase': 'Diagnose',
+      'title': 'Compare the isolated run',
+      'boundary': 'Observation boundary',
+      'evidence':
+        'Authored isolated run passes; parallel replay fails. This narrows the hypothesis but does not yet prove a test defect.',
+      'techniques': ['bounded-results', 'report-contract'],
+      'layers': ['history'],
+      'call': false,
+      'classification': 'unknown',
+    },
+    {
+      'step': 6,
+      'phase': 'Diagnose',
+      'title': 'Trace fixture and product ownership',
+      'boundary': 'Source admission',
+      'evidence':
+        'tests/fixtures/cart.ts exposes one mutable shared cart; another spec clears it. Product handler uses the supplied cart ID.',
+      'techniques': ['source-selection', 'scoped-worker'],
+      'layers': ['evidence'],
+      'call': true,
+      'classification': 'unknown',
+    },
+    {
+      'step': 7,
+      'phase': 'Diagnose',
+      'title': 'Classify the defect with counterevidence',
+      'boundary': 'Decision checkpoint',
+      'evidence':
+        'Authored evidence supports test-fixture interference. A unique cart prevents cross-test ' +
+        'clearing; no product change is justified by the observed evidence.',
+      'techniques': ['task-contract', 'report-contract'],
+      'layers': ['task', 'checkpoint'],
+      'call': true,
+      'classification': 'test-defect',
+    },
+    {
+      'step': 8,
+      'phase': 'Diagnose',
+      'title': 'Agree on the regression and fix',
+      'boundary': 'Stage contract',
+      'evidence':
+        'Make the competing clear operation deterministic, then scope cart creation/cleanup to each test. Retain source-linked review objections.',
+      'techniques': ['workflow-coordinator', 'report-contract'],
+      'layers': ['task', 'history'],
+      'call': true,
+      'classification': 'test-defect',
+    },
+    {
+      'step': 9,
+      'phase': 'Repair',
+      'title': 'Watch the regression fail before the fix',
+      'boundary': 'Test evidence',
+      'evidence':
+        'Authored regression deterministically exposes the shared-cart collision before fixture ' +
+        'isolation. This is scenario evidence, not a test executed by this presentation.',
+      'techniques': ['artifact-ledger', 'bounded-results'],
+      'layers': ['history'],
+      'call': true,
+      'classification': 'test-defect',
+    },
+    {
+      'step': 10,
+      'phase': 'Repair',
+      'title': 'Patch the test fixture',
+      'boundary': 'Scoped edit',
+      'evidence':
+        'Change tests/fixtures/cart.ts to allocate a cart per test and clean up only that ID. Keep product checkout files unchanged.',
+      'techniques': ['task-contract', 'workflow-coordinator'],
+      'layers': ['evidence', 'history'],
+      'call': true,
+      'classification': 'test-defect',
+    },
+    {
+      'step': 11,
+      'phase': 'Repair',
+      'title': 'Review the diff against the hypothesis',
+      'boundary': 'Acceptance review',
+      'evidence':
+        'Check fixture ownership, cleanup and test determinism. Reject unrelated product changes and preserve the original failure anchor.',
+      'techniques': ['goal-reminder', 'report-contract'],
+      'layers': ['task', 'evidence'],
+      'call': true,
+      'classification': 'test-defect',
+    },
+    {
+      'step': 12,
+      'phase': 'Verify',
+      'title': 'Run the targeted local regression',
+      'boundary': 'Model \u2192 local test tool',
+      'evidence':
+        'Authored targeted checkout regression passes on scenario revision qa-fix-r2. Record the command and report path.',
+      'techniques': ['artifact-ledger', 'bounded-results'],
+      'layers': ['history'],
+      'call': true,
+      'classification': 'test-defect',
+    },
+    {
+      'step': 13,
+      'phase': 'Verify',
+      'title': 'Repeat the parallel failure mode',
+      'boundary': 'Tool result \u2192 next input',
+      'evidence':
+        'Authored 20 parallel repeats pass with per-test carts. Repetition increases evidence; it is not a universal flake-free guarantee.',
+      'techniques': ['artifact-ledger', 'bounded-results'],
+      'layers': ['history'],
+      'call': false,
+      'classification': 'test-defect',
+    },
+    {
+      'step': 14,
+      'phase': 'Verify',
+      'title': 'Run related checkout coverage',
+      'boundary': 'Validation report',
+      'evidence':
+        'Authored related checkout suite passes locally on qa-fix-r2. CI is still not run; local success does not establish CI success.',
+      'techniques': ['report-contract', 'workflow-coordinator'],
+      'layers': ['history', 'task'],
+      'call': true,
+      'classification': 'test-defect',
+    },
+    {
+      'step': 15,
+      'phase': 'Verify',
+      'title': 'Prepare for native compaction',
+      'boundary': 'PreCompact',
+      'evidence':
+        'Store goal, constraints, diagnosis, revision, source anchors and pending CI acceptance ' +
+        'in a validated checkpoint. Native auto-compaction is already a harness capability.',
+      'techniques': ['compaction-checkpoint', 'artifact-ledger'],
+      'layers': ['history', 'checkpoint'],
+      'call': true,
+      'classification': 'test-defect',
+    },
+    {
+      'step': 16,
+      'phase': 'Verify',
+      'title': 'Restore relevant state after compaction',
+      'boundary': 'SessionStart(compact)',
+      'evidence':
+        'History is summarized; restore the small checkpoint and reopen exact fixture/test ' +
+        'anchors. Base instructions remain included. CI acceptance remains pending.',
+      'techniques': ['checkpoint-restore', 'source-selection'],
+      'layers': ['checkpoint', 'history', 'evidence'],
+      'call': true,
+      'classification': 'test-defect',
+    },
+    {
+      'step': 17,
+      'phase': 'CI',
+      'title': 'Push the reviewed revision with authorization',
+      'boundary': 'Authorized external action',
+      'evidence':
+        'In this authored workflow, prior user authorization covers pushing qa-fix-r2. Without ' +
+        'it, prepare the diff/evidence and ask before pushing. No hook grants push permission.',
+      'techniques': ['workflow-coordinator', 'task-contract'],
+      'layers': ['task', 'checkpoint'],
+      'call': true,
+      'classification': 'test-defect',
+    },
+    {
+      'step': 18,
+      'phase': 'CI',
+      'title': 'Start CI and preserve its run identity',
+      'boundary': 'CI tool result',
+      'evidence':
+        'Authored CI #1842 is queued for qa-fix-r2. Record revision + run ID. Pending is not passed.',
+      'techniques': ['artifact-ledger', 'scoped-worker'],
+      'layers': ['history'],
+      'call': false,
+      'classification': 'test-defect',
+    },
+    {
+      'step': 19,
+      'phase': 'CI',
+      'title': 'Inspect the matching CI shard',
+      'boundary': 'CI evidence admission',
+      'evidence':
+        'Authored CI #1842 checkout shard passes on qa-fix-r2; inspect the actual job/test ' +
+        'report rather than trusting a notification. Other required jobs may still be pending.',
+      'techniques': ['bounded-results', 'report-contract'],
+      'layers': ['history', 'evidence'],
+      'call': true,
+      'classification': 'test-defect',
+    },
+    {
+      'step': 20,
+      'phase': 'CI',
+      'title': 'Confirm all required CI checks',
+      'boundary': 'Returned verification report',
+      'evidence':
+        'Authored required jobs pass for the same revision qa-fix-r2. This completes the example ' +
+        'acceptance gate; it is not a real CI run from our experiments.',
+      'techniques': ['report-contract', 'artifact-ledger'],
+      'layers': ['history', 'task'],
+      'call': false,
+      'classification': 'test-defect',
+    },
+    {
+      'step': 21,
+      'phase': 'Handoff',
+      'title': 'Reconcile local and remote evidence',
+      'boundary': 'Parent acceptance review',
+      'evidence':
+        'Match local reports, CI #1842 and qa-fix-r2. Retain the test-defect rationale, changed paths and any remaining coverage limits.',
+      'techniques': ['report-contract', 'goal-reminder'],
+      'layers': ['task', 'checkpoint'],
+      'call': true,
+      'classification': 'test-defect',
+    },
+    {
+      'step': 22,
+      'phase': 'Handoff',
+      'title': 'Deliver a traceable completion packet',
+      'boundary': 'Final handoff',
+      'evidence':
+        'Example result: per-test cart isolation, source-linked diagnosis, local commands/status ' +
+        'and same-revision CI evidence. Save remaining work and uncertainty explicitly.',
+      'techniques': ['workflow-coordinator', 'compaction-checkpoint'],
+      'layers': ['checkpoint', 'history'],
+      'call': true,
+      'classification': 'test-defect',
+    },
+  ],
+  'sourceBudgets': {
+    'manual': [
+      0, 0, 6000, 16000, 22000, 26000, 42000, 42000, 48000, 48000, 52000, 52000, 54000, 54000,
+      54000, 54000, 9000, 12000, 18000, 26000, 26000, 26000, 28000,
+    ],
+    'managed': [
+      0, 0, 2400, 4200, 6500, 6500, 12000, 10000, 10000, 10000, 12000, 12000, 11000, 11000, 11000,
+      11000, 4200, 4200, 4200, 6500, 6500, 6500, 6500,
+    ],
+  },
+  'historyBudgets': {
+    'manual': [
+      0, 0, 700, 12000, 20000, 30000, 34000, 38000, 42000, 52000, 56000, 60000, 64000, 78000, 88000,
+      90000, 6200, 9000, 16000, 24000, 28000, 32000, 36000,
+    ],
+    'managed': [
+      0, 0, 350, 1500, 2600, 3500, 4800, 5500, 6300, 7200, 8200, 9000, 9800, 11200, 12000, 13000,
+      1800, 2600, 3500, 4500, 5200, 6200, 7000,
+    ],
+  },
+  'workers': [
+    {
+      'id': 'W1',
+      'name': 'CI evidence',
+      'purpose': 'Extract the failing shard, revision and repro conditions; no editing.',
+      'steps': [3, 4, 5],
+      'tools': 1600,
+      'guidance': 900,
+      'skills': 250,
+      'task': 550,
+      'sources': 4200,
+      'results': 2200,
+      'model': 'haiku',
+    },
+    {
+      'id': 'W2',
+      'name': 'Fixture review',
+      'purpose': 'Compare fixture ownership with product code; critique the diagnosis.',
+      'steps': [6, 7, 8],
+      'tools': 2400,
+      'guidance': 1800,
+      'skills': 450,
+      'task': 750,
+      'sources': 7800,
+      'results': 3100,
+      'model': 'sonnet',
+    },
+    {
+      'id': 'W3',
+      'name': 'Verification',
+      'purpose':
+        'Read local/CI reports and check revision-linked acceptance; coordinator runs tests.',
+      'steps': [12, 13, 14, 18, 19, 20],
+      'tools': 1900,
+      'guidance': 1100,
+      'skills': 350,
+      'task': 650,
+      'sources': 3500,
+      'results': 1800,
+      'model': 'haiku',
+    },
+  ],
+  'reports': [
+    { 'worker': 'W1', 'returned': 5, 'admit': 6, 'tokens': 900, 'label': 'CI repro packet' },
+    { 'worker': 'W2', 'returned': 8, 'admit': 9, 'tokens': 1300, 'label': 'Defect diagnosis' },
+    { 'worker': 'W3', 'returned': 14, 'admit': 15, 'tokens': 1200, 'label': 'Local verification' },
+    { 'worker': 'W3', 'returned': 20, 'admit': 21, 'tokens': 1000, 'label': 'CI acceptance' },
+  ],
+};

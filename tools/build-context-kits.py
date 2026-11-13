@@ -7,7 +7,17 @@ import subprocess
 
 root = pathlib.Path(__file__).resolve().parents[1] / "docs"
 catalog = json.loads((root / "kits/catalog.json").read_text())
-generated_code = "'use strict';\nconst atlasKits08=" + json.dumps(catalog) + ";\n"
+techniques = json.loads((root / "kits/techniques.json").read_text())
+(root / "kits/local-data.mjs").write_bytes(
+    (root / "audit/context-audit/scripts/local-data.mjs").read_bytes()
+)
+generated_code = (
+    "'use strict';\nconst atlasKits08="
+    + json.dumps(catalog)
+    + ";\nconst atlasTechniques14="
+    + json.dumps(techniques)
+    + ";\n"
+)
 formatted_code = subprocess.check_output(
     [
         "node",

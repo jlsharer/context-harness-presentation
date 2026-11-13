@@ -23,7 +23,14 @@ const root = path.resolve(__dirname, '../docs'),
           '.zip': 'application/zip',
         }[path.extname(f)] || 'text/plain',
       );
-      res.end(await fs.readFile(f));
+      const payload = await fs.readFile(f);
+      res.end(
+        f.endsWith('atlas.html')
+          ? payload
+              .toString()
+              .replace('</head>', '<script>window.ATLAS_LEGACY13=true</script></head>')
+          : payload,
+      );
     } catch {
       res.writeHead(404).end();
     }

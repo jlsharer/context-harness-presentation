@@ -172,3 +172,22 @@ Source formatting
 Install the pinned developer tools with `npm ci`. For Python formatting, create `.venv-format` with `python3 -m venv .venv-format`, then run `.venv-format/bin/python -m pip install -r requirements-format.txt` (Windows: use the environment’s Scripts/python.exe). `npm run format` formats source; `npm run format:check` verifies it. `FORMAT_PYTHON` can point to another environment with Black installed. EditorConfig uses two spaces for web source and four for Python/PowerShell.
 
 `npm run packages:build` rebuilds the active toolkit, audit, policy and readable benchmark downloads using formatted source. Source generators invoke the same formatter before writing bundles. The formatter preserves executable AST structure and exact embedded string values while separating long static strings and functions. Original measured repository bytes remain in service-starters.zip; service-starters-readable.zip contains a semantically equivalent formatted copy. JSONL event streams and historical source snapshots retain their original data format. No developer formatter dependency is installed into a teammate’s harness.
+
+
+Round14: complete QA walkthrough and operating packages
+
+The default atlas emphasizes Single session and Delegation, with 23 authored events and six phase skips. QA foundations remains optional; Packages is the final view.
+
+    node tests/atlas-round14-models.cjs
+    node tests/context-techniques.mjs
+    node tests/qa-workflow-kit.mjs
+    node tests/package-previews.mjs
+    node tests/atlas.cjs
+    python3 tests/context-kits-archive.py
+    npm run format:check
+
+The atlas entry runs the R12/R13 historical checks in explicit legacy mode and the R14 default browser checks. The R14 checks cover causal worker returns, compaction, conserved per-call input/cache/cost partitions, average billed-token formulas, granular selection/dependencies, safe complete file previews, native installation paths, phase navigation, responsive layouts and restart. Preview fidelity checks compare all104 fresh-install manifests (four targets × six bundles plus20 standalone items) with actual installer output. Seven workflow/skill entries have valid metadata and self-contained resources.
+
+The toolkit includes task/report draft templates, strict deterministic evidence helpers, repository setup references, workflow stage gates and scenario evaluations. Source-matched downloads are built with `python3 tools/build-context-kits.py`, `python3 tools/build-qa-workflow.py` and `node tools/build-package-previews.mjs`; `npm run packages:build` rebuilds all maintained downloads. Run formatting before rebuilding so previews/ZIPs match the formatted sources.
+
+Tests use temporary fixture projects/homes, never the owner's history or installed harness configuration. The QA scenario, call counts, token budgets, cache behavior and estimated API costs are authored teaching material. Schema/evidence coverage validation does not authenticate results. Native installed-client behavior, actual CI outcomes and accepted-task performance require trials in the user's approved environment.

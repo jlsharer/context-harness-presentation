@@ -66,7 +66,15 @@ export function validateHandoff(input) {
 }
 
 export function validateCheckpoint(input) {
-  if (!input || typeof input !== 'object') throw Error('checkpoint required');
+  if (!input || typeof input !== 'object' || Array.isArray(input))
+    throw Error('checkpoint required');
+  if (
+    Object.keys(input).some(
+      (key) =>
+        !['goal', 'constraints', 'source_anchors', 'open_work', 'acceptance_checks'].includes(key),
+    )
+  )
+    throw Error('Unknown checkpoint field');
   text(input.goal, 'goal');
   for (const key of ['constraints', 'source_anchors', 'acceptance_checks'])
     strings(input[key], key);

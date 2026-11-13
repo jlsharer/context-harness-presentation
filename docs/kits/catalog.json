@@ -7,7 +7,8 @@
     "contents": "Packet builder, task contract, focused-context protocol",
     "claude": "Portable packet helper + project protocol",
     "opencode": "Portable packet helper + project protocol",
-    "codex": "Portable packet helper + project protocol"
+    "codex": "Portable packet helper + project protocol",
+    "techniques": ["task-contract", "source-selection", "skill-discovery"]
   },
   {
     "id": "results",
@@ -17,7 +18,8 @@
     "contents": "Executable result wrapper + artifact writer",
     "claude": "PostToolUse Bash adapter: \u22648000-character stdout preview + full artifact; preserve errors and other output shapes",
     "opencode": "Owned wrapper; native result adaptation requires tool integration",
-    "codex": "Owned wrapper / manual tool protocol"
+    "codex": "Owned wrapper / manual tool protocol",
+    "techniques": ["bounded-results", "artifact-ledger"]
   },
   {
     "id": "continuity",
@@ -27,7 +29,8 @@
     "contents": "Checkpoint validator + native reminder hooks + protocol",
     "claude": "UserPromptSubmit + PreCompact reminder hooks",
     "opencode": "V2 context + compaction reminder hooks",
-    "codex": "Portable protocol + validator in this bundle; documented native hooks are shown in Lifecycle map"
+    "codex": "Portable protocol + validator in this bundle; documented native hooks are shown in Lifecycle map",
+    "techniques": ["goal-reminder", "compaction-checkpoint", "checkpoint-restore"]
   },
   {
     "id": "handoff",
@@ -44,7 +47,8 @@
       "mode": "auto",
       "tool": "SubagentHandback",
       "fallback": "Run node .context-kit/run.mjs handoff report.json before parent delivery. Installer does not change permission mode."
-    }
+    },
+    "techniques": ["scoped-worker", "report-contract", "model-routing", "workflow-coordinator"]
   },
   {
     "id": "cache",
@@ -54,6 +58,25 @@
     "contents": "Prefix fingerprint + provider-aware usage audit",
     "claude": "Portable audit; native/API caching configuration is separate",
     "opencode": "Portable audit; selected provider controls cache behavior",
-    "codex": "Portable audit; selected provider controls cache behavior"
+    "codex": "Portable audit; selected provider controls cache behavior",
+    "techniques": ["cache-prefix", "cache-audit"]
+  },
+  {
+    "id": "qa",
+    "name": "QA workflows + reusable skills",
+    "purpose": "Diagnose CI failures, repair regressions and assess release readiness with reusable stage skills.",
+    "metric": "Revision-linked acceptance and evidence quality",
+    "contents": "Workflow entries + standalone QA skills",
+    "claude": "Project skills; invoke the workflow entry explicitly",
+    "opencode": "Project skill integration; native runtime validation required",
+    "codex": "Project skills + portable protocols",
+    "techniques": [
+      "qa-triage-skill",
+      "qa-fixture-skill",
+      "qa-regression-skill",
+      "qa-evidence-skill",
+      "qa-regression-workflow",
+      "qa-release-workflow"
+    ]
   }
 ]

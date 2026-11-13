@@ -119,6 +119,7 @@ function decode(search = location.search, hash = location.hash) {
         : fallback;
 
   return {
+    legacy: q.get('legacy') === '13' || Boolean(window.ATLAS_LEGACY13),
     guide: raw === 'qa' || q.get('guide') === 'qa' ? 'qa' : '',
     qaHeat: q.get('heat') === '1',
     automationID: pick(
@@ -148,13 +149,28 @@ function decode(search = location.search, hash = location.hash) {
         pick(
           'r' + id,
           atlasPricing12.models.map((m) => m.id),
-          'sonnet',
+          q.get('legacy') === '13' || window.ATLAS_LEGACY13 ? 'sonnet' : AtlasModel14.defaults[id],
         ),
       ]),
     ),
     view,
-    step: num('step', 11, 0),
-    orchStep: num('orch', 6),
+    step: num('step', q.get('legacy') === '13' || window.ATLAS_LEGACY13 ? 11 : 22, 0),
+    orchStep: num('orch', q.get('legacy') === '13' || window.ATLAS_LEGACY13 ? 6 : 22),
+    selectedTechniques: AtlasPackages14.resolve(
+      q.has('kits') ? q.get('kits').split(',') : q.has('techniques') ? [] : ['focus', 'continuity'],
+      q.has('techniques') ? q.get('techniques').split(',') : [],
+    ),
+    focusTechnique: pick(
+      'technique',
+      atlasTechniques14.map((t) => t.id),
+      '',
+    ),
+    catalogCategory: pick(
+      'catalog',
+      ['bundles', 'hooks', 'workflows', 'protocols', 'helpers', 'routing'],
+      'bundles',
+    ),
+    catalogKind: pick('catalogType', ['workflows', 'skills'], 'workflows'),
     workers: num('workers', 3, 1) || 1,
     workloadProfile: AtlasWorkload.profile(q.get('workload')),
     harness: pick('harness', ['claude', 'opencode', 'codex'], 'opencode'),
@@ -217,9 +233,13 @@ function save(push = false) {
       audit: s.auditStage === 'findings' ? '' : s.auditStage,
       finding: s.auditFinding === 'verbose' ? '' : s.auditFinding,
       packages: s.auditSelected.join(',') === 'results' ? null : s.auditSelected.join(','),
+      techniques: s.legacy ? null : s.selectedTechniques.join(','),
+      technique: s.focusTechnique || null,
+      catalog: s.catalogCategory === 'bundles' ? null : s.catalogCategory,
+      catalogType: s.catalogKind === 'workflows' ? null : s.catalogKind,
     };
   for (const [k, v] of Object.entries(extra))
-    v === null || (v === '' && k !== 'packages')
+    v === null || (v === '' && !['packages', 'techniques'].includes(k))
       ? u.searchParams.delete(k)
       : u.searchParams.set(k, v);
   const fields = {
@@ -269,7 +289,10 @@ function save(push = false) {
   for (const [k, v] of Object.entries(values))
     String(v) === String(fields[k]) ? u.searchParams.delete(k) : u.searchParams.set(k, v);
   for (const [id, model] of Object.entries(s.routes))
-    model === 'sonnet' ? u.searchParams.delete('r' + id) : u.searchParams.set('r' + id, model);
+    model === (s.legacy ? 'sonnet' : AtlasModel14.defaults[id])
+      ? u.searchParams.delete('r' + id)
+      : u.searchParams.set('r' + id, model);
+  if (!s.legacy) u.searchParams.delete('kits');
   u.searchParams.delete('inside');
   u.searchParams.delete('calc');
   u.hash = s.view;
@@ -278,6 +301,38 @@ function save(push = false) {
 
 function render(focus) {
   const s = AtlasModel.state;
+  document.body.classList.toggle('round14', !s.legacy);
+  AtlasModel.ids = s.legacy
+    ? [
+        'welcome',
+        'contents',
+        'qa',
+        'system',
+        'automation',
+        'orchestration',
+        'loading',
+        'cache',
+        'attention',
+        'hooks',
+        'recipes',
+        'audit',
+        'references',
+      ]
+    : [
+        'welcome',
+        'contents',
+        'system',
+        'orchestration',
+        'automation',
+        'loading',
+        'cache',
+        'attention',
+        'hooks',
+        'audit',
+        'qa',
+        'references',
+        'recipes',
+      ];
   let [eyebrow, title, description, sources] = views[s.view];
   document.body.dataset.view = s.view;
   document.body.classList.toggle('qa-simple13', s.guide === 'qa' && !s.qaHeat);
@@ -299,7 +354,51 @@ function render(focus) {
         : b.removeAttribute('aria-current'),
     );
   A('atlasCanvas').innerHTML = AtlasContent[s.view](s);
+  if (!s.legacy) {
+    if (['system', 'orchestration'].includes(s.view)) {
+      const event = AtlasModel14.event(s.view === 'system' ? s.step : s.orchStep);
+      document
+        .querySelector('.replay-controls14')
+        .insertAdjacentHTML(
+          'afterend',
+          '<p class="workflow-evidence14">' + AtlasContent.esc(event.evidence) + '</p>',
+        );
+    }
+    for (const box of document.querySelectorAll('[data-bundle-selection]'))
+      box.indeterminate = box.dataset.mixed === 'true';
+    const headings = {
+      system: [
+        '01 / SINGLE SESSION',
+        'Follow the fix through one session.',
+        'See the context technique at the boundary where it acts.',
+      ],
+      orchestration: [
+        '02 / MODEL-ROUTED DELEGATION',
+        'Same QA task. Scoped workers.',
+        'Follow parent input, worker context and validated returns.',
+      ],
+      automation: [
+        '03 / MANUAL → AUTOMATED',
+        'Move repeated effort into the harness.',
+        'Map each familiar action to a concrete, selectable implementation.',
+      ],
+      recipes: [
+        'PACKAGES / BUNDLES AND STANDALONE TECHNIQUES',
+        'Install the parts you need.',
+        'Keep a bundle, or choose its individual techniques.',
+      ],
+    };
+    if (headings[s.view]) {
+      const [eyebrow, title, copy] = headings[s.view];
+      A('viewEyebrow').textContent = eyebrow;
+      A('viewTitle').textContent = title;
+      A('viewDescription').textContent = copy;
+    }
+    document.querySelector('.checkpoint').textContent = 'ROUND 14 · QA SYSTEM WALKTHROUGH';
+  }
   let ids = [...sources];
+  if (!s.legacy && ['system', 'orchestration', 'automation'].includes(s.view))
+    for (const id of ['claude-context', 'claude-hooks']) if (!ids.includes(id)) ids.push(id);
   if (s.view === 'system') ids.push('transformer', 'rope', 'model-spec', 'instruction-hierarchy');
   if (['orchestration', 'cache'].includes(s.view)) ids.push('openai-pricing', 'anthropic-pricing');
   if (['system', 'orchestration', 'hooks'].includes(s.view) && !ids.includes('codex-hooks'))
@@ -361,7 +460,8 @@ function render(focus) {
   const i = AtlasModel.ids.indexOf(s.view);
   A('previousView').disabled = !i;
   A('nextView').disabled = i === AtlasModel.ids.length - 1;
-  A('viewPosition').textContent = i + 1 + ' / ' + AtlasModel.ids.length + ' · round13';
+  A('viewPosition').textContent =
+    i + 1 + ' / ' + AtlasModel.ids.length + (s.legacy ? ' · round13' : ' · round14');
   A('nextView').textContent =
     i === AtlasModel.ids.length - 1 ? 'End of checkpoint' : views[AtlasModel.ids[i + 1]][1] + ' →';
   A('changeReadout').innerHTML =
@@ -469,6 +569,16 @@ function researchData(study, fillerOverride) {
 
 function inspectContext(path, layer, origin) {
   const s = AtlasModel.state;
+  if (!s.legacy) {
+    A('contextDetails').innerHTML = AtlasContent.detail14(
+      s,
+      layer || 'overview',
+      path === 'uncurated' ? 'manual' : path,
+    );
+    A('contextTitle').textContent = 'Context component';
+    if (!A('contextDialog').open) open('contextDialog', origin);
+    return;
+  }
   A('contextDetails').innerHTML =
     AtlasContent.componentDetails12(s, path, layer) +
     ('<p class="detail-sources12"><a href="https://model-spec.openai.com/2026-10-29.html" ' +
@@ -501,10 +611,134 @@ function routingRender(actor, focus) {
   if (focus) A(focus)?.focus();
 }
 
+function packageFilesRender(key, file, mode = 'read') {
+  const dialog = A('packageFilesDialog');
+  const previousScroll =
+    dialog.dataset.key === key
+      ? A('packageFilesBody').querySelector('.explorer-tree14')?.scrollTop || 0
+      : 0;
+  A('packageFilesBody').innerHTML = AtlasCatalog14.preview(AtlasModel.state, key, file, mode);
+  dialog.dataset.key = key;
+  const view = A('packageFilesBody').querySelector('[data-preview-path]');
+  dialog.dataset.file = view?.dataset.previewPath || '';
+  dialog.dataset.mode = mode;
+  const tree = A('packageFilesBody').querySelector('.explorer-tree14');
+  if (tree) tree.scrollTop = previousScroll;
+}
+
 document.addEventListener('click', async (event) => {
   const b = event.target.closest('button');
   if (!b) return;
   const s = AtlasModel.state;
+  if (
+    !s.legacy &&
+    (b.dataset.packagePreview ||
+      b.dataset.previewFile ||
+      b.dataset.previewRelative ||
+      b.dataset.previewMode ||
+      b.id === 'copyPreviewFile14' ||
+      b.dataset.catalogCategory ||
+      b.dataset.catalogKind)
+  ) {
+    if (b.dataset.catalogCategory || b.dataset.catalogKind) {
+      if (b.dataset.catalogCategory) s.catalogCategory = b.dataset.catalogCategory;
+      if (b.dataset.catalogKind) s.catalogKind = b.dataset.catalogKind;
+      save();
+      render();
+      return;
+    }
+    const dialog = A('packageFilesDialog');
+    if (b.dataset.previewRelative) {
+      const candidate = new URL(
+        b.dataset.previewRelative,
+        'https://package.local/' + dialog.dataset.file,
+      ).pathname.slice(1);
+      const files = atlasPackageFiles14.manifests[s.kitHarness + ':' + dialog.dataset.key];
+      if (files.some((f) => f.path === candidate))
+        packageFilesRender(dialog.dataset.key, candidate, 'read');
+      else A('atlasStatus').textContent = 'Reference is not part of this package preview.';
+      return;
+    }
+    if (b.dataset.packagePreview) {
+      packageFilesRender(b.dataset.packagePreview);
+      open('packageFilesDialog', b);
+      return;
+    }
+    if (b.id === 'copyPreviewFile14') {
+      const files = atlasPackageFiles14.manifests[s.kitHarness + ':' + dialog.dataset.key],
+        file = files.find((f) => f.path === dialog.dataset.file);
+      try {
+        await navigator.clipboard.writeText(atlasPackageFiles14.contents[file.hash]);
+        b.textContent = 'Copied';
+      } catch {
+        b.textContent = 'Select source to copy';
+      }
+      return;
+    }
+    packageFilesRender(
+      dialog.dataset.key,
+      b.dataset.previewFile || dialog.dataset.file,
+      b.dataset.previewMode || dialog.dataset.mode,
+    );
+    return;
+  }
+  if (
+    !s.legacy &&
+    (b.dataset.phaseStep !== undefined ||
+      b.dataset.techniqueLink ||
+      b.dataset.context14 ||
+      b.dataset.eventDetail !== undefined ||
+      b.dataset.mappingDetail ||
+      b.id === 'inspectInvocation14' ||
+      b.id === 'inspectPackageFiles14')
+  ) {
+    if (b.dataset.phaseStep !== undefined) {
+      s[b.dataset.phaseLane === 'delegation' ? 'orchStep' : 'step'] = AtlasModel14.normalize(
+        b.dataset.phaseStep,
+      );
+      save();
+      render();
+      return;
+    }
+    if (b.dataset.techniqueLink) {
+      const id = b.dataset.techniqueLink;
+      s.selectedTechniques = AtlasPackages14.resolve([], [...s.selectedTechniques, id]);
+      s.focusTechnique = id;
+      s.catalogCategory = 'bundles';
+      for (const dialog of document.querySelectorAll('dialog[open]')) dialog.close();
+      navigate('recipes');
+      A('technique-' + id)?.scrollIntoView({ block: 'center' });
+      return;
+    }
+    if (b.dataset.context14) {
+      A('contextDetails').innerHTML = AtlasContent.detail14(
+        s,
+        b.dataset.context14,
+        b.dataset.contextMode,
+        b.dataset.contextActor,
+      );
+      A('contextTitle').textContent = 'Context component';
+      if (!A('contextDialog').open) open('contextDialog', b);
+      return;
+    }
+    if (b.id === 'inspectInvocation14') {
+      A('ledgerBody').innerHTML = AtlasContent.ledger14(s);
+      open('ledgerDialog', b);
+      return;
+    }
+    A('auditPreviewTitle').textContent = b.dataset.mappingDetail
+      ? 'Technique → implementation'
+      : b.id === 'inspectPackageFiles14'
+        ? 'Selected implementation scope'
+        : 'QA workflow evidence';
+    A('auditPreviewBody').innerHTML = b.dataset.mappingDetail
+      ? AtlasContent.techniqueDetail14(s, b.dataset.mappingDetail)
+      : b.id === 'inspectPackageFiles14'
+        ? s.selectedTechniques.map((id) => AtlasContent.techniqueDetail14(s, id)).join('<hr>')
+        : AtlasContent.eventDetail14(Number(b.dataset.eventDetail));
+    open('auditPreviewDialog', b);
+    return;
+  }
   if (b.hasAttribute('data-show-skill-guide')) {
     showSkillGuide(b);
     return;
@@ -642,6 +876,8 @@ document.addEventListener('click', async (event) => {
     return;
   }
   if (b.dataset.kit) {
+    if (!s.legacy)
+      s.selectedTechniques = AtlasPackages14.resolve([b.dataset.kit], s.selectedTechniques);
     if (!s.selectedKits.includes(b.dataset.kit)) s.selectedKits.push(b.dataset.kit);
     navigate('recipes');
     return;
@@ -812,13 +1048,18 @@ document.addEventListener('click', async (event) => {
     return;
   }
   if (id === 'stepBack' || id === 'stepForward') {
-    s.step = AtlasReplay08.normalize(s.step + (id === 'stepBack' ? -1 : 1));
+    s.step = (s.legacy ? AtlasReplay08 : AtlasModel14).normalize(
+      s.step + (id === 'stepBack' ? -1 : 1),
+    );
     save();
     render(id);
     return;
   }
   if (id === 'orchBack' || id === 'orchForward') {
-    s.orchStep = Math.max(0, Math.min(6, s.orchStep + (id === 'orchBack' ? -1 : 1)));
+    s.orchStep = Math.max(
+      0,
+      Math.min(s.legacy ? 6 : 22, s.orchStep + (id === 'orchBack' ? -1 : 1)),
+    );
     save();
     render(id);
     return;
@@ -954,9 +1195,10 @@ document.addEventListener('click', async (event) => {
 });
 document.addEventListener('input', (event) => {
   const s = AtlasModel.state;
-  if (event.target.id === 'sessionStep') s.step = AtlasReplay08.normalize(event.target.value);
+  if (event.target.id === 'sessionStep')
+    s.step = (s.legacy ? AtlasReplay08 : AtlasModel14).normalize(event.target.value);
   else if (event.target.id === 'orchStep')
-    s.orchStep = Math.max(0, Math.min(6, Number(event.target.value)));
+    s.orchStep = Math.max(0, Math.min(s.legacy ? 6 : 22, Number(event.target.value)));
   else return;
   save();
   render(event.target.id);
@@ -964,6 +1206,21 @@ document.addEventListener('input', (event) => {
 document.addEventListener('change', (event) => {
   const e = event.target,
     s = AtlasModel.state;
+  if (!s.legacy && (e.dataset.techniqueSelection || e.dataset.bundleSelection)) {
+    const ids = e.dataset.bundleSelection
+      ? atlasKits08.find((b) => b.id === e.dataset.bundleSelection).techniques
+      : [e.dataset.techniqueSelection];
+    s.selectedTechniques = e.checked
+      ? AtlasPackages14.resolve([], [...s.selectedTechniques, ...ids])
+      : ids.reduce((next, id) => AtlasPackages14.remove(next, id), s.selectedTechniques);
+    save();
+    render(
+      e.dataset.bundleSelection
+        ? 'bundleChoice-' + e.dataset.bundleSelection
+        : 'techniqueChoice-' + e.dataset.techniqueSelection,
+    );
+    return;
+  }
   if (e.dataset.auditPackage) {
     s.auditSelected = e.checked
       ? [...new Set([...s.auditSelected, e.dataset.auditPackage])]

@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "task_id": "SET_TASK_ID",
+  "revision": "SET_TARGET_REVISION",
+  "diagnosis": {
+    "classification": "unresolved",
+    "summary": "Draft: collect source-linked evidence before resolving the diagnosis",
+    "supporting_evidence": [],
+    "counter_evidence": []
+  },
+  "evidence": [],
+  "checks": [
+    {"id": "targeted-local", "kind": "local", "revision": "SET_TARGET_REVISION", "status": "not-run", "command": "SET_REPOSITORY_COMMAND", "artifact": null, "run_id": null, "url": null},
+    {"id": "required-ci", "kind": "ci", "revision": "SET_TARGET_REVISION", "status": "not-run", "command": "SET_REQUIRED_CI_JOB", "artifact": null, "run_id": null, "url": null}
+  ],
+  "risks": ["Draft template; no result has been executed or verified"],
+  "open_work": ["Configure the task and collect actual local/CI evidence"]
+}
