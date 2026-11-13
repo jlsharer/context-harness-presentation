@@ -13,7 +13,7 @@
 - [x] Native hooks and scoped checkpoint/results/metadata helpers: event contracts, private bounded storage and cwd/session identity.
 - [x] Preview integration: generated exact Claude install manifests, primary/dependency split, load explanation and focused downloads. Retain other harness choices and directory controls.
 - [x] Audience docs/citations, format/build/affected regression suites and single final review.
-- [ ] Scoped commit/push, exact Pages commit and live interaction/archive hash verification.
+- [x] Scoped commit/push, exact Pages commit and live interaction/archive hash verification.
 
 ## Review focus
 - Installed components must remain usable after deleting the extracted installer; no hidden framework/receipt lookup at runtime.
@@ -30,3 +30,5 @@
 - Baseline instruction evaluation reproduced missing personal scope, shared per-repository checkpoint state and inconsistent standalone QA helper paths. Native application trials exercised explicit save/read, missing IDs, full stores/locks, different sessions/repositories, pending QA evidence and separate full-report versus bounded-worker schemas. Fixed stale reference wording from the trial.
 - Native installer/hooks,26 focused archive installs and104 exact preview manifests passed.23 retained/new pure/helper suites, three browser suites and formatter checks passed. User data and installed settings were never used.
 - Final independent review: no Critical/Important findings; independently installed all26 focused archives, deleted extracted sources and syntax-checked installed modules. Corrected two minor notes: conditional checkpoint inclusion wording and explicit subprocess launch-error diagnostics. Native installed-client behavior and empirical gains remain environment trials.
+
+- Published56812e988b94587eab581b400c912eca0416bf3b to existing Pages target; GitHub reported built. Full R14 browser checks passed on the public page, including native library and focused ZIP bytes, native personal paths, meaningful primary files, explicit dependencies, lifecycle loading explanations and mobile layout.163 public source/assets/archive hashes matched the verified local build. No findings deferred; installed native client execution remains a documented trial, not a claimed result.
