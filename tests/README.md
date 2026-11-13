@@ -163,6 +163,10 @@ Run `node tests/context-audit.mjs`, `node tests/context-audit-edge.mjs` and `nod
 Audience usage guide: QA foundations/Audit expose five readable steps with real bootstrap commands, audit/workflow/evaluation prompts, shared package explanations, clipboard controls, and shareable `?help=skill&helpStep=workflow#qa` links. R13 browser checks both entry points, actual copied text/link, direct opening, and every step at320/390px. The helper bundle is unchanged.
 
 
+Local audit defaults (2026-11-13)
+
+Run `node tests/context-audit-local.mjs` alongside the retained audit and edge suites. It exercises the CLI in temporary fixture homes: file-first reports and installation previews, private POSIX modes, explicit reduced-summary printing, numeric allowlisting, link refusal, unchanged enterprise telemetry/permissions, private rollback manifests and bounded project capture. The analyzer library's accounting API stays compatible. R13 browser checks now cover the terminal-first audience instructions and optional sharing controls. The real owner's session history and global configuration are never used by these tests. Native installed-client behavior and enterprise approval remain outside offline verification.
+
 Source formatting
 
 Install the pinned developer tools with `npm ci`. For Python formatting, create `.venv-format` with `python3 -m venv .venv-format`, then run `.venv-format/bin/python -m pip install -r requirements-format.txt` (Windows: use the environment’s Scripts/python.exe). `npm run format` formats source; `npm run format:check` verifies it. `FORMAT_PYTHON` can point to another environment with Black installed. EditorConfig uses two spaces for web source and four for Python/PowerShell.

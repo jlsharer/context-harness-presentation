@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { privateDirectory, writePrivate } from './local-data.mjs';
 
 const dir = path.dirname(fileURLToPath(import.meta.url)),
   bundle = path.dirname(dir),
@@ -27,8 +28,10 @@ function safe(root, relative) {
   for (const p of relative.split('/')) {
     dest = path.join(dest, p);
     try {
-      if (fs.lstatSync(dest).isSymbolicLink())
-        throw Error('Refusing symbolic-link target: ' + relative);
+      const st = fs.lstatSync(dest);
+      if (st.isSymbolicLink()) throw Error('Refusing symbolic-link target: ' + relative);
+      if (st.isFile() && st.nlink !== 1) throw Error('Refusing hardlinked installation target');
+      if (!st.isFile() && !st.isDirectory()) throw Error('Refusing nonregular installation target');
     } catch (e) {
       if (e.code !== 'ENOENT') throw e;
     }
@@ -170,7 +173,8 @@ export function applyPlan(plan) {
     manifest = safe(plan.root, 'context-audit-install/manifests/' + id + '.json'),
     applied = [];
   try {
-    fs.mkdirSync(path.dirname(manifest), { recursive: true });
+    privateDirectory(safe(plan.root, 'context-audit-install'), true);
+    privateDirectory(path.dirname(manifest), true);
     for (const f of changed) {
       const target = safe(plan.root, f.relative);
       fs.mkdirSync(path.dirname(target), { recursive: true });
@@ -184,7 +188,7 @@ export function applyPlan(plan) {
       selected: plan.selected,
       files: changed.map((f) => ({ ...f, afterHash: hash(f.after) })),
     };
-    fs.writeFileSync(manifest, JSON.stringify(data, null, 2) + '\n', { mode: 0o600 });
+    writePrivate(manifest, JSON.stringify(data, null, 2) + '\n');
     return { path: manifest, changed: changed.map((f) => f.relative) };
   } catch (e) {
     for (const f of applied.reverse()) {

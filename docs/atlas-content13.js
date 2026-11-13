@@ -277,13 +277,14 @@ const AtlasContent13 = {
           '<button id="showAuditPreview">Inspect planned files + hooks ↗</button></div></section>' +
           '<section class="audit-install13"><h3>Start with your own evidence</h3><ol>' +
           '<li>Extract the ZIP; Node18+ required.</li>' +
-          '<li>Preview the global skill bootstrap; inspect the files.</li>' +
-          '<li>Apply the preview, then invoke <code>/context-audit</code> in Claude.</li>' +
-          '<li>Choose changes from your own report; validate the native behavior.</li></ol>' +
+          '<li>Preview the bootstrap; review the file locally, then apply.</li>' +
+          '<li>Run the analyzer in your terminal; review its local report.</li>' +
+          '<li>Optionally share a reviewed reduced summary with Claude; choose changes and validate.</li></ol>' +
           '<code class="audit-command13">node context-audit/scripts/cli.mjs install --claude-home ' +
           '/path/to/.claude --out bootstrap-preview.json</code>' +
           '<p>Bootstrap adds the skill only. Selected hooks require a separate concrete ' +
-          'preview/apply step. No API keys, model calls or automatic telemetry export.</p></section></div>');
+          'preview/apply step. The analyzer needs no model connection or collector. Claude ' +
+          'interpreting shared data uses its normal connection.</p></section></div>');
     return (
       '<div class="audit13"><div class="audit-scope13">' +
       '<span>SYNTHETIC QA SESSION · PREPARED WITH THE REAL ANALYZER</span>' +
@@ -354,7 +355,8 @@ const AtlasContent13 = {
       ('<p>Global generic code lives in <code>~/.claude/skills/context-audit/</code>. ' +
         'Repository-specific checkpoints and evidence stay under the active project. Existing ' +
         'permissions and unrelated hooks are preserved. Known project-kit continuity/results ' +
-        'adapters take precedence.</p><p>' +
+        'adapters take precedence. Full reports and credential-bearing settings previews stay ' +
+        'local; reduced-summary sharing is optional.</p><p>' +
         '<a href="audit/context-audit/references/native-integration.md">Exact integration and ' +
         'rollback behavior ↗</a></p>')
     );

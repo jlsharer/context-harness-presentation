@@ -3,6 +3,14 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { checkContract } from './contracts.mjs';
+import {
+  checkedPath,
+  privateDirectory,
+  writePrivate,
+  projectStore,
+  withStoreLock,
+  limits,
+} from './local-data.mjs';
 
 function localPath(cwd, relative) {
   const root = fs.realpathSync(cwd),
@@ -46,15 +54,49 @@ function record(cwd, event, extra = {}) {
       .digest('hex')
       .slice(0, 16),
     dest = localPath(cwd, 'trace-' + sid + '.jsonl');
-  fs.mkdirSync(path.dirname(dest), { recursive: true });
+  const root = projectStore(cwd);
   const data = {
     timestamp: new Date().toISOString(),
-    event: event.hook_event_name || 'unknown',
-    tool: event.tool_name || null,
-    tool_use_id: event.tool_use_id || null,
+    event: ['SessionStart', 'SessionEnd', 'PreCompact', 'PostToolUse'].includes(
+      event.hook_event_name,
+    )
+      ? event.hook_event_name
+      : 'unknown',
+    tool: ['Bash', 'Read', 'Write', 'Edit', 'Glob', 'Grep', 'Agent', 'Task'].includes(
+      event.tool_name,
+    )
+      ? event.tool_name
+      : 'other',
     ...extra,
   };
-  fs.appendFileSync(dest, JSON.stringify(data) + '\n', { mode: 0o600 });
+  withStoreLock(root, () => {
+    checkedPath(dest);
+    const files = fs.readdirSync(root).filter((name) => /^trace-[a-f0-9]{16}\.jsonl$/.test(name));
+    if (!fs.existsSync(dest) && files.length >= limits.traceFiles) return null;
+    const text = JSON.stringify(data) + '\n';
+    if (
+      (fs.existsSync(dest) ? fs.statSync(dest).size : 0) + Buffer.byteLength(text) >
+      limits.traceBytes
+    )
+      return null;
+    const fd = fs.openSync(
+      dest,
+      fs.constants.O_WRONLY |
+        fs.constants.O_APPEND |
+        fs.constants.O_CREAT |
+        (fs.constants.O_NOFOLLOW || 0),
+      0o600,
+    );
+    try {
+      const st = fs.fstatSync(fd);
+      if (!st.isFile() || st.nlink !== 1) throw Error('Refusing nonregular or hardlinked trace');
+      if (process.platform !== 'win32') fs.fchmodSync(fd, 0o600);
+      fs.writeFileSync(fd, text);
+    } finally {
+      fs.closeSync(fd);
+    }
+    return true;
+  });
   return dest;
 }
 
@@ -79,9 +121,27 @@ export function handleHook(mode, event) {
       r.stdout.length <= 8000
     )
       return null;
+    const root = projectStore(cwd);
     const dest = localPath(cwd, 'artifacts/result-' + crypto.randomUUID() + '.json');
-    fs.mkdirSync(path.dirname(dest), { recursive: true });
-    fs.writeFileSync(dest, JSON.stringify(r), { mode: 0o600 });
+    const stored = withStoreLock(root, () => {
+      const folder = privateDirectory(path.dirname(dest), true);
+      const files = fs.readdirSync(folder).filter((name) => /^result-[a-f0-9-]+\.json$/.test(name));
+      const size = files.reduce(
+        (total, name) => total + fs.statSync(checkedPath(path.join(folder, name))).size,
+        0,
+      );
+      const data = JSON.stringify(r);
+      const bytes = Buffer.byteLength(data);
+      if (
+        files.length >= limits.artifactFiles ||
+        bytes > limits.artifactBytes ||
+        size + bytes > limits.artifactTotal
+      )
+        return null;
+      writePrivate(dest, data);
+      return true;
+    });
+    if (!stored) return null;
     const suffix = '\n[Successful output excerpt; full structured result: ' + dest + ']';
     return {
       hookSpecificOutput: {
@@ -138,7 +198,11 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
       if (result !== null)
         process.stdout.write(typeof result === 'string' ? result : JSON.stringify(result));
     } catch (e) {
-      process.stderr.write('Context audit hook skipped: ' + e.message + '\n');
+      process.stderr.write(
+        'Context audit hook skipped: ' +
+          (e instanceof SyntaxError ? 'Invalid local JSON input.' : e.message) +
+          '\n',
+      );
     }
   });
 }

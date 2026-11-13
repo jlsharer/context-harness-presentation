@@ -51,6 +51,12 @@ const root = path.resolve(__dirname, '../docs'),
     assert.match(await page.locator('#skillGuideBody').textContent(), /bootstrap-preview.json/);
     await page.locator('[data-skill-guide-step=audit]').click();
     assert.match(await page.locator('#skillGuideBody').textContent(), /AskUserQuestion/);
+    assert.match(await page.locator('#skillGuideBody').textContent(), /no network\/model calls/);
+    assert.match(
+      await page.locator('#skillGuideBody').textContent(),
+      /context-audit-data\/reports/,
+    );
+    await page.locator('#skillGuideBody details summary').click();
     await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
     await page.locator('[data-copy-skill-snippet=audit]').click();
     assert.match(await page.evaluate(() => navigator.clipboard.readText()), /^\/context-audit\n/);

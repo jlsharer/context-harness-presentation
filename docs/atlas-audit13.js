@@ -271,7 +271,9 @@ const atlasAudit13 = {
       'effort': 'Low',
       'optimizes': 'Repeated input from verbose results',
       'caveat':
-        'Errors, interrupted calls, images and unknown result shapes remain unchanged. Character limit is not an exact token limit.',
+        'Opt-in raw successful output stays local and may contain secrets. Errors and unknown ' +
+        'shapes remain unchanged. Capture stops at 20 files / 16 MiB; original output remains ' +
+        'when full. Character limits are not exact tokens.',
       'files': ['settings.json: Bash PostToolUse', 'project .context-audit/artifacts/*'],
     },
     {
@@ -305,12 +307,13 @@ const atlasAudit13 = {
       'id': 'measurement',
       'name': 'Measure the next sessions',
       'purpose':
-        'Capture local lifecycle metadata and provide instructions for optional native OpenTelemetry collection.',
-      'mechanism': 'Local event recorder; explicit OTel setup instructions',
+        'Capture bounded local lifecycle metadata; analyze selected history without installing a telemetry collector.',
+      'mechanism': 'Private local event recorder; optional existing native telemetry input',
       'effort': 'Low',
       'optimizes': 'Coverage for evidence-based decisions',
       'caveat':
-        'No exporter destination or raw prompt logging is enabled. Historical missing telemetry cannot be recovered.',
+        'No exporter or raw prompt logging is enabled; enterprise settings are preserved. ' +
+        'Capture stops at storage caps. Missing historical metrics remain unknown.',
       'files': [
         'settings.json: SessionStart, PreCompact, SessionEnd',
         'project .context-audit/trace-SESSION.jsonl',

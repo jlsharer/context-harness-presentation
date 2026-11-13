@@ -11,11 +11,18 @@ const AtlasSkillGuide = {
     bootstrap:
       'node context-audit/scripts/cli.mjs install \\\n  --claude-home "$HOME/.claude" \\\n  --out bootstrap-preview.json',
     apply: 'node context-audit/scripts/cli.mjs apply \\\n  --plan bootstrap-preview.json',
+    localAudit:
+      'node context-audit/scripts/cli.mjs discover \\\n  --claude-home "$HOME/.claude"\n\n# Open ' +
+      'the printed inventory locally and choose a transcript.\nnode ' +
+      'context-audit/scripts/cli.mjs analyze \\\n  --claude-home "$HOME/.claude" \\\n  ' +
+      '--transcript /absolute/path/to/session.jsonl',
+    localSummary:
+      'node context-audit/scripts/cli.mjs summary \\\n  --report /absolute/path/to/report.json',
     audit:
-      '/context-audit\n\nAnalyze my recent Claude Code sessions for this repository.\nUse ' +
-      'available session history and existing telemetry.\nPrioritize improvements by likely ' +
-      'impact, evidence strength, and effort.\nClearly identify missing data.\nOffer relevant ' +
-      'packages through AskUserQuestion.\nShow the exact proposed changes before applying them.',
+      '/context-audit\n\nI have reviewed my reduced summary locally and choose to share that summary.\n' +
+      'Read only the reduced summary file I provide next.\nDo not read raw histories, full reports, inventories or settings previews.\n' +
+      'Prioritize candidate improvements by evidence, impact and effort.\nIdentify missing data and offer packages through AskUserQuestion.\n' +
+      'Generate a local preview for me to review before applying changes.',
     installWorkflow:
       '/context-audit install\n\nPrepare the workflow package.\nShow the generated worker ' +
       'definitions and other file changes before applying.\nPreserve my existing permissions ' +
@@ -65,7 +72,8 @@ const AtlasSkillGuide = {
         '<p>Examples use macOS, Linux or WSL. Replace <code>$HOME/.claude</code> if you use a ' +
         'custom Claude user directory.</p>' +
         this.code('bootstrap', 'Generate the installation preview') +
-        '<p>Review <code>bootstrap-preview.json</code>, then apply that same preview:</p>' +
+        '<p>Review <code>bootstrap-preview.json</code> in a local editor, then apply that same preview. ' +
+        'Previews can contain existing settings and credentials; keep them out of chat.</p>' +
         this.code('apply', 'Apply the reviewed bootstrap') +
         ('<div class="skill-guide-outcome"><strong>What you get</strong>' +
           '<p>The skill is installed under <code>~/.claude/skills/context-audit/</code>. A fresh ' +
@@ -73,18 +81,28 @@ const AtlasSkillGuide = {
           'session so discovery refreshes.</p></div>');
     if (step === 'audit')
       content =
-        '<h3>Find improvements in your own usage</h3><p>Enter this prompt in Claude Code after installing the skill:</p>' +
-        this.code('audit', 'Audit prompt · adapt the scope to your work') +
-        ('<ol class="skill-guide-list"><li>Claude selects relevant local transcript files and any ' +
-          'existing telemetry.</li><li>The bundled local analyzer produces a compact report with ' +
-          'traceable source locations.</li>' +
-          '<li>Claude explains the strongest findings, implementation effort, confidence and ' +
-          'tradeoffs.</li><li>You choose which packages to prepare. The actual changes are ' +
-          'previewed before application.</li></ol><div class="skill-guide-outcome">' +
-          '<strong>Read missing data honestly</strong>' +
-          '<p>Incomplete cache or cost fields remain unknown. Historical telemetry that was never ' +
-          'collected cannot be recovered. The presentation’s prepared sample is synthetic; your ' +
-          'audit uses your selected files.</p></div>');
+        '<h3>Generate a report locally first</h3><p>Run these commands in your own terminal, outside Claude. ' +
+        'The analyzer reads selected local history, makes no network/model calls and prints a file location.</p>' +
+        this.code('localAudit', 'Choose history → generate a private local report') +
+        '<p>Open the report in a local JSON editor. Default location: ' +
+        '<code>~/.claude/context-audit-data/reports/</code>. ' +
+        '<strong>Coverage</strong> explains what was observed; <strong>metrics</strong> shows call counts, ' +
+        'accrued input, peak request and known costs; <strong>findings</strong> links candidate improvements ' +
+        'to local source evidence. Null means unknown; a subtotal is incomplete. This is a diagnostic report, ' +
+        'not proof of wasted tokens or measured savings.</p>' +
+        '<details><summary>Optional: review a reduced summary with Claude</summary>' +
+        this.code('localSummary', 'Create reduced data without printing its contents') +
+        '<p>Open the generated <code>summary-REPORT.json</code> locally. It omits paths, identifiers, ' +
+        'arbitrary model names and per-request records. Numeric aggregates can still be sensitive. ' +
+        'Share only if your policy permits and you choose to:</p>' +
+        this.code('audit', 'Optional Claude prompt · then provide your reviewed reduced file') +
+        '<p>Claude interpreting shared data uses its normal model connection. Running a skill does not ' +
+        'make Claude offline. Full reports and settings previews stay local by default.</p></details>' +
+        '<div class="skill-guide-outcome"><strong>No collector required</strong>' +
+        '<p>The package enables no telemetry exporter and preserves existing enterprise configuration. ' +
+        'Historical missing metrics cannot be recovered. The presentation sample is synthetic; your ' +
+        'report uses your selected files. <a href="audit/context-audit/references/privacy.md" target="_blank" rel="noopener noreferrer">' +
+        'Storage, retention and sharing details ↗</a></p></div>';
     if (step === 'packages')
       content =
         '<h3>Choose only the changes that fit</h3>' +
@@ -114,7 +132,9 @@ const AtlasSkillGuide = {
           '<p>Generic code and selected agent definitions live in your Claude user directory. ' +
           'Checkpoints, result artifacts and traces stay under the active project’s ' +
           '<code>.context-audit/</code>. Existing permissions and unrelated hooks are preserved. ' +
-          'An apply manifest supports rollback when the installed files remain unchanged.</p></div>');
+          'An apply manifest supports rollback when the installed files remain unchanged. ' +
+          'The optional results package stores raw successful output locally; continuity may inject ' +
+          'a checkpoint into Claude. These dataflows activate only when selected.</p></div>');
     if (step === 'workflow')
       content =
         '<h3>Use the QA workflow for a task</h3>' +
@@ -152,8 +172,9 @@ const AtlasSkillGuide = {
           'test the events you installed. The helpers were tested offline; actual Claude behavior, ' +
           'model availability and optimization gains require validation in your environment.</p>' +
           '<p>The <code>measurement</code> package records local lifecycle metadata. Full native ' +
-          'request-level token and cost telemetry requires separate, explicit OpenTelemetry ' +
-          'configuration; the package does not enable an exporter destination.</p>');
+          'request-level token and cost telemetry requires separate, approved OpenTelemetry ' +
+          'configuration; the package does not enable an exporter destination. Local traces stop at ' +
+          '20 files of 256 KiB; result storage stops at 20 files / 16 MiB. No evidence is automatically deleted.</p>');
     return (
       '<div class="skill-guide"><p class="skill-guide-intro">' +
       '<strong>One skill, two jobs:</strong> <code>/context-audit</code> improves your harness ' +

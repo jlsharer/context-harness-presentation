@@ -6,25 +6,29 @@ import json
 import subprocess
 import zipfile
 import hashlib
+import tempfile
 
 root = Path(__file__).resolve().parent.parent
 folder = root / "docs/audit/context-audit"
 data = root / "docs/research/round13"
-raw = subprocess.check_output(
-    [
-        "node",
-        str(folder / "scripts/cli.mjs"),
-        "analyze",
-        "--claude-home",
-        str(data),
-        "--transcript",
-        str(data / "demo-native.jsonl"),
-        "--events",
-        str(data / "demo-otel.jsonl"),
-    ],
-    text=True,
-)
-report = json.loads(raw)
+with tempfile.TemporaryDirectory(prefix="audit-build-") as temporary:
+    report_path = Path(temporary) / "report.json"
+    subprocess.check_call(
+        [
+            "node",
+            str(folder / "scripts/cli.mjs"),
+            "analyze",
+            "--claude-home",
+            str(data),
+            "--transcript",
+            str(data / "demo-native.jsonl"),
+            "--events",
+            str(data / "demo-otel.jsonl"),
+            "--out",
+            str(report_path),
+        ]
+    )
+    report = json.loads(report_path.read_text())
 
 
 def redact(value):
