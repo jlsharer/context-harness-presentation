@@ -27,6 +27,6 @@ const AtlasModel11={
   {id:'evidence',title:'Long-context benchmarks',ids:['nolima','graphwalks-data','gemini-carbon-card','gemini-carbon-method','gemini-argon-card','gemini-argon-method','openai-accuracy','cre-2026','signal-2026']},
   {id:'native',title:'Native loading + agent context',ids:['opencode-instructions','opencode-skills','opencode-agents','claude-memory','claude-context','claude-subagents','claude-costs','claude-tool-overhead','codex-guidance','codex-skills','codex-subagents','codex-catalog','codex-config','cursor-prompting','cursor-rules','instruction-stack-study']},
   {id:'lifecycle',title:'Lifecycle hooks + events',ids:['opencode-hooks','opencode-events','claude-hooks','codex-hooks']},
-  {id:'cache',title:'Provider prompt caching',ids:['openai-caching','anthropic-cache','gemini-cache']}
+  {id:'cache',title:'Model pricing + provider caching',ids:['openai-caching','anthropic-cache','gemini-cache','openai-pricing','anthropic-pricing','fable52-model','model-astra','model-sol','model-terra','model-luna']}
  ];}
 };

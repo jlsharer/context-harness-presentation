@@ -425,6 +425,76 @@ const atlasSources = {
       "locator": "Sections4.1,5.1,6",
       "year": 2026,
       "type": "primary-research"
+    },
+    {
+      "id": "openai-pricing",
+      "title": "OpenAI standard API pricing + cache writes",
+      "url": "https://developers.openai.com/api/docs/pricing",
+      "type": "official-documentation",
+      "year": 2026,
+      "locator": "Pricing/model overview; checked2026-11-12",
+      "supports": "Standard text API input/output/read and30m/12h cache-write prices.",
+      "limit": "Standard tier, global processing; current dated rate card, not subscription billing."
+    },
+    {
+      "id": "anthropic-pricing",
+      "title": "Anthropic model + cache pricing",
+      "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "type": "official-documentation",
+      "year": 2026,
+      "locator": "Pricing/model overview; checked2026-11-12",
+      "supports": "Fable/Opus/Sonnet/Haiku standard rates, cache-read exceptions,5m/1h writes and full-prompt Haiku threshold.",
+      "limit": "Rates and request eligibility vary; cache rates are not a universal multiplier."
+    },
+    {
+      "id": "fable52-model",
+      "title": "Claude Fable 5.2 model overview",
+      "url": "https://platform.claude.com/docs/en/models/fable-5-2/overview",
+      "type": "official-documentation",
+      "year": 2026,
+      "locator": "Pricing/model overview; checked2026-11-12",
+      "supports": "Fable5.2 identity,1M window and standard input/output pricing.",
+      "limit": "No quality equivalence with cheaper routed models asserted."
+    },
+    {
+      "id": "model-astra",
+      "title": "gpt-6-astra API rates + full-prompt threshold",
+      "url": "https://developers.openai.com/api/docs/models/gpt-6-astra",
+      "type": "official-documentation",
+      "year": 2026,
+      "locator": "Pricing: full request above272K; checked2026-11-12",
+      "supports": "Standard API rates; input/cache2x and output1.5x for the full request above272K.",
+      "limit": "API rates, not app subscription quotas or native harness context amounts."
+    },
+    {
+      "id": "model-sol",
+      "title": "gpt-6.1-sol API rates + full-prompt threshold",
+      "url": "https://developers.openai.com/api/docs/models/gpt-6.1-sol",
+      "type": "official-documentation",
+      "year": 2026,
+      "locator": "Pricing: full request above272K; checked2026-11-12",
+      "supports": "Standard API rates; input/cache2x and output1.5x for the full request above272K.",
+      "limit": "API rates, not app subscription quotas or native harness context amounts."
+    },
+    {
+      "id": "model-terra",
+      "title": "gpt-6.1-terra API rates + full-prompt threshold",
+      "url": "https://developers.openai.com/api/docs/models/gpt-6.1-terra",
+      "type": "official-documentation",
+      "year": 2026,
+      "locator": "Pricing: full request above272K; checked2026-11-12",
+      "supports": "Standard API rates; input/cache2x and output1.5x for the full request above272K.",
+      "limit": "API rates, not app subscription quotas or native harness context amounts."
+    },
+    {
+      "id": "model-luna",
+      "title": "gpt-6-luna API rates + full-prompt threshold",
+      "url": "https://developers.openai.com/api/docs/models/gpt-6-luna",
+      "type": "official-documentation",
+      "year": 2026,
+      "locator": "Pricing: full request above272K; checked2026-11-12",
+      "supports": "Standard API rates; input/cache2x and output1.5x for the full request above272K.",
+      "limit": "API rates, not app subscription quotas or native harness context amounts."
     }
   ]
 };

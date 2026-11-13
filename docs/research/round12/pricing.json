@@ -1,0 +1,176 @@
+{
+  "checkedOn": "2026-11-12",
+  "currency": "USD",
+  "unit": "per 1,000,000 tokens",
+  "scope": "Standard global text API rates. Excludes subscription quotas, Fast/Flex/Batch, regional premiums, tools and taxes. Synthetic usage; no quality equivalence or realized savings asserted.",
+  "providers": {
+    "anthropic": {
+      "label": "Anthropic (Claude)",
+      "shortTTL": "5m",
+      "longTTL": "1h",
+      "minimumPrefix": 512,
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing"
+    },
+    "openai": {
+      "label": "OpenAI (Codex)",
+      "shortTTL": "30m",
+      "longTTL": "12h",
+      "minimumPrefix": 1024,
+      "source": "https://developers.openai.com/api/docs/pricing"
+    }
+  },
+  "models": [
+    {
+      "id": "fable",
+      "name": "Claude Fable 5.2",
+      "shortName": "Fable",
+      "provider": "anthropic",
+      "window": 1000000,
+      "rates": {
+        "input": 8,
+        "read": 0.2,
+        "writeShort": 10,
+        "writeLong": 16,
+        "output": 40
+      },
+      "threshold": null,
+      "inputMultiplier": 1,
+      "outputMultiplier": 1,
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "modelSource": "https://platform.claude.com/docs/en/models/fable-5-2/overview"
+    },
+    {
+      "id": "opus",
+      "name": "Claude Opus 5.5",
+      "shortName": "Opus",
+      "provider": "anthropic",
+      "window": 1000000,
+      "rates": {
+        "input": 4,
+        "read": 0.2,
+        "writeShort": 5,
+        "writeLong": 8,
+        "output": 20
+      },
+      "threshold": null,
+      "inputMultiplier": 1,
+      "outputMultiplier": 1,
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "modelSource": "https://platform.claude.com/docs/en/models/opus-5-5/overview"
+    },
+    {
+      "id": "sonnet",
+      "name": "Claude Sonnet 5.5",
+      "shortName": "Sonnet",
+      "provider": "anthropic",
+      "window": 1000000,
+      "rates": {
+        "input": 2,
+        "read": 0.1,
+        "writeShort": 2.5,
+        "writeLong": 4,
+        "output": 10
+      },
+      "threshold": null,
+      "inputMultiplier": 1,
+      "outputMultiplier": 1,
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "modelSource": "https://platform.claude.com/docs/en/models/sonnet-5-5/overview"
+    },
+    {
+      "id": "haiku",
+      "name": "Claude Haiku 5.5",
+      "shortName": "Haiku",
+      "provider": "anthropic",
+      "window": 1000000,
+      "rates": {
+        "input": 0.1,
+        "read": 0.01,
+        "writeShort": 0.125,
+        "writeLong": 0.2,
+        "output": 0.5
+      },
+      "threshold": 100000,
+      "inputMultiplier": 5,
+      "outputMultiplier": 5,
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "modelSource": "https://platform.claude.com/docs/en/models/haiku-5-5/overview"
+    },
+    {
+      "id": "astra",
+      "name": "GPT-6 Astra",
+      "shortName": "Astra",
+      "provider": "openai",
+      "window": 1050000,
+      "rates": {
+        "input": 10,
+        "read": 1,
+        "writeShort": 12.5,
+        "writeLong": 25,
+        "output": 50
+      },
+      "threshold": 272000,
+      "inputMultiplier": 2,
+      "outputMultiplier": 1.5,
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "modelSource": "https://developers.openai.com/api/docs/models/gpt-6-astra"
+    },
+    {
+      "id": "sol",
+      "name": "GPT-6.1 Sol",
+      "shortName": "Sol",
+      "provider": "openai",
+      "window": 1050000,
+      "rates": {
+        "input": 2,
+        "read": 0.1,
+        "writeShort": 2.5,
+        "writeLong": 5,
+        "output": 10
+      },
+      "threshold": 272000,
+      "inputMultiplier": 2,
+      "outputMultiplier": 1.5,
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "modelSource": "https://developers.openai.com/api/docs/models/gpt-6.1-sol"
+    },
+    {
+      "id": "terra",
+      "name": "GPT-6.1 Terra",
+      "shortName": "Terra",
+      "provider": "openai",
+      "window": 1050000,
+      "rates": {
+        "input": 1,
+        "read": 0.05,
+        "writeShort": 1.25,
+        "writeLong": 2.5,
+        "output": 5
+      },
+      "threshold": 272000,
+      "inputMultiplier": 2,
+      "outputMultiplier": 1.5,
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "modelSource": "https://developers.openai.com/api/docs/models/gpt-6.1-terra"
+    },
+    {
+      "id": "luna",
+      "name": "GPT-6 Luna",
+      "shortName": "Luna",
+      "provider": "openai",
+      "window": 1050000,
+      "rates": {
+        "input": 0.1,
+        "read": 0.01,
+        "writeShort": 0.125,
+        "writeLong": 0.25,
+        "output": 0.5
+      },
+      "threshold": 272000,
+      "inputMultiplier": 2,
+      "outputMultiplier": 1.5,
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "modelSource": "https://developers.openai.com/api/docs/models/gpt-6-luna"
+    }
+  ]
+}
