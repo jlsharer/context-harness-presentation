@@ -2,7 +2,7 @@
 const AtlasModel={ids:['welcome','contents','qa','system','automation','orchestration','loading','cache','attention','hooks','recipes','audit','references'],state:{},source(id){const x=atlasSources.sources.find(s=>s.id===id);if(!x)throw Error('Unknown source '+id);return x;}};
 const A=id=>document.getElementById(id),origins=new Map();
 const views={
- qa:['QA SHOW & TELL / 15–20 MINUTES','Less repeated prompting. More repeatable QA.','One investigation, three demonstrations, practical artifacts to take away.',['context-engineering','claude-context']],
+ qa:['QA / CONTEXT AND WORKFLOW FOUNDATIONS','Build a repeatable QA workflow.','Understand how context, harness automation and session evidence support QA.',['context-engineering','claude-context']],
  automation:['FROM MANUAL EFFORT TO AUTOMATION','Put the repeated work into the harness.','Choose a familiar action; follow its mechanism, artifact and outcome check.',['claude-hooks','claude-skills','claude-subagents']],
  audit:['IMPROVE YOUR OWN SETUP','Find the opportunity. Choose the change.','A prepared sample demonstrates a real, downloadable Claude audit workflow.',['claude-monitoring','claude-commands','claude-hooks']],
  welcome:['PURPOSE / A CONTEXT CONTROL WORKSHOP','Build a harness that keeps the goal in view.','Understand the levers, then install the techniques that fit your workflow.',['context-engineering']],
@@ -36,7 +36,7 @@ document.addEventListener('click',async event=>{const b=event.target.closest('bu
  if(b.dataset.auditFinding){s.auditFinding=b.dataset.auditFinding;save();render('finding-'+s.auditFinding);return;}
  if(b.id==='toggleQaHeat'){s.qaHeat=!s.qaHeat;save();render('toggleQaHeat');return;}
  if(b.id==='exitQaGuide'){s.guide='';s.qaHeat=false;navigate(s.view==='qa'?'contents':s.view);return;}
- const detail13={showAuditPreview:['Selected artifacts + integration',()=>AtlasContent.auditPreview13(s)],showAuditMethod:['Coverage + interpretation',()=>AtlasContent.auditMethod13()],showAutomationMore:['More manual → automated techniques',()=>AtlasContent.automationMore13()],showPresenterNotes:['15–20 minute presenter cues',()=>AtlasContent.presenter13()]}[b.id];if(detail13){A('auditPreviewTitle').textContent=detail13[0];A('auditPreviewBody').innerHTML=detail13[1]();open('auditPreviewDialog',b);return;}
+ const detail13={showAuditPreview:['Selected artifacts + integration',()=>AtlasContent.auditPreview13(s)],showAuditMethod:['Coverage + interpretation',()=>AtlasContent.auditMethod13()],showAutomationMore:['More manual → automated techniques',()=>AtlasContent.automationMore13()]}[b.id];if(detail13){A('auditPreviewTitle').textContent=detail13[0];A('auditPreviewBody').innerHTML=detail13[1]();open('auditPreviewDialog',b);return;}
  if(b.dataset.nativeTarget){s.harness=b.dataset.nativeTarget;save();render('nativePick-'+s.harness);return;}
  if(b.dataset.walkthroughView){s.walkthroughView=b.dataset.walkthroughView;if(s.walkthroughView==='attention')s.weightStage=0;save();render(s.walkthroughView==='attention'?'walkthroughAttention':'walkthroughContext');return;}
  if(b.dataset.weightQuery!==undefined||b.dataset.weightStage!==undefined){if(b.dataset.weightQuery!==undefined)s.weightQuery=Number(b.dataset.weightQuery);else s.weightStage=Number(b.dataset.weightStage);const focus=b.id;if(A('weightDialog').open)weightRender(focus);else{save();render(focus);}return;}
