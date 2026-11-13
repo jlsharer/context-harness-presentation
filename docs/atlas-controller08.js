@@ -201,7 +201,11 @@ function decode(search = location.search, hash = location.hash) {
       ],
       'start',
     ),
-    kitHarness: pick('target', ['opencode', 'claude', 'codex', 'portable'], 'opencode'),
+    kitHarness: pick(
+      'target',
+      ['opencode', 'claude', 'codex', 'portable'],
+      q.get('legacy') === '13' || window.ATLAS_LEGACY13 ? 'opencode' : 'claude',
+    ),
     selectedKits: q.has('kits')
       ? [
           ...new Set(
@@ -260,7 +264,7 @@ function save(push = false) {
       answer: 'correct',
       lever: 'reanchor',
       hook: 'start',
-      target: 'opencode',
+      target: s.legacy ? 'opencode' : 'claude',
       kits: 'focus,continuity',
       present: '',
     },
@@ -611,13 +615,32 @@ function routingRender(actor, focus) {
   if (focus) A(focus)?.focus();
 }
 
-function packageFilesRender(key, file, mode = 'read') {
+function packageFilesRender(key, file, mode = 'read', reveal = false) {
   const dialog = A('packageFilesDialog');
-  const previousScroll =
-    dialog.dataset.key === key
-      ? A('packageFilesBody').querySelector('.explorer-tree14')?.scrollTop || 0
-      : 0;
-  A('packageFilesBody').innerHTML = AtlasCatalog14.preview(AtlasModel.state, key, file, mode);
+  const previousView = A('packageFilesBody').querySelector('.file-explorer14');
+  const samePreview =
+    dialog.dataset.key === key &&
+    previousView?.dataset.previewHarness === AtlasModel.state.kitHarness;
+  const collapsed = new Set(
+    samePreview
+      ? [...previousView.querySelectorAll('details[data-preview-directory]:not([open])')].map(
+          (node) => node.dataset.previewDirectory,
+        )
+      : [],
+  );
+  if (reveal && file)
+    for (const directory of collapsed)
+      if (file.startsWith(directory + '/')) collapsed.delete(directory);
+  const previousScroll = samePreview
+    ? A('packageFilesBody').querySelector('.explorer-tree14')?.scrollTop || 0
+    : 0;
+  A('packageFilesBody').innerHTML = AtlasCatalog14.preview(
+    AtlasModel.state,
+    key,
+    file,
+    mode,
+    collapsed,
+  );
   dialog.dataset.key = key;
   const view = A('packageFilesBody').querySelector('[data-preview-path]');
   dialog.dataset.file = view?.dataset.previewPath || '';
@@ -636,6 +659,8 @@ document.addEventListener('click', async (event) => {
       b.dataset.previewFile ||
       b.dataset.previewRelative ||
       b.dataset.previewMode ||
+      b.hasAttribute('data-preview-expand-all') ||
+      b.hasAttribute('data-preview-collapse-all') ||
       b.id === 'copyPreviewFile14' ||
       b.dataset.catalogCategory ||
       b.dataset.catalogKind)
@@ -648,6 +673,13 @@ document.addEventListener('click', async (event) => {
       return;
     }
     const dialog = A('packageFilesDialog');
+    if (b.hasAttribute('data-preview-expand-all') || b.hasAttribute('data-preview-collapse-all')) {
+      for (const directory of A('packageFilesBody').querySelectorAll(
+        'details[data-preview-directory]',
+      ))
+        directory.open = b.hasAttribute('data-preview-expand-all');
+      return;
+    }
     if (b.dataset.previewRelative) {
       const candidate = new URL(
         b.dataset.previewRelative,
@@ -655,7 +687,7 @@ document.addEventListener('click', async (event) => {
       ).pathname.slice(1);
       const files = atlasPackageFiles14.manifests[s.kitHarness + ':' + dialog.dataset.key];
       if (files.some((f) => f.path === candidate))
-        packageFilesRender(dialog.dataset.key, candidate, 'read');
+        packageFilesRender(dialog.dataset.key, candidate, 'read', true);
       else A('atlasStatus').textContent = 'Reference is not part of this package preview.';
       return;
     }

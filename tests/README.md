@@ -191,3 +191,8 @@ The atlas entry runs the R12/R13 historical checks in explicit legacy mode and t
 The toolkit includes task/report draft templates, strict deterministic evidence helpers, repository setup references, workflow stage gates and scenario evaluations. Source-matched downloads are built with `python3 tools/build-context-kits.py`, `python3 tools/build-qa-workflow.py` and `node tools/build-package-previews.mjs`; `npm run packages:build` rebuilds all maintained downloads. Run formatting before rebuilding so previews/ZIPs match the formatted sources.
 
 Tests use temporary fixture projects/homes, never the owner's history or installed harness configuration. The QA scenario, call counts, token budgets, cache behavior and estimated API costs are authored teaching material. Schema/evidence coverage validation does not authenticate results. Native installed-client behavior, actual CI outcomes and accepted-task performance require trials in the user's approved environment.
+
+
+Claude package target and expandable explorer refinement
+
+R14 browser coverage now verifies the Claude default, actual ZIP download bytes and filename, retained OpenCode switching, native directory paths, per-folder and all-folder controls, keyboard expansion, collapse-state preservation, linked-reference reveal and mobile preview fit. `tests/context-kits-archive.py` extracts the downloadable ZIP and runs its installer twice in a temporary Claude project, checking delivered skills/resources, agents, hooks and CLAUDE.md without creating OpenCode files. This verifies package generation/installation, not execution inside an installed Claude client.

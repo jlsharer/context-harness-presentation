@@ -121,6 +121,25 @@ const root = path.resolve(__dirname, '../docs');
       'Empty package selection survives refresh',
     );
     await page.goto(base + '#recipes');
+    assert.equal(await page.locator('#kitHarness').inputValue(), 'claude');
+    assert.match(await page.locator('#installCommand').textContent(), /--harness claude/);
+    const kitDownload = page.locator('a[href="kits/context-kits.zip"]');
+    assert.match(await kitDownload.textContent(), /Claude Code/);
+    const downloaded = page.waitForEvent('download');
+    await kitDownload.click();
+    const archive = await downloaded;
+    assert.equal(archive.suggestedFilename(), 'context-kits-claude.zip');
+    assert.deepEqual(
+      await fs.readFile(await archive.path()),
+      await fs.readFile(path.join(root, 'kits/context-kits.zip')),
+    );
+    await page.locator('#kitHarness').selectOption('opencode');
+    assert.match(await page.locator('#installCommand').textContent(), /--harness opencode/);
+    await page.locator('[data-package-preview="bundle:focus"]').click();
+    assert.ok(await page.locator('[data-preview-directory=".opencode"]').count());
+    assert.equal(await page.locator('[data-preview-directory=".claude"]').count(), 0);
+    await page.keyboard.press('Escape');
+    await page.locator('#kitHarness').selectOption('claude');
     assert.equal(
       await page.locator('[data-technique-selection=workflow-coordinator]').isChecked(),
       false,
@@ -132,6 +151,44 @@ const root = path.resolve(__dirname, '../docs');
     await page.locator('[data-catalog-category=workflows]').click();
     assert.equal(await page.locator('[data-catalog-item]').count(), 3);
     await page.locator('[data-package-preview="technique:workflow-coordinator"]').click();
+    assert.equal(
+      await page.locator('.file-explorer14').getAttribute('data-preview-path'),
+      '.claude/skills/context-workflow/SKILL.md',
+    );
+    const referencesFolder = page.locator(
+      'details[data-preview-directory=".claude/skills/context-workflow/references"]',
+    );
+    assert.equal(await referencesFolder.count(), 1, 'Preview directories are interactive');
+    await referencesFolder.locator(':scope > summary').click();
+    assert.equal(await referencesFolder.getAttribute('open'), null);
+    assert.equal(
+      await page
+        .locator(
+          '[data-preview-file=".claude/skills/context-workflow/references/repository-setup.md"]',
+        )
+        .isVisible(),
+      false,
+    );
+    await page.locator('[data-preview-mode=source]').click();
+    assert.equal(
+      await referencesFolder.getAttribute('open'),
+      null,
+      'Collapsed folders survive file/mode changes',
+    );
+    await page.locator('[data-preview-expand-all]').click();
+    assert.equal(await page.locator('details[data-preview-directory]:not([open])').count(), 0);
+    await page.locator('[data-preview-collapse-all]').click();
+    assert.equal(await page.locator('details[data-preview-directory][open]').count(), 0);
+    const claudeFolder = page.locator('details[data-preview-directory=".claude"]');
+    await claudeFolder.locator(':scope > summary').focus();
+    await page.keyboard.press('Enter');
+    assert.notEqual(
+      await claudeFolder.getAttribute('open'),
+      null,
+      'Directory can be expanded with keyboard',
+    );
+    await page.locator('[data-preview-expand-all]').click();
+    await page.locator('[data-preview-mode=read]').click();
     assert.ok(
       (await page.locator('.file-explorer14').getAttribute('data-preview-path')).endsWith(
         '/context-workflow/SKILL.md',
@@ -150,7 +207,13 @@ const root = path.resolve(__dirname, '../docs');
       await page.locator('.markdown-preview14 pre code').textContent(),
     );
     await page.locator('[data-preview-mode=read]').click();
+    await referencesFolder.locator(':scope > summary').click();
     await page.locator('[data-preview-relative="references/repository-setup.md"]').click();
+    assert.notEqual(
+      await referencesFolder.getAttribute('open'),
+      null,
+      'Following a reference reveals its containing folder',
+    );
     assert.match(
       await page.locator('.file-explorer14').getAttribute('data-preview-path'),
       /references\/repository-setup.md$/,
@@ -229,6 +292,18 @@ const root = path.resolve(__dirname, '../docs');
       await page.setViewportSize({ width, height: 844 });
       for (const view of ['system', 'orchestration', 'automation', 'recipes', 'qa']) {
         await page.goto(base + `?step=16&orch=21#${view}`);
+        if (view === 'recipes') {
+          await page.locator('[data-package-preview="bundle:qa"]').click();
+          assert.ok(
+            await page
+              .locator('#packageFilesDialog')
+              .evaluate((e) => e.scrollWidth <= e.clientWidth + 1),
+            'Mobile file preview fits',
+          );
+          await page.locator('[data-preview-collapse-all]').click();
+          assert.equal(await page.locator('details[data-preview-directory][open]').count(), 0);
+          await page.keyboard.press('Escape');
+        }
         if (await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1))
           console.log(
             await page.locator('body *').evaluateAll((nodes) =>

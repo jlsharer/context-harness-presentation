@@ -51,7 +51,13 @@ const AtlasCatalog14 = {
   render(s) {
     const category = s.catalogCategory || 'bundles',
       kind = s.catalogKind || 'workflows',
-      selected = s.selectedTechniques;
+      selected = s.selectedTechniques,
+      harnessName = {
+        claude: 'Claude Code',
+        opencode: 'OpenCode',
+        codex: 'Codex',
+        portable: 'portable',
+      }[s.kitHarness];
     const command = selected.length
       ? `node install.mjs --harness ${s.kitHarness} --techniques ${selected.join(',')} --target /path/to/project`
       : 'Choose a bundle or standalone item.';
@@ -94,9 +100,9 @@ const AtlasCatalog14 = {
       <strong>Take a working pattern back to your harness.</strong>
       <p>Browse complete workflow and skill files, select a bundle or its parts, then preview the local install. Native hooks, protocols and helpers are labeled separately. Skills include operating references, templates and validators.</p>
       </div>
-      <label>Install target<select id="kitHarness">${[
-        ['opencode', 'OpenCode'],
+      <label>Download + preview target<select id="kitHarness">${[
         ['claude', 'Claude Code'],
+        ['opencode', 'OpenCode'],
         ['codex', 'Codex'],
         ['portable', 'Portable helpers'],
       ]
@@ -121,11 +127,12 @@ const AtlasCatalog14 = {
       <code id="installCommand">${AtlasContent.esc(command)}</code>
       <p>Download → extract → run the preview command → review local files → repeat with <code>--apply</code> when authorized. Parent checkboxes select a whole bundle; mixed means partial. Dependencies are included; removing one also removes dependent workflows. Legacy <code>--kits</code> commands still work.</p>
       <div>
-      <a href="kits/context-kits.zip" download>Download all package sources ↓</a>
+      <a href="kits/context-kits.zip" download="context-kits-${s.kitHarness}.zip">Download ${harnessName} install kit ↓</a>
       <button id="copyInstallCommand" ${!selected.length ? 'disabled' : ''}>Copy selected preview command</button>
       <button id="inspectPackageFiles14">Selection + support ↗</button>
       <button data-view="audit">Global Claude usage audit →</button>
       </div>
+      <p>The shared archive includes the installer and all package sources. The selected target controls the native paths in Preview files and the install command. Claude Code installs skills under <code>.claude/skills/</code>, selected agents/hooks under <code>.claude/</code>, and selected project guidance in <code>CLAUDE.md</code>.</p>
       <p>Claude: selected supported hooks/agents. OpenCode: paired continuity adapter or portable guidance. Codex: skills/protocols/helpers here. No permissions or telemetry export changes. The global audit package keeps its private local-report defaults.</p>
       </section>
       <p class="package-authoring14">Authoring basis: <a href="kits/qa/references/provenance.md" target="_blank" rel="noopener noreferrer">published practices and source examples ↗</a> · <a href="kits/README.md" target="_blank" rel="noopener noreferrer">installation and operating guide ↗</a>. Validate native behavior and accepted-task results in your own environment.</p>
@@ -270,7 +277,47 @@ const AtlasCatalog14 = {
     return out.join('\n');
   },
 
-  preview(s, key, requestedFile, mode = 'read') {
+  fileTree(manifest, selectedPath, collapsed) {
+    const root = new Map();
+    for (const file of manifest) {
+      const parts = file.path.split('/');
+      let children = root;
+      parts.forEach((name, depth) => {
+        if (depth === parts.length - 1) children.set(name, { name, file, depth });
+        else {
+          if (!children.has(name))
+            children.set(name, {
+              name,
+              path: parts.slice(0, depth + 1).join('/'),
+              depth,
+              children: new Map(),
+            });
+          children = children.get(name).children;
+        }
+      });
+    }
+
+    const render = (children) =>
+      [...children.values()]
+        .sort(
+          (a, b) =>
+            Number(Boolean(b.children)) - Number(Boolean(a.children)) ||
+            a.name.localeCompare(b.name),
+        )
+        .map((node) =>
+          node.children
+            ? `<details data-preview-directory="${AtlasContent.esc(node.path)}" ${collapsed.has(node.path) ? '' : 'open'}>
+        <summary class="explorer-folder14" style="--depth:${node.depth}">${AtlasContent.esc(node.name)}/</summary>
+        ${render(node.children)}</details>`
+            : `<button style="--depth:${node.depth}" data-preview-file="${AtlasContent.esc(node.file.path)}" aria-current="${node.file.path === selectedPath ? 'page' : 'false'}">
+        <span>${node.file.markdown ? 'M↓' : '{}'}</span>${AtlasContent.esc(node.name)}</button>`,
+        )
+        .join('');
+
+    return render(root);
+  },
+
+  preview(s, key, requestedFile, mode = 'read', collapsed = new Set()) {
     const manifest = atlasPackageFiles14.manifests[s.kitHarness + ':' + key];
     if (!manifest) return '<p>No preview is available for this selection.</p>';
     const [kind, id] = key.split(':');
@@ -282,32 +329,14 @@ const AtlasCatalog14 = {
         : null) ||
       manifest.find((f) => f.path.endsWith('/PROTOCOLS.md')) ||
       manifest[0];
-    const folders = new Set();
-    const tree = manifest
-      .map((file) => {
-        const parts = file.path.split('/');
-        let prefix = '',
-          html = '';
-        for (let i = 0; i < parts.length - 1; i++) {
-          prefix += (i ? '/' : '') + parts[i];
-          if (!folders.has(prefix)) {
-            folders.add(prefix);
-            html += `<div class="explorer-folder14" style="--depth:${i}">▾ ${AtlasContent.esc(parts[i])}/</div>`;
-          }
-        }
-        return (
-          html +
-          `<button style="--depth:${parts.length - 1}" data-preview-file="${AtlasContent.esc(file.path)}" aria-current="${file.path === selected.path ? 'page' : 'false'}">
-      <span>${file.markdown ? 'M↓' : '{}'}</span>${AtlasContent.esc(parts.at(-1))}</button>`
-        );
-      })
-      .join('');
+    const tree = this.fileTree(manifest, selected.path, collapsed);
     const source = atlasPackageFiles14.contents[selected.hash];
-    return `<div class="file-explorer14" data-preview-key="${key}" data-preview-path="${AtlasContent.esc(selected.path)}" data-preview-mode="${mode}">
+    return `<div class="file-explorer14" data-preview-harness="${s.kitHarness}" data-preview-key="${key}" data-preview-path="${AtlasContent.esc(selected.path)}" data-preview-mode="${mode}">
       <p class="explorer-scope14">Fresh-install example · ${AtlasContent.esc(s.kitHarness)} · this package + dependencies. <code>&lt;PROJECT&gt;</code> is a placeholder. Your existing private settings are merged locally and are never read by this browser.</p>
       <div class="explorer-layout14">
       <nav class="explorer-tree14" aria-label="Installed file solution explorer">
-      <h3>PROJECT / SOLUTION EXPLORER</h3>${tree}</nav>
+      <h3>PROJECT / SOLUTION EXPLORER</h3>
+      <div class="explorer-actions14"><button data-preview-expand-all>Expand all</button><button data-preview-collapse-all>Collapse all</button></div>${tree}</nav>
       <section class="explorer-editor14">
       <header>
       <strong>${AtlasContent.esc(selected.path)}</strong>
