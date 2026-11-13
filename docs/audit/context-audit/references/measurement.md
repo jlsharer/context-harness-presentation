@@ -1,0 +1,9 @@
+# Evaluate the optimization
+
+Compare representative QA tasks with equivalent acceptance criteria and recorded model/version, source selection, harness version and configuration. Keep a baseline before applying changes; retain install selection/manifest and report scope. Measure cost per accepted task alongside factual errors, regression-check quality, latency, repeated investigation and retained constraints. Include parent and worker requests, cache writes/reads, outputs and hook overhead. A cheaper request is not proof of a cheaper accepted result.
+
+The analyzer reads selected local history and existing OTel exports; it does not configure a collector or recover missing old metrics. Claude's native `/insights` provides complementary session-pattern analysis. Missing compaction events do not imply compaction was disabled. Observed repeated expensive model use does not classify the tasks as easy.
+
+For opt-in future native telemetry, consult https://code.claude.com/docs/en/monitoring-usage for your installed version. Enable only needed metrics/events, choose a local collector/export destination explicitly, and keep raw prompt/tool/request-body logging off unless separately required. The measurement package itself stores only lifecycle metadata. Never present that local event log as full per-request token/cost coverage. Costs are native/API estimates, separate from subscription billing.
+
+After installation, verify actual skill discovery and selected hooks in `/hooks`; run one successful long-output command, one failed command and a checkpoint/compaction/resume scenario appropriate to the selected packages. Confirm full artifacts are accessible, errors remain intact and current user intent supersedes stale checkpoints. Mark checks not-run if the installed runtime is unavailable. Report improvement only after evaluating the resulting accepted work; retain failures, not only successes.

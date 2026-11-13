@@ -1,0 +1,11 @@
+# Recommendation and selection contract
+
+Read catalog.json for exact package IDs, mechanisms, caveats and generated paths. Report evidence first, then rank findings by likely impact × evidence strength, followed by effort and workflow risk. Prefer directly observed repeat costs over speculative model substitution; do not assign invented dollar savings. Offer at most3–4 relevant choices per interaction, including defer, with further choices on demand. User can select packages beyond the automatically detected candidates with an explanation.
+
+Example AskUserQuestion (use the installed tool's actual schema): question “Which changes should I prepare?”, multiSelect true, options “Continuity: preserve task checkpoint”, “Evidence: capture tool metadata”, “Results: bound successful Bash output”, “Defer changes”. Explain effort, limits and why each is relevant. If defer is selected alongside packages, clarify intent before dependent writes. The initial skill bootstrap is distinct from installing runtime hooks. Routing is opt-in within workflow: installing that package adds worker definitions but the coordinator chooses whether to use them.
+
+Produce a small report table: finding; evidence file/line; confidence High/Medium/Low; candidate benefit; effort; tradeoff; selected package; validation. Confidence is confidence in the observed signal, not in savings or instruction-following. Missing coverage belongs at the top.
+
+Selection JSON accepted by the installer:
+`{"schema":1,"packages":["continuity","evidence"]}`.
+Prepare `install --selection FILE --out PREVIEW.json`. Preview contains exact before/after file contents, including settings changes; do not dump its entire JSON to the user. Present relevant added hooks, generated files, unchanged permissions and manifest/rollback behavior. User authorization can already cover the selected application; do not invent extra approval rounds. If it does not cover installation, ask after the concrete preview exists.

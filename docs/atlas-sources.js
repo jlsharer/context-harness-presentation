@@ -1,4 +1,5 @@
-const atlasSources = {
+'use strict';
+const atlasSources={
   "reviewedOn": "2026-11-12",
   "purpose": "Claim-level sources for the system-first presentation redesign; publication scope is preserved.",
   "sources": [
@@ -495,6 +496,33 @@ const atlasSources = {
       "locator": "Pricing: full request above272K; checked2026-11-12",
       "supports": "Standard API rates; input/cache2x and output1.5x for the full request above272K.",
       "limit": "API rates, not app subscription quotas or native harness context amounts."
+    },
+    {
+      "id": "claude-monitoring",
+      "title": "Claude Code Monitoring",
+      "url": "https://code.claude.com/docs/en/monitoring-usage",
+      "type": "official-documentation",
+      "locator": "Current documentation, checked2026-11-12",
+      "supports": "Per-request input/cache/output/cost fields, compaction and subagent completion scope.",
+      "limit": "Collection is opt-in/version-dependent; absent historical events cannot establish absence."
+    },
+    {
+      "id": "claude-skills",
+      "title": "Claude Code Skills",
+      "url": "https://code.claude.com/docs/en/skills",
+      "type": "official-documentation",
+      "locator": "Current documentation, checked2026-11-12",
+      "supports": "Custom commands merged into skills; progressive loading, stacking versus explicit workflows.",
+      "limit": "Loading several skill instructions does not enforce sequential validated execution."
+    },
+    {
+      "id": "claude-commands",
+      "title": "Claude Code Commands + insights",
+      "url": "https://code.claude.com/docs/en/commands",
+      "type": "official-documentation",
+      "locator": "Current documentation, checked2026-11-12",
+      "supports": "Native /insights recent session report and documented built-in commands.",
+      "limit": "Native reporting complements the candidate audit workflow; installed capabilities can differ."
     }
   ]
 };

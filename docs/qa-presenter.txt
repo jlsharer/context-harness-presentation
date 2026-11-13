@@ -1,0 +1,17 @@
+QA show & tell — 15–20 minutes
+Start: https://jlsharer.github.io/context-harness-presentation/atlas.html#qa
+Click Present for the live layout. QA footer returns to any of the3anchors. Full field guide exits the guided route.
+
+0–2min: “The model generates; context is the input for this call; the harness assembles it and manages tools, workflows and lifecycle boundaries.”
+One recognizable example: investigate retry failure while preserving tenant isolation and API. These are authored teaching examples, not a measured QA optimization experiment.
+
+2–7min: See context grow. Use footer presets Initial context → Bound successful results → Preserve a checkpoint. Point to the managed load-order rows and their techniques. Ask which work the team already repeats manually. Attention detail is optional; no weight is an instruction-compliance probability.
+
+7–11min: Automate the repetitive parts. Choose the team's familiar pain: reminders, logs, continuity or coordinating skills. Trace manual action → boundary/mechanism → artifact → outcome check. Claude already auto-compacts. Hooks have different powers; injection is not arbitrary history pruning.
+
+11–15min: Improve your own setup. Prepared sample:12 synthetic requests,1,008,000 accrued input,128,000 largest request. Each request countedonce: native usage excluded when OTel supplied. Read one finding, choose a package, inspect planned paths/hooks. Download skillZIP. Bootstrap /context-audit first; it analyzes chosen local evidence before recommending real changes. Actual installation remains a selected preview/apply workflow on the teammate's machine.
+
+15–20min: Follow questions. Delegation includes every parent/worker call; routing suitability must meet QA acceptance checks. Caching saves eligible computation, not input presence. Lifecycle map shows native capabilities. Rates/math/research are reference depth.
+
+Close: “Choose one repetitive action to automate, keep evidence of the change, and measure the accepted QA result.”
+Do not claim measured savings, real attention weights or verified native runtime behavior from synthetic/offline examples. No private history shipped. If pressed for an absent metric, explain what to capture rather than estimate it aszero.
